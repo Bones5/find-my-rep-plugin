@@ -2,6 +2,8 @@
 
 A WordPress plugin that creates a Gutenberg block for contacting local representatives via templated letters sent through Resend.
 
+![Plugin Frontend Preview](https://github.com/user-attachments/assets/2de0914e-01de-46a7-bbba-d1cd7b745ae8)
+
 ## Features
 
 - **Gutenberg Block**: Easy-to-use block that can be inserted on any page
