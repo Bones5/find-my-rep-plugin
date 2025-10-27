@@ -1,0 +1,30 @@
+{
+  "name": "find-my-rep-plugin",
+  "version": "1.0.0",
+  "description": "A WordPress plugin for contacting local representatives",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "wp-scripts build src/index.js src/frontend.js --output-path=build && cp src/style.css build/style.css",
+    "start": "wp-scripts start src/index.js src/frontend.js --output-path=build",
+    "lint:js": "wp-scripts lint-js src",
+    "format:js": "wp-scripts format-js src"
+  },
+  "keywords": [
+    "wordpress",
+    "gutenberg",
+    "block",
+    "representatives"
+  ],
+  "author": "Bones5",
+  "license": "GPL-2.0-or-later",
+  "devDependencies": {
+    "@wordpress/scripts": "^26.0.0"
+  },
+  "dependencies": {
+    "@wordpress/block-editor": "^12.0.0",
+    "@wordpress/blocks": "^12.0.0",
+    "@wordpress/components": "^25.0.0",
+    "@wordpress/element": "^5.0.0",
+    "@wordpress/i18n": "^4.0.0"
+  }
+}
