@@ -42,12 +42,19 @@ class Find_My_Rep_Plugin {
      * Register the Gutenberg block
      */
     public function register_block() {
+        // Load asset file for dependencies and version
+        $asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/index.asset.php';
+        if (!file_exists($asset_file_path)) {
+            return;
+        }
+        $asset_file = include($asset_file_path);
+        
         // Register block script
         wp_register_script(
             'find-my-rep-block-editor',
             FIND_MY_REP_PLUGIN_URL . 'build/index.js',
-            array('wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-i18n'),
-            FIND_MY_REP_VERSION
+            $asset_file['dependencies'],
+            $asset_file['version']
         );
         
         // Register block styles
@@ -79,12 +86,16 @@ class Find_My_Rep_Plugin {
         $block_id = !empty($attributes['blockId']) ? $attributes['blockId'] : 'block-' . uniqid();
         $letter_template = get_option('find_my_rep_letter_template', '');
         
+        // Load asset file for dependencies and version
+        $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.asset.php';
+        $frontend_asset_file = file_exists($frontend_asset_file_path) ? include($frontend_asset_file_path) : array('dependencies' => array(), 'version' => FIND_MY_REP_VERSION);
+        
         // Enqueue frontend script
         wp_enqueue_script(
             'find-my-rep-frontend',
             FIND_MY_REP_PLUGIN_URL . 'build/frontend.js',
-            array(),
-            FIND_MY_REP_VERSION,
+            $frontend_asset_file['dependencies'],
+            $frontend_asset_file['version'],
             true
         );
         

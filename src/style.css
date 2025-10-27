@@ -170,23 +170,19 @@
 
 /* WordPress spinner styles */
 .spinner {
-    background: url(../wp-admin/images/spinner.gif) no-repeat;
-    background-size: 20px 20px;
     display: inline-block;
     visibility: hidden;
     width: 20px;
     height: 20px;
     margin: 0;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #0073aa;
+    border-radius: 50%;
 }
 
 .spinner.is-active {
     visibility: visible;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    .spinner {
-        animation: rotation 1s infinite linear;
-    }
+    animation: rotation 1s infinite linear;
 }
 
 @keyframes rotation {
