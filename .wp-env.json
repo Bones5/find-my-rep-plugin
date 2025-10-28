@@ -1,0 +1,16 @@
+{
+  "core": "WordPress/WordPress#6.4",
+  "phpVersion": "8.0",
+  "plugins": [
+    "."
+  ],
+  "port": 8888,
+  "testsPort": 8889,
+  "config": {
+    "WP_DEBUG": true,
+    "SCRIPT_DEBUG": true
+  },
+  "mappings": {
+    "wp-content/plugins/find-my-rep-plugin": "."
+  }
+}
