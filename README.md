@@ -73,6 +73,7 @@ Sincerely,
 - Node.js and npm
 - WordPress 5.0+
 - PHP 7.0+
+- Docker (for running wp-env)
 
 ### Building from Source
 
@@ -86,6 +87,55 @@ npm run build
 ```bash
 npm start
 ```
+
+### Running E2E Tests
+
+This plugin includes end-to-end tests using wp-env and Playwright.
+
+#### Setup
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Install Playwright browsers:
+```bash
+npx playwright install
+```
+
+#### Running Tests
+
+1. Start the WordPress environment:
+```bash
+npm run env:start
+```
+
+2. Run the tests:
+```bash
+npm run test:e2e
+```
+
+3. Run tests in headed mode (see browser):
+```bash
+npm run test:e2e:headed
+```
+
+4. Debug tests:
+```bash
+npm run test:e2e:debug
+```
+
+5. Stop the WordPress environment when done:
+```bash
+npm run env:stop
+```
+
+#### Other wp-env Commands
+
+- Clean all data: `npm run env:clean`
+- Access WordPress at: `http://localhost:8888`
+- Admin credentials: `admin` / `password`
 
 ## API Response Format
 
