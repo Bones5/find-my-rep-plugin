@@ -2,6 +2,44 @@ import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
 
+function Edit( { attributes, setAttributes } ) {
+	const blockProps = useBlockProps();
+
+	if ( ! attributes.blockId ) {
+		setAttributes( { blockId: 'block-' + Date.now() } );
+	}
+
+	return (
+		<div { ...blockProps }>
+			<div
+				style={ {
+					padding: '20px',
+					border: '2px dashed #ccc',
+					borderRadius: '4px',
+					textAlign: 'center',
+					backgroundColor: '#f9f9f9',
+				} }
+			>
+				<h3>{ __( 'Find My Rep Contact Form', 'find-my-rep' ) }</h3>
+				<p>
+					{ __(
+						'This block will display a form for users to contact their local representatives.',
+						'find-my-rep'
+					) }
+				</p>
+				<p>
+					<strong>
+						{ __(
+							'Preview is only available on the frontend.',
+							'find-my-rep'
+						) }
+					</strong>
+				</p>
+			</div>
+		</div>
+	);
+}
+
 registerBlockType( 'find-my-rep/contact-block', {
 	title: __( 'Find My Rep Contact Form', 'find-my-rep' ),
 	description: __(
@@ -19,44 +57,7 @@ registerBlockType( 'find-my-rep/contact-block', {
 			default: '',
 		},
 	},
-	edit( { attributes, setAttributes } ) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const blockProps = useBlockProps();
-
-		if ( ! attributes.blockId ) {
-			setAttributes( { blockId: 'block-' + Date.now() } );
-		}
-
-		return (
-			<div { ...blockProps }>
-				<div
-					style={ {
-						padding: '20px',
-						border: '2px dashed #ccc',
-						borderRadius: '4px',
-						textAlign: 'center',
-						backgroundColor: '#f9f9f9',
-					} }
-				>
-					<h3>{ __( 'Find My Rep Contact Form', 'find-my-rep' ) }</h3>
-					<p>
-						{ __(
-							'This block will display a form for users to contact their local representatives.',
-							'find-my-rep'
-						) }
-					</p>
-					<p>
-						<strong>
-							{ __(
-								'Preview is only available on the frontend.',
-								'find-my-rep'
-							) }
-						</strong>
-					</p>
-				</div>
-			</div>
-		);
-	},
+	edit: Edit,
 	save: () => {
 		return null; // Dynamic block - rendered server-side
 	},
