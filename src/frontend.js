@@ -2,6 +2,7 @@
  * Frontend JavaScript for Find My Rep plugin
  */
 
+/* global findMyRepData, alert */
 ( function () {
 	'use strict';
 
@@ -63,23 +64,42 @@
 					postcode,
 				} ),
 			} )
-				.then( ( response ) => response.json() )
+				.then( ( response ) => {
+					// Check if HTTP request was successful
+					if ( ! response.ok ) {
+						throw new Error(
+							`HTTP error! status: ${ response.status }`
+						);
+					}
+					return response.json();
+				} )
 				.then( ( data ) => {
 					showLoading( false );
 
-					if ( data.success ) {
+					// Ensure data has expected structure
+					if (
+						typeof data !== 'object' ||
+						data === null ||
+						typeof data.success !== 'boolean'
+					) {
+						throw new Error( 'Invalid response format' );
+					}
+
+					if ( data.success && data.data ) {
 						displayRepresentatives( data.data );
 						showStep( 'select' );
 					} else {
-						showError(
-							data.data.message ||
-								'Failed to fetch representatives.'
-						);
+						const errorMsg =
+							data.data && data.data.message
+								? data.data.message
+								: 'Failed to fetch representatives.';
+						showError( errorMsg );
 					}
 				} )
 				.catch( ( error ) => {
 					showLoading( false );
 					showError( 'An error occurred. Please try again.' );
+					// eslint-disable-next-line no-console
 					console.error( 'Error:', error );
 				} );
 		} );
@@ -91,6 +111,7 @@
 			);
 
 			if ( checkboxes.length === 0 ) {
+				// eslint-disable-next-line no-alert
 				alert( 'Please select at least one representative.' );
 				return;
 			}
@@ -120,11 +141,13 @@
 			const letter = letterContent.value.trim();
 
 			if ( ! senderName || ! senderEmail || ! letter ) {
+				// eslint-disable-next-line no-alert
 				alert( 'Please fill in all fields.' );
 				return;
 			}
 
 			if ( ! isValidEmail( senderEmail ) ) {
+				// eslint-disable-next-line no-alert
 				alert( 'Please enter a valid email address.' );
 				return;
 			}
@@ -145,11 +168,28 @@
 					representatives: JSON.stringify( selectedReps ),
 				} ),
 			} )
-				.then( ( response ) => response.json() )
+				.then( ( response ) => {
+					// Check if HTTP request was successful
+					if ( ! response.ok ) {
+						throw new Error(
+							`HTTP error! status: ${ response.status }`
+						);
+					}
+					return response.json();
+				} )
 				.then( ( data ) => {
 					showLoading( false );
 
-					if ( data.success ) {
+					// Ensure data has expected structure
+					if (
+						typeof data !== 'object' ||
+						data === null ||
+						typeof data.success !== 'boolean'
+					) {
+						throw new Error( 'Invalid response format' );
+					}
+
+					if ( data.success && data.data ) {
 						successMessage.textContent = data.data.message;
 						successMessage.style.display = 'block';
 						sendBtn.style.display = 'none';
@@ -164,12 +204,19 @@
 							successMessage.appendChild( errorList );
 						}
 					} else {
-						alert( data.data.message || 'Failed to send letters.' );
+						const errorMsg =
+							data.data && data.data.message
+								? data.data.message
+								: 'Failed to send letters.';
+						// eslint-disable-next-line no-alert
+						alert( errorMsg );
 					}
 				} )
 				.catch( ( error ) => {
 					showLoading( false );
+					// eslint-disable-next-line no-alert
 					alert( 'An error occurred. Please try again.' );
+					// eslint-disable-next-line no-console
 					console.error( 'Error:', error );
 				} );
 		} );

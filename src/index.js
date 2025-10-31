@@ -19,7 +19,8 @@ registerBlockType( 'find-my-rep/contact-block', {
 			default: '',
 		},
 	},
-	edit: ( { attributes, setAttributes } ) => {
+	edit( { attributes, setAttributes } ) {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const blockProps = useBlockProps();
 
 		if ( ! attributes.blockId ) {
