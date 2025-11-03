@@ -4,8 +4,8 @@
   "description": "A WordPress plugin for contacting local representatives",
   "main": "build/index.js",
   "scripts": {
-    "build": "wp-scripts build src/index.js src/frontend.js --output-path=build && cp src/style.css build/style.css",
-    "start": "wp-scripts start src/index.js src/frontend.js --output-path=build",
+    "build": "wp-scripts build src/index.tsx src/frontend.tsx --output-path=build && cp src/style.css build/style.css",
+    "start": "wp-scripts start src/index.tsx src/frontend.tsx --output-path=build",
     "lint:js": "wp-scripts lint-js src",
     "format:js": "wp-scripts format-js src",
     "env:start": "wp-env start",
@@ -26,14 +26,24 @@
   "license": "GPL-2.0-or-later",
   "devDependencies": {
     "@playwright/test": "^1.56.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@types/wordpress__block-editor": "^14.21.1",
+    "@types/wordpress__blocks": "^12.5.18",
+    "@types/wordpress__components": "^23.0.12",
+    "@types/wordpress__element": "^2.4.1",
+    "@types/wordpress__i18n": "^3.4.0",
     "@wordpress/env": "^10.33.0",
-    "@wordpress/scripts": "^26.0.0"
+    "@wordpress/scripts": "^26.0.0",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@wordpress/block-editor": "^12.0.0",
     "@wordpress/blocks": "^12.0.0",
     "@wordpress/components": "^25.0.0",
     "@wordpress/element": "^5.0.0",
-    "@wordpress/i18n": "^4.0.0"
+    "@wordpress/i18n": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }
