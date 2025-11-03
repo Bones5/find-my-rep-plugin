@@ -276,20 +276,36 @@ class Find_My_Rep_Plugin {
         
         if (empty($api_url)) {
             wp_send_json_error(array('message' => __('API URL not configured.', 'find-my-rep')));
+            return;
         }
         
         // Make API request to get representatives
-        $response = wp_remote_get($api_url . '?postcode=' . urlencode($postcode));
+        $response = wp_remote_get($api_url . '/' . urlencode($postcode));
         
         if (is_wp_error($response)) {
             wp_send_json_error(array('message' => __('Failed to fetch representatives.', 'find-my-rep')));
+            return;
+        }
+        
+        // Check HTTP response code
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code !== 200) {
+            wp_send_json_error(array('message' => sprintf(__('API request failed with status code: %d', 'find-my-rep'), $response_code)));
+            return;
         }
         
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
         
+        // Check for JSON decode errors
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            wp_send_json_error(array('message' => __('Invalid response from API.', 'find-my-rep')));
+            return;
+        }
+        
         if (empty($data)) {
             wp_send_json_error(array('message' => __('No representatives found for this postcode.', 'find-my-rep')));
+            return;
         }
         
         wp_send_json_success($data);
@@ -309,6 +325,13 @@ class Find_My_Rep_Plugin {
         
         if (empty($resend_api_key)) {
             wp_send_json_error(array('message' => __('Resend API key not configured.', 'find-my-rep')));
+            return;
+        }
+        
+        // Validate that representatives were parsed correctly
+        if (!is_array($representatives) || empty($representatives)) {
+            wp_send_json_error(array('message' => __('Invalid representatives data.', 'find-my-rep')));
+            return;
         }
         
         $sent_count = 0;
@@ -344,12 +367,22 @@ class Find_My_Rep_Plugin {
             }
         }
         
-        if ($sent_count > 0) {
+        $total_count = count($representatives);
+        
+        if ($sent_count === $total_count) {
+            // All letters sent successfully
             wp_send_json_success(array(
-                'message' => sprintf(__('Successfully sent %d letter(s).', 'find-my-rep'), $sent_count),
-                'errors' => $errors
+                'message' => sprintf(__('Successfully sent %d letter(s).', 'find-my-rep'), $sent_count)
+            ));
+        } elseif ($sent_count > 0) {
+            // Partial success - some sent, some failed
+            wp_send_json_success(array(
+                'message' => sprintf(__('Successfully sent %d of %d letter(s).', 'find-my-rep'), $sent_count, $total_count),
+                'errors' => $errors,
+                'partial' => true
             ));
         } else {
+            // Complete failure
             wp_send_json_error(array(
                 'message' => __('Failed to send any letters.', 'find-my-rep'),
                 'errors' => $errors
