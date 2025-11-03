@@ -280,7 +280,7 @@ class Find_My_Rep_Plugin {
         }
         
         // Make API request to get representatives
-        $response = wp_remote_get($api_url . '?postcode=' . urlencode($postcode));
+        $response = wp_remote_get($api_url . '/' . urlencode($postcode));
         
         if (is_wp_error($response)) {
             wp_send_json_error(array('message' => __('Failed to fetch representatives.', 'find-my-rep')));
