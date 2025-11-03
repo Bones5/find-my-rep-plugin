@@ -41,25 +41,31 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 		<div className="find-my-rep-step step-select">
 			<h3>Select Representatives to Contact</h3>
 			<div className="representatives-list">
-				{ representatives.map( ( rep, index ) => (
-					<div key={ index } className="representative-item">
-						<input
-							type="checkbox"
-							id={ `rep-${ index }` }
-							checked={ selectedIds.has( index ) }
-							onChange={ () => handleCheckboxChange( index ) }
-						/>
-						<label htmlFor={ `rep-${ index }` }>
-							<strong>{ rep.name }</strong>
-							<br />
-							<em>
-								{ rep.title || rep.type || 'Representative' }
-							</em>
-							<br />
-							{ rep.email }
-						</label>
-					</div>
-				) ) }
+				{ representatives.map( ( rep, index ) => {
+					// Use email as unique key, fallback to index if email is missing
+					const key = rep.email || `rep-${ index }`;
+					return (
+						<div key={ key } className="representative-item">
+							<input
+								type="checkbox"
+								id={ `rep-${ index }` }
+								checked={ selectedIds.has( index ) }
+								onChange={ () => handleCheckboxChange( index ) }
+							/>
+							<label htmlFor={ `rep-${ index }` }>
+								<strong>{ rep.name }</strong>
+								<br />
+								<em>
+									{ rep.title ||
+										rep.type ||
+										'Representative' }
+								</em>
+								<br />
+								{ rep.email }
+							</label>
+						</div>
+					);
+				} ) }
 			</div>
 			<button
 				className="button button-primary continue-btn"

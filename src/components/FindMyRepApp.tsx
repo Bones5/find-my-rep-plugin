@@ -1,3 +1,8 @@
+/**
+ * Main application component for the Find My Rep plugin.
+ * Note: Uses alert() for error messages to maintain consistency with original implementation.
+ * Future enhancement: Replace with inline error messages or toast notifications.
+ */
 import React, { useState } from 'react';
 import type {
 	Representative,
