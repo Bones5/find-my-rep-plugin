@@ -68,6 +68,13 @@ Sincerely,
 
 ## Development
 
+### Technology Stack
+
+- **TypeScript**: Type-safe development with full type definitions
+- **React**: Modern component-based UI framework
+- **WordPress Blocks API**: Gutenberg block integration
+- **@wordpress/scripts**: Build tooling and linting
+
 ### Requirements
 
 - Node.js and npm
@@ -77,15 +84,56 @@ Sincerely,
 
 ### Building from Source
 
+The plugin is written in TypeScript and React. To build:
+
 ```bash
 npm install
 npm run build
 ```
 
+This compiles TypeScript/React code to JavaScript bundles in the `build/` directory.
+
 ### Development Mode
+
+For hot-reloading during development:
 
 ```bash
 npm start
+```
+
+### Code Architecture
+
+The plugin follows a modern React/TypeScript architecture:
+
+**Source Files (`src/`):**
+- `index.tsx` - Gutenberg block registration (editor view)
+- `frontend.tsx` - Frontend React app initialization
+- `types.ts` - TypeScript type definitions
+- `components/` - React components for the frontend UI
+  - `FindMyRepApp.tsx` - Main app container with state management
+  - `PostcodeStep.tsx` - Postcode input step
+  - `SelectStep.tsx` - Representative selection step
+  - `LetterStep.tsx` - Letter editing and submission step
+  - `LoadingSpinner.tsx` - Loading indicator component
+
+**Build Output (`build/`):**
+- `index.tsx.js` - Compiled block editor script
+- `frontend.tsx.js` - Compiled frontend React app
+- `*.asset.php` - WordPress asset files with dependencies
+- `style.css` - Plugin styles
+
+### Linting and Formatting
+
+Run linting checks:
+
+```bash
+npm run lint:js
+```
+
+Auto-fix linting issues:
+
+```bash
+npm run lint:js -- --fix
 ```
 
 ### Running E2E Tests
