@@ -221,36 +221,146 @@
 				} );
 		} );
 
-		function displayRepresentatives( reps ) {
+		function displayRepresentatives( data ) {
 			repsList.innerHTML = '';
 
-			if ( ! Array.isArray( reps ) ) {
-				reps = [ reps ];
+			// Handle the new nested data structure
+			let index = 0;
+
+			// Display councillors if present
+			if ( data.councillors && Array.isArray( data.councillors ) ) {
+				const councillorsSection = document.createElement( 'div' );
+				councillorsSection.className = 'representatives-section';
+
+				const councillorsHeading = document.createElement( 'h4' );
+				councillorsHeading.textContent = 'Local Councillors';
+				councillorsSection.appendChild( councillorsHeading );
+
+				data.councillors.forEach( ( councillor ) => {
+					const repDiv = createCouncillorItem( councillor, index );
+					councillorsSection.appendChild( repDiv );
+					index++;
+				} );
+
+				repsList.appendChild( councillorsSection );
 			}
 
-			reps.forEach( ( rep, index ) => {
-				const repDiv = document.createElement( 'div' );
-				repDiv.className = 'representative-item';
+			// Display PCC if present
+			if ( data.pcc ) {
+				const pccSection = document.createElement( 'div' );
+				pccSection.className = 'representatives-section';
 
-				const checkbox = document.createElement( 'input' );
-				checkbox.type = 'checkbox';
-				checkbox.id = 'rep-' + index;
-				checkbox.setAttribute( 'data-rep', JSON.stringify( rep ) );
+				const pccHeading = document.createElement( 'h4' );
+				pccHeading.textContent = 'Police and Crime Commissioner';
+				pccSection.appendChild( pccHeading );
 
-				const label = document.createElement( 'label' );
-				label.htmlFor = 'rep-' + index;
-				label.innerHTML = `
-                    <strong>${ escapeHtml( rep.name ) }</strong><br>
-                    <em>${ escapeHtml(
-						rep.title || rep.type || 'Representative'
-					) }</em><br>
-                    ${ rep.email ? escapeHtml( rep.email ) : '' }
-                `;
+				const pccDiv = createPCCItem( data.pcc, index );
+				pccSection.appendChild( pccDiv );
+				index++;
 
-				repDiv.appendChild( checkbox );
-				repDiv.appendChild( label );
-				repsList.appendChild( repDiv );
-			} );
+				repsList.appendChild( pccSection );
+			}
+
+			// Fallback for old data structure (flat array)
+			if ( ! data.councillors && ! data.pcc && Array.isArray( data ) ) {
+				data.forEach( ( rep ) => {
+					const repDiv = createGenericRepItem( rep, index );
+					repsList.appendChild( repDiv );
+					index++;
+				} );
+			}
+		}
+
+		function createCouncillorItem( councillor, index ) {
+			const repDiv = document.createElement( 'div' );
+			repDiv.className = 'representative-item councillor-item';
+
+			const checkbox = document.createElement( 'input' );
+			checkbox.type = 'checkbox';
+			checkbox.id = 'rep-' + index;
+			checkbox.setAttribute( 'data-rep', JSON.stringify( councillor ) );
+
+			const label = document.createElement( 'label' );
+			label.htmlFor = 'rep-' + index;
+			label.innerHTML = `
+                <strong>${ escapeHtml( councillor.name ) }</strong><br>
+                <em>${ escapeHtml(
+					councillor.party || 'Independent'
+				) }</em><br>
+                Ward: ${ escapeHtml( councillor.ward || 'N/A' ) }<br>
+                Council: ${ escapeHtml( councillor.council || 'N/A' ) }<br>
+                ${
+					councillor.email
+						? 'Email: ' + escapeHtml( councillor.email )
+						: ''
+				}
+                ${
+					councillor.phone
+						? '<br>Phone: ' + escapeHtml( councillor.phone )
+						: ''
+				}
+            `;
+
+			repDiv.appendChild( checkbox );
+			repDiv.appendChild( label );
+			return repDiv;
+		}
+
+		function createPCCItem( pcc, index ) {
+			const repDiv = document.createElement( 'div' );
+			repDiv.className = 'representative-item pcc-item';
+
+			const checkbox = document.createElement( 'input' );
+			checkbox.type = 'checkbox';
+			checkbox.id = 'rep-' + index;
+			checkbox.setAttribute( 'data-rep', JSON.stringify( pcc ) );
+
+			const label = document.createElement( 'label' );
+			label.htmlFor = 'rep-' + index;
+			label.innerHTML = `
+                <strong>${ escapeHtml( pcc.name ) }</strong><br>
+                <em>Police and Crime Commissioner</em><br>
+                Force: ${ escapeHtml( pcc.force || 'N/A' ) }<br>
+                Area: ${ escapeHtml( pcc.area || 'N/A' ) }<br>
+                ${ pcc.email ? 'Email: ' + escapeHtml( pcc.email ) : '' }
+                ${
+					pcc.website
+						? '<br>Website: <a href="' +
+						  escapeHtml( pcc.website ) +
+						  '" target="_blank">' +
+						  escapeHtml( pcc.website ) +
+						  '</a>'
+						: ''
+				}
+            `;
+
+			repDiv.appendChild( checkbox );
+			repDiv.appendChild( label );
+			return repDiv;
+		}
+
+		function createGenericRepItem( rep, index ) {
+			const repDiv = document.createElement( 'div' );
+			repDiv.className = 'representative-item';
+
+			const checkbox = document.createElement( 'input' );
+			checkbox.type = 'checkbox';
+			checkbox.id = 'rep-' + index;
+			checkbox.setAttribute( 'data-rep', JSON.stringify( rep ) );
+
+			const label = document.createElement( 'label' );
+			label.htmlFor = 'rep-' + index;
+			label.innerHTML = `
+                <strong>${ escapeHtml( rep.name ) }</strong><br>
+                <em>${ escapeHtml(
+					rep.title || rep.type || 'Representative'
+				) }</em><br>
+                ${ rep.email ? escapeHtml( rep.email ) : '' }
+            `;
+
+			repDiv.appendChild( checkbox );
+			repDiv.appendChild( label );
+			return repDiv;
 		}
 
 		function showStep( step ) {
