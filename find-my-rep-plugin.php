@@ -109,49 +109,7 @@ class Find_My_Rep_Plugin {
         ob_start();
         ?>
         <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>">
-            <div class="find-my-rep-step step-postcode">
-                <h3><?php esc_html_e('Find Your Representatives', 'find-my-rep'); ?></h3>
-                <label for="postcode-input">
-                    <?php esc_html_e('Enter your postcode:', 'find-my-rep'); ?>
-                </label>
-                <input type="text" id="postcode-input" class="postcode-input" placeholder="e.g. SW1A 1AA" />
-                <button class="button button-primary find-reps-btn">
-                    <?php esc_html_e('Find Representatives', 'find-my-rep'); ?>
-                </button>
-                <div class="error-message" style="display:none;"></div>
-            </div>
-            
-            <div class="find-my-rep-step step-select" style="display:none;">
-                <h3><?php esc_html_e('Select Representatives to Contact', 'find-my-rep'); ?></h3>
-                <div class="representatives-list"></div>
-                <button class="button button-primary continue-btn">
-                    <?php esc_html_e('Continue', 'find-my-rep'); ?>
-                </button>
-            </div>
-            
-            <div class="find-my-rep-step step-letter" style="display:none;">
-                <h3><?php esc_html_e('Review and Edit Your Letter', 'find-my-rep'); ?></h3>
-                <div class="letter-fields">
-                    <label for="sender-name">
-                        <?php esc_html_e('Your Name:', 'find-my-rep'); ?>
-                    </label>
-                    <input type="text" id="sender-name" class="sender-name" required />
-                    
-                    <label for="sender-email">
-                        <?php esc_html_e('Your Email:', 'find-my-rep'); ?>
-                    </label>
-                    <input type="email" id="sender-email" class="sender-email" required />
-                </div>
-                <textarea class="letter-content" rows="15"></textarea>
-                <button class="button button-primary send-btn">
-                    <?php esc_html_e('Send Letters', 'find-my-rep'); ?>
-                </button>
-                <div class="success-message" style="display:none;"></div>
-            </div>
-            
-            <div class="loading-spinner" style="display:none;">
-                <span class="spinner is-active"></span>
-            </div>
+            <!-- React app will be rendered here -->
         </div>
         <?php
         return ob_get_clean();
