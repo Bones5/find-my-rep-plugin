@@ -43,7 +43,7 @@ class Find_My_Rep_Plugin {
      */
     public function register_block() {
         // Load asset file for dependencies and version
-        $asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/index.asset.php';
+        $asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/index.tsx.asset.php';
         if (!file_exists($asset_file_path)) {
             return;
         }
@@ -52,7 +52,7 @@ class Find_My_Rep_Plugin {
         // Register block script
         wp_register_script(
             'find-my-rep-block-editor',
-            FIND_MY_REP_PLUGIN_URL . 'build/index.js',
+            FIND_MY_REP_PLUGIN_URL . 'build/index.tsx.js',
             $asset_file['dependencies'],
             $asset_file['version']
         );
@@ -87,13 +87,13 @@ class Find_My_Rep_Plugin {
         $letter_template = get_option('find_my_rep_letter_template', '');
         
         // Load asset file for dependencies and version
-        $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.asset.php';
+        $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.tsx.asset.php';
         $frontend_asset_file = file_exists($frontend_asset_file_path) ? include($frontend_asset_file_path) : array('dependencies' => array(), 'version' => FIND_MY_REP_VERSION);
         
         // Enqueue frontend script
         wp_enqueue_script(
             'find-my-rep-frontend',
-            FIND_MY_REP_PLUGIN_URL . 'build/frontend.js',
+            FIND_MY_REP_PLUGIN_URL . 'build/frontend.tsx.js',
             $frontend_asset_file['dependencies'],
             $frontend_asset_file['version'],
             true
@@ -106,53 +106,10 @@ class Find_My_Rep_Plugin {
             'letterTemplate' => $letter_template
         ));
         
+        // Return the container div - React will render the content
         ob_start();
         ?>
-        <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>">
-            <div class="find-my-rep-step step-postcode">
-                <h3><?php esc_html_e('Find Your Representatives', 'find-my-rep'); ?></h3>
-                <label for="postcode-input">
-                    <?php esc_html_e('Enter your postcode:', 'find-my-rep'); ?>
-                </label>
-                <input type="text" id="postcode-input" class="postcode-input" placeholder="e.g. SW1A 1AA" />
-                <button class="button button-primary find-reps-btn">
-                    <?php esc_html_e('Find Representatives', 'find-my-rep'); ?>
-                </button>
-                <div class="error-message" style="display:none;"></div>
-            </div>
-            
-            <div class="find-my-rep-step step-select" style="display:none;">
-                <h3><?php esc_html_e('Select Representatives to Contact', 'find-my-rep'); ?></h3>
-                <div class="representatives-list"></div>
-                <button class="button button-primary continue-btn">
-                    <?php esc_html_e('Continue', 'find-my-rep'); ?>
-                </button>
-            </div>
-            
-            <div class="find-my-rep-step step-letter" style="display:none;">
-                <h3><?php esc_html_e('Review and Edit Your Letter', 'find-my-rep'); ?></h3>
-                <div class="letter-fields">
-                    <label for="sender-name">
-                        <?php esc_html_e('Your Name:', 'find-my-rep'); ?>
-                    </label>
-                    <input type="text" id="sender-name" class="sender-name" required />
-                    
-                    <label for="sender-email">
-                        <?php esc_html_e('Your Email:', 'find-my-rep'); ?>
-                    </label>
-                    <input type="email" id="sender-email" class="sender-email" required />
-                </div>
-                <textarea class="letter-content" rows="15"></textarea>
-                <button class="button button-primary send-btn">
-                    <?php esc_html_e('Send Letters', 'find-my-rep'); ?>
-                </button>
-                <div class="success-message" style="display:none;"></div>
-            </div>
-            
-            <div class="loading-spinner" style="display:none;">
-                <span class="spinner is-active"></span>
-            </div>
-        </div>
+        <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>"></div>
         <?php
         return ob_get_clean();
     }

@@ -1,8 +1,14 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
+import type { BlockAttributes } from './types';
 
-function Edit( { attributes, setAttributes } ) {
+interface EditProps {
+	attributes: BlockAttributes;
+	setAttributes: ( attributes: Partial< BlockAttributes > ) => void;
+}
+
+function Edit( { attributes, setAttributes }: EditProps ) {
 	const blockProps = useBlockProps();
 
 	if ( ! attributes.blockId ) {
@@ -40,7 +46,7 @@ function Edit( { attributes, setAttributes } ) {
 	);
 }
 
-registerBlockType( 'find-my-rep/contact-block', {
+registerBlockType< BlockAttributes >( 'find-my-rep/contact-block', {
 	title: __( 'Find My Rep Contact Form', 'find-my-rep' ),
 	description: __(
 		'A block for contacting local representatives via templated letters.',
