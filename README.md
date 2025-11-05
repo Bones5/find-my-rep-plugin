@@ -191,30 +191,73 @@ The Representatives API should return data in the following format:
 
 ```json
 {
-  "geographic_info": {
-    "area": "Area Name",
-    "ward": "Ward Name",
-    "westminster_constituency": "Westminster Constituency",
-    "devolved_constituency": "Devolved Constituency"
-  },
-  "representatives": [
+  "postcode": "SW1A 1AA",
+  "councillors": [
     {
-      "name": "Representative Name",
-      "email": "rep@example.com",
-      "title": "Member of Parliament",
-      "type": "MP"
-    },
-    {
-      "name": "Another Rep",
-      "email": "rep2@example.com",
-      "title": "Local Councillor",
-      "type": "Councillor"
+      "id": 1,
+      "name": "John Smith",
+      "party": "Conservative",
+      "ward": "St James's",
+      "council": "Westminster City Council",
+      "email": "john.smith@westminster.gov.uk",
+      "phone": "020 7641 6000"
     }
-  ]
+  ],
+  "pcc": {
+    "id": 1,
+    "name": "Sir Mark Rowley",
+    "force": "Metropolitan Police",
+    "area": "Greater London",
+    "email": "mopac@london.gov.uk",
+    "website": "https://www.london.gov.uk/mopac"
+  },
+  "mp": {
+    "id": 1,
+    "name": "Nickie Aiken",
+    "party": "Conservative",
+    "constituency": "Cities of London and Westminster",
+    "email": "nickie.aiken.mp@parliament.uk",
+    "phone": "020 7219 3000",
+    "website": "https://www.nickieaiken.org.uk"
+  },
+  "ms": {
+    "id": 1,
+    "name": "Joel James",
+    "party": "Conservative",
+    "constituency": "Cardiff Central",
+    "email": "joel.james@senedd.wales",
+    "phone": "0300 200 5555",
+    "website": "https://www.senedd.wales"
+  },
+  "areaInfo": {
+    "constituency": {
+      "id": 65659,
+      "name": "Cities of London and Westminster",
+      "code": "E14000639"
+    },
+    "localAuthority": {
+      "id": 2247,
+      "name": "Westminster",
+      "type": "London borough",
+      "code": "E09000033"
+    },
+    "ward": {
+      "id": 144393,
+      "name": "St James's",
+      "type": "London borough ward",
+      "code": "E05000644"
+    },
+    "region": {
+      "id": 2247,
+      "name": "London",
+      "type": "Government Office Region",
+      "code": "E12000007"
+    }
+  }
 }
 ```
 
-Geographic information is displayed to users before the list of representatives. See `API-INTEGRATION.md` for detailed documentation.
+The plugin automatically transforms this response into an internal format for display. Geographic information is extracted from `areaInfo` and displayed to users before the list of representatives. See `API-INTEGRATION.md` for detailed documentation.
 
 ## License
 

@@ -21,67 +21,185 @@ GET https://api.example.com/representatives?postcode=SW1A1AA
 
 ## API Response Format
 
-Your API should return data in the following format with geographic information:
+Your API should return data in the following format:
+
+```json
+{
+  "postcode": "SW1A 1AA",
+  "councillors": [
+    {
+      "id": 1,
+      "name": "John Smith",
+      "party": "Conservative",
+      "ward": "St James's",
+      "council": "Westminster City Council",
+      "email": "john.smith@westminster.gov.uk",
+      "phone": "020 7641 6000"
+    },
+    {
+      "id": 2,
+      "name": "Jane Doe",
+      "party": "Labour",
+      "ward": "St James's",
+      "council": "Westminster City Council",
+      "email": "jane.doe@westminster.gov.uk",
+      "phone": "020 7641 6000"
+    }
+  ],
+  "pcc": {
+    "id": 1,
+    "name": "Sir Mark Rowley",
+    "force": "Metropolitan Police",
+    "area": "Greater London",
+    "email": "mopac@london.gov.uk",
+    "website": "https://www.london.gov.uk/mopac"
+  },
+  "mp": {
+    "id": 1,
+    "name": "Nickie Aiken",
+    "party": "Conservative",
+    "constituency": "Cities of London and Westminster",
+    "email": "nickie.aiken.mp@parliament.uk",
+    "phone": "020 7219 3000",
+    "website": "https://www.nickieaiken.org.uk"
+  },
+  "ms": {
+    "id": 1,
+    "name": "Joel James",
+    "party": "Conservative",
+    "constituency": "Cardiff Central",
+    "email": "joel.james@senedd.wales",
+    "phone": "0300 200 5555",
+    "website": "https://www.senedd.wales"
+  },
+  "areaInfo": {
+    "constituency": {
+      "id": 65659,
+      "name": "Cities of London and Westminster",
+      "code": "E14000639"
+    },
+    "localAuthority": {
+      "id": 2247,
+      "name": "Westminster",
+      "type": "London borough",
+      "code": "E09000033"
+    },
+    "ward": {
+      "id": 144393,
+      "name": "St James's",
+      "type": "London borough ward",
+      "code": "E05000644"
+    },
+    "region": {
+      "id": 2247,
+      "name": "London",
+      "type": "Government Office Region",
+      "code": "E12000007"
+    }
+  }
+}
+```
+
+**Top-Level Fields:**
+- `postcode` (required): The postcode that was queried
+- `councillors` (optional): Array of local councillors
+- `pcc` (optional): Police and Crime Commissioner (single object)
+- `mp` (optional): Member of Parliament (single object)
+- `ms` (optional): Member of the Senedd for Wales (single object)
+- `areaInfo` (optional): Geographic information about the area
+
+**Councillor Fields:**
+- `id` (required): Unique identifier for the councillor
+- `name` (required): The councillor's full name
+- `party` (required): Political party
+- `ward` (required): Electoral ward
+- `council` (required): Council name
+- `email` (required): Email address
+- `phone` (required): Phone number
+
+**PCC Fields:**
+- `id` (required): Unique identifier
+- `name` (required): Full name
+- `force` (required): Police force name
+- `area` (required): Area covered
+- `email` (required): Email address
+- `website` (required): Website URL
+
+**MP Fields:**
+- `id` (required): Unique identifier
+- `name` (required): Full name
+- `party` (required): Political party
+- `constituency` (required): Parliamentary constituency
+- `email` (required): Email address
+- `phone` (required): Phone number
+- `website` (required): Website URL
+
+**MS Fields (for Wales):**
+- `id` (required): Unique identifier
+- `name` (required): Full name
+- `party` (required): Political party
+- `constituency` (required): Senedd constituency
+- `email` (required): Email address
+- `phone` (required): Phone number
+- `website` (required): Website URL
+
+**AreaInfo Fields:**
+- `constituency` (optional): Westminster constituency information
+  - `id`: Unique identifier
+  - `name`: Constituency name
+  - `code`: Official constituency code
+- `localAuthority` (optional): Local authority information
+  - `id`: Unique identifier
+  - `name`: Authority name
+  - `type`: Type of authority (e.g., "London borough")
+  - `code`: Official authority code
+- `ward` (optional): Electoral ward information
+  - `id`: Unique identifier
+  - `name`: Ward name
+  - `type`: Type of ward
+  - `code`: Official ward code
+- `region` (optional): Regional information
+  - `id`: Unique identifier
+  - `name`: Region name
+  - `type`: Type of region
+  - `code`: Official region code
+
+### Minimal Response
+
+At minimum, your API should return the postcode and at least one representative:
+
+```json
+{
+  "postcode": "SW1A 1AA",
+  "mp": {
+    "id": 1,
+    "name": "Representative Name",
+    "party": "Party Name",
+    "constituency": "Constituency Name",
+    "email": "email@example.com",
+    "phone": "020 1234 5678",
+    "website": "https://example.com"
+  }
+}
+```
+
+### Backwards Compatibility
+
+The plugin also supports the legacy response format for backwards compatibility:
 
 ```json
 {
   "geographic_info": {
     "area": "Example Area",
     "ward": "Example Ward",
-    "westminster_constituency": "Example Westminster Constituency",
-    "devolved_constituency": "Example Senedd/Holyrood Constituency"
+    "westminster_constituency": "Example Westminster Constituency"
   },
   "representatives": [
     {
-      "name": "John Smith",
-      "email": "john.smith@parliament.uk",
-      "title": "Member of Parliament for Example Constituency",
-      "type": "MP"
-    },
-    {
-      "name": "Jane Doe",
-      "email": "jane.doe@senedd.wales",
-      "title": "Member of the Senedd for Example Region",
-      "type": "MS"
-    },
-    {
-      "name": "Robert Johnson",
-      "email": "robert.johnson@localcouncil.gov.uk",
-      "title": "Councillor for Example Ward",
-      "type": "Councillor"
-    },
-    {
-      "name": "Sarah Williams",
-      "email": "sarah.williams@police.uk",
-      "title": "Police and Crime Commissioner",
-      "type": "PCC"
-    }
-  ]
-}
-```
-
-**Geographic Info Fields (all optional):**
-- `area`: The general area name (e.g., local authority, district)
-- `ward`: The electoral ward name
-- `westminster_constituency`: The UK Parliament constituency name
-- `devolved_constituency`: The devolved assembly constituency (e.g., Senedd constituency for Wales, Holyrood constituency for Scotland)
-
-**Representative Fields:**
-- `name` (required): The representative's full name
-- `email` (required): The representative's email address
-- `title` (optional): The representative's title (e.g., "Member of Parliament")
-- `type` (optional): The type of representative (e.g., "MP", "MS", "Councillor", "PCC")
-
-### Minimal Response
-
-At minimum, your API should return the object format with just name and email:
-
-```json
-{
-  "representatives": [
-    {
       "name": "Representative Name",
-      "email": "email@example.com"
+      "email": "email@example.com",
+      "title": "Representative Title",
+      "type": "MP"
     }
   ]
 }
