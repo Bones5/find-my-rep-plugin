@@ -42,36 +42,11 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 	return (
 		<div className="find-my-rep-step step-select">
 			<h3>Select Representatives to Contact</h3>
-			{ geographicInfo && (
-				<div className="geographic-info">
-					{ geographicInfo.area && (
-						<div className="geographic-item">
-							<strong>Area:</strong> { geographicInfo.area }
-						</div>
-					) }
-					{ geographicInfo.ward && (
-						<div className="geographic-item">
-							<strong>Ward:</strong> { geographicInfo.ward }
-						</div>
-					) }
-					{ geographicInfo.westminster_constituency && (
-						<div className="geographic-item">
-							<strong>Westminster Constituency:</strong>{ ' ' }
-							{ geographicInfo.westminster_constituency }
-						</div>
-					) }
-					{ geographicInfo.devolved_constituency && (
-						<div className="geographic-item">
-							<strong>Devolved Constituency:</strong>{ ' ' }
-							{ geographicInfo.devolved_constituency }
-						</div>
-					) }
-				</div>
-			) }
 			<div className="representatives-list">
 				{ representatives.map( ( rep, index ) => {
 					// Use email as unique key, fallback to index if email is missing
 					const key = rep.email || `rep-${ index }`;
+					const repType = rep.type || rep.title || 'Representative';
 					return (
 						<div key={ key } className="representative-item">
 							<input
@@ -81,15 +56,48 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 								onChange={ () => handleCheckboxChange( index ) }
 							/>
 							<label htmlFor={ `rep-${ index }` }>
-								<strong>{ rep.name }</strong>
-								<br />
-								<em>
-									{ rep.title ||
-										rep.type ||
-										'Representative' }
-								</em>
-								<br />
-								{ rep.email }
+								<div className="rep-type-title">
+									{ repType }
+								</div>
+								{ geographicInfo && (
+									<div className="rep-geographic-info">
+										{ geographicInfo.area && (
+											<span className="geo-detail">
+												{ geographicInfo.area }
+											</span>
+										) }
+										{ geographicInfo.ward && (
+											<span className="geo-detail">
+												{ geographicInfo.ward }
+											</span>
+										) }
+										{ geographicInfo.westminster_constituency && (
+											<span className="geo-detail">
+												{
+													geographicInfo.westminster_constituency
+												}
+											</span>
+										) }
+										{ geographicInfo.devolved_constituency && (
+											<span className="geo-detail">
+												{
+													geographicInfo.devolved_constituency
+												}
+											</span>
+										) }
+									</div>
+								) }
+								<div className="rep-details">
+									<strong>{ rep.name }</strong>
+									{ rep.title && (
+										<div className="rep-title-detail">
+											{ rep.title }
+										</div>
+									) }
+									<div className="rep-email">
+										{ rep.email }
+									</div>
+								</div>
 							</label>
 						</div>
 					);

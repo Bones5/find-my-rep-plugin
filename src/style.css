@@ -92,25 +92,6 @@
     border-left: 4px solid #007017;
 }
 
-.geographic-info {
-    background: #f0f6fc;
-    padding: 20px;
-    border-radius: 4px;
-    margin-bottom: 25px;
-    border-left: 4px solid #0073aa;
-}
-
-.geographic-item {
-    padding: 8px 0;
-    font-size: 15px;
-    color: #333;
-}
-
-.geographic-item strong {
-    color: #0073aa;
-    font-weight: 600;
-}
-
 .representatives-list {
     margin-bottom: 20px;
 }
@@ -135,22 +116,72 @@
     width: 18px;
     height: 18px;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .representative-item label {
     flex: 1;
     cursor: pointer;
     margin-bottom: 0;
+    font-weight: normal;
 }
 
-.representative-item label strong {
+.rep-type-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0073aa;
+    margin-bottom: 8px;
+}
+
+.rep-geographic-info {
+    background: #f0f6fc;
+    padding: 8px 12px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.rep-geographic-info .geo-detail {
+    display: inline-block;
+    margin-right: 12px;
+}
+
+.rep-geographic-info .geo-detail:last-child {
+    margin-right: 0;
+}
+
+.rep-geographic-info .geo-detail::after {
+    content: " • ";
+    margin-left: 12px;
+    color: #999;
+}
+
+.rep-geographic-info .geo-detail:last-child::after {
+    content: "";
+    margin-left: 0;
+}
+
+.rep-details {
+    font-size: 14px;
+}
+
+.rep-details strong {
     color: #333;
     font-size: 16px;
+    display: block;
+    margin-bottom: 4px;
 }
 
-.representative-item label em {
+.rep-title-detail {
     color: #666;
-    font-size: 14px;
+    font-style: italic;
+    margin-bottom: 4px;
+}
+
+.rep-email {
+    color: #555;
 }
 
 .letter-fields {
