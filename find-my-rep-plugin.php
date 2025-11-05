@@ -304,45 +304,53 @@ class Find_My_Rep_Plugin {
         // Transform MP
         if (isset($data['mp']) && !empty($data['mp'])) {
             $mp = $data['mp'];
-            $representatives[] = array(
-                'name' => $mp['name'],
-                'email' => $mp['email'],
-                'title' => 'Member of Parliament for ' . $mp['constituency'],
-                'type' => 'MP'
-            );
+            if (isset($mp['name']) && isset($mp['email']) && isset($mp['constituency'])) {
+                $representatives[] = array(
+                    'name' => $mp['name'],
+                    'email' => $mp['email'],
+                    'title' => 'Member of Parliament for ' . $mp['constituency'],
+                    'type' => 'MP'
+                );
+            }
         }
         
         // Transform MS (Member of the Senedd)
         if (isset($data['ms']) && !empty($data['ms'])) {
             $ms = $data['ms'];
-            $representatives[] = array(
-                'name' => $ms['name'],
-                'email' => $ms['email'],
-                'title' => 'Member of the Senedd for ' . $ms['constituency'],
-                'type' => 'MS'
-            );
+            if (isset($ms['name']) && isset($ms['email']) && isset($ms['constituency'])) {
+                $representatives[] = array(
+                    'name' => $ms['name'],
+                    'email' => $ms['email'],
+                    'title' => 'Member of the Senedd for ' . $ms['constituency'],
+                    'type' => 'MS'
+                );
+            }
         }
         
         // Transform PCC (Police and Crime Commissioner)
         if (isset($data['pcc']) && !empty($data['pcc'])) {
             $pcc = $data['pcc'];
-            $representatives[] = array(
-                'name' => $pcc['name'],
-                'email' => $pcc['email'],
-                'title' => 'Police and Crime Commissioner',
-                'type' => 'PCC'
-            );
+            if (isset($pcc['name']) && isset($pcc['email'])) {
+                $representatives[] = array(
+                    'name' => $pcc['name'],
+                    'email' => $pcc['email'],
+                    'title' => 'Police and Crime Commissioner',
+                    'type' => 'PCC'
+                );
+            }
         }
         
         // Transform Councillors
         if (isset($data['councillors']) && is_array($data['councillors'])) {
             foreach ($data['councillors'] as $councillor) {
-                $representatives[] = array(
-                    'name' => $councillor['name'],
-                    'email' => $councillor['email'],
-                    'title' => 'Councillor for ' . $councillor['ward'],
-                    'type' => 'Councillor'
-                );
+                if (isset($councillor['name']) && isset($councillor['email']) && isset($councillor['ward'])) {
+                    $representatives[] = array(
+                        'name' => $councillor['name'],
+                        'email' => $councillor['email'],
+                        'title' => 'Councillor for ' . $councillor['ward'],
+                        'type' => 'Councillor'
+                    );
+                }
             }
         }
         
