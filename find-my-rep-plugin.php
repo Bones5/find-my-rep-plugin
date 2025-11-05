@@ -341,7 +341,7 @@ class Find_My_Rep_Plugin {
         }
         
         // Transform Councillors
-        if (isset($data['councillors']) && is_array($data['councillors'])) {
+        if (isset($data['councillors']) && !empty($data['councillors']) && is_array($data['councillors'])) {
             foreach ($data['councillors'] as $councillor) {
                 if (isset($councillor['name']) && isset($councillor['email']) && isset($councillor['ward'])) {
                     $representatives[] = array(
