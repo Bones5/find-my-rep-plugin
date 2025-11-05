@@ -61,9 +61,8 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( { blockId } ) => {
 				throw new Error( `HTTP error! status: ${ response.status }` );
 			}
 
-			const data: WPAjaxResponse<
-				Representative[] | RepresentativesResponse | ErrorData
-			> = await response.json();
+			const data: WPAjaxResponse< RepresentativesResponse | ErrorData > =
+				await response.json();
 
 			if (
 				typeof data !== 'object' ||
@@ -74,7 +73,6 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( { blockId } ) => {
 			}
 
 			if ( data.success ) {
-				// Handle new format with geographic_info
 				if (
 					typeof data.data === 'object' &&
 					data.data !== null &&
@@ -83,12 +81,6 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( { blockId } ) => {
 					const responseData = data.data as RepresentativesResponse;
 					setRepresentatives( responseData.representatives );
 					setGeographicInfo( responseData.geographic_info );
-					setCurrentStep( 'select' );
-				}
-				// Handle old format (array of representatives)
-				else if ( Array.isArray( data.data ) ) {
-					setRepresentatives( data.data );
-					setGeographicInfo( undefined );
 					setCurrentStep( 'select' );
 				} else {
 					const errorData = data.data as ErrorData;

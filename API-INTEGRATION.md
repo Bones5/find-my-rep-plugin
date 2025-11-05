@@ -21,11 +21,7 @@ GET https://api.example.com/representatives?postcode=SW1A1AA
 
 ## API Response Format
 
-The plugin supports two response formats for backward compatibility.
-
-### Enhanced Format (Recommended)
-
-The enhanced format includes geographic information that will be displayed to users:
+Your API should return data in the following format with geographic information:
 
 ```json
 {
@@ -76,32 +72,10 @@ The enhanced format includes geographic information that will be displayed to us
 - `title` (optional): The representative's title (e.g., "Member of Parliament")
 - `type` (optional): The type of representative (e.g., "MP", "MS", "Councillor", "PCC")
 
-### Legacy Format (Still Supported)
-
-For backward compatibility, the plugin still supports the simple array format:
-
-```json
-[
-  {
-    "name": "John Smith",
-    "email": "john.smith@parliament.uk",
-    "title": "Member of Parliament for Example Constituency",
-    "type": "MP"
-  },
-  {
-    "name": "Jane Doe",
-    "email": "jane.doe@senedd.wales",
-    "title": "Member of the Senedd for Example Region",
-    "type": "MS"
-  }
-]
-```
-
 ### Minimal Response
 
-At minimum, your API should return either format with just name and email:
+At minimum, your API should return the object format with just name and email:
 
-**Enhanced format:**
 ```json
 {
   "representatives": [
@@ -113,21 +87,11 @@ At minimum, your API should return either format with just name and email:
 }
 ```
 
-**Legacy format:**
-```json
-[
-  {
-    "name": "Representative Name",
-    "email": "email@example.com"
-  }
-]
-```
-
 ## Error Handling
 
 If no representatives are found or an error occurs:
 
-- Return an empty array: `[]`
+- Return an empty representatives array: `{"representatives": []}`
 - Or return an appropriate HTTP error code (404, 500, etc.)
 
 The plugin will display an appropriate error message to the user.

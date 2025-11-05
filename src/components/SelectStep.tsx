@@ -46,14 +46,12 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 				<div className="geographic-info">
 					{ geographicInfo.area && (
 						<div className="geographic-item">
-							<strong>Area:</strong>{ ' ' }
-							{ geographicInfo.area }
+							<strong>Area:</strong> { geographicInfo.area }
 						</div>
 					) }
 					{ geographicInfo.ward && (
 						<div className="geographic-item">
-							<strong>Ward:</strong>{ ' ' }
-							{ geographicInfo.ward }
+							<strong>Ward:</strong> { geographicInfo.ward }
 						</div>
 					) }
 					{ geographicInfo.westminster_constituency && (
