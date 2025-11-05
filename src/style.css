@@ -92,6 +92,25 @@
     border-left: 4px solid #007017;
 }
 
+.geographic-info {
+    background: #f0f6fc;
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 25px;
+    border-left: 4px solid #0073aa;
+}
+
+.geographic-item {
+    padding: 8px 0;
+    font-size: 15px;
+    color: #333;
+}
+
+.geographic-item strong {
+    color: #0073aa;
+    font-weight: 600;
+}
+
 .representatives-list {
     margin-bottom: 20px;
 }

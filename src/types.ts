@@ -17,6 +17,20 @@ export interface Representative {
 	type?: string;
 }
 
+// Geographic location data
+export interface GeographicInfo {
+	area?: string;
+	ward?: string;
+	westminster_constituency?: string;
+	devolved_constituency?: string;
+}
+
+// API Response for representatives with geographic info
+export interface RepresentativesResponse {
+	geographic_info?: GeographicInfo;
+	representatives: Representative[];
+}
+
 // API Response structures
 export interface WPAjaxResponse< T > {
 	success: boolean;

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import type { Representative } from '../types';
+import type { Representative, GeographicInfo } from '../types';
 
 interface SelectStepProps {
 	representatives: Representative[];
+	geographicInfo?: GeographicInfo;
 	onContinue: ( selectedReps: Representative[] ) => void;
 }
 
 export const SelectStep: React.FC< SelectStepProps > = ( {
 	representatives,
+	geographicInfo,
 	onContinue,
 } ) => {
 	const [ selectedIds, setSelectedIds ] = useState< Set< number > >(
@@ -40,6 +42,32 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 	return (
 		<div className="find-my-rep-step step-select">
 			<h3>Select Representatives to Contact</h3>
+			{ geographicInfo && (
+				<div className="geographic-info">
+					{ geographicInfo.area && (
+						<div className="geographic-item">
+							<strong>Area:</strong> { geographicInfo.area }
+						</div>
+					) }
+					{ geographicInfo.ward && (
+						<div className="geographic-item">
+							<strong>Ward:</strong> { geographicInfo.ward }
+						</div>
+					) }
+					{ geographicInfo.westminster_constituency && (
+						<div className="geographic-item">
+							<strong>Westminster Constituency:</strong>{ ' ' }
+							{ geographicInfo.westminster_constituency }
+						</div>
+					) }
+					{ geographicInfo.devolved_constituency && (
+						<div className="geographic-item">
+							<strong>Devolved Constituency:</strong>{ ' ' }
+							{ geographicInfo.devolved_constituency }
+						</div>
+					) }
+				</div>
+			) }
 			<div className="representatives-list">
 				{ representatives.map( ( rep, index ) => {
 					// Use email as unique key, fallback to index if email is missing
