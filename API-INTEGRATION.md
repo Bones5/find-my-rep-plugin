@@ -21,14 +21,64 @@ GET https://api.example.com/representatives?postcode=SW1A1AA
 
 ## API Response Format
 
-Your API should return a JSON array of representative objects. Each object should include:
+The plugin supports two response formats for backward compatibility.
 
+### Enhanced Format (Recommended)
+
+The enhanced format includes geographic information that will be displayed to users:
+
+```json
+{
+  "geographic_info": {
+    "area": "Example Area",
+    "ward": "Example Ward",
+    "westminster_constituency": "Example Westminster Constituency",
+    "devolved_constituency": "Example Senedd/Holyrood Constituency"
+  },
+  "representatives": [
+    {
+      "name": "John Smith",
+      "email": "john.smith@parliament.uk",
+      "title": "Member of Parliament for Example Constituency",
+      "type": "MP"
+    },
+    {
+      "name": "Jane Doe",
+      "email": "jane.doe@senedd.wales",
+      "title": "Member of the Senedd for Example Region",
+      "type": "MS"
+    },
+    {
+      "name": "Robert Johnson",
+      "email": "robert.johnson@localcouncil.gov.uk",
+      "title": "Councillor for Example Ward",
+      "type": "Councillor"
+    },
+    {
+      "name": "Sarah Williams",
+      "email": "sarah.williams@police.uk",
+      "title": "Police and Crime Commissioner",
+      "type": "PCC"
+    }
+  ]
+}
+```
+
+**Geographic Info Fields (all optional):**
+- `area`: The general area name (e.g., local authority, district)
+- `ward`: The electoral ward name
+- `westminster_constituency`: The UK Parliament constituency name
+- `devolved_constituency`: The devolved assembly constituency (e.g., Senedd constituency for Wales, Holyrood constituency for Scotland)
+
+**Representative Fields:**
 - `name` (required): The representative's full name
 - `email` (required): The representative's email address
 - `title` (optional): The representative's title (e.g., "Member of Parliament")
 - `type` (optional): The type of representative (e.g., "MP", "MS", "Councillor", "PCC")
 
-### Example Response
+### Legacy Format (Still Supported)
+
+For backward compatibility, the plugin still supports the simple array format:
 
 ```json
 [
@@ -43,26 +93,27 @@ Your API should return a JSON array of representative objects. Each object shoul
     "email": "jane.doe@senedd.wales",
     "title": "Member of the Senedd for Example Region",
     "type": "MS"
-  },
-  {
-    "name": "Robert Johnson",
-    "email": "robert.johnson@localcouncil.gov.uk",
-    "title": "Councillor for Example Ward",
-    "type": "Councillor"
-  },
-  {
-    "name": "Sarah Williams",
-    "email": "sarah.williams@police.uk",
-    "title": "Police and Crime Commissioner",
-    "type": "PCC"
   }
 ]
 ```
 
 ### Minimal Response
 
-At minimum, your API should return:
+At minimum, your API should return either format with just name and email:
 
+**Enhanced format:**
+```json
+{
+  "representatives": [
+    {
+      "name": "Representative Name",
+      "email": "email@example.com"
+    }
+  ]
+}
+```
+
+**Legacy format:**
 ```json
 [
   {

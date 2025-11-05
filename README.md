@@ -187,7 +187,36 @@ npm run env:stop
 
 ## API Response Format
 
-The Representatives API should return data in the following format:
+The Representatives API can return data in either of two formats:
+
+**Enhanced format with geographic information (recommended):**
+
+```json
+{
+  "geographic_info": {
+    "area": "Area Name",
+    "ward": "Ward Name",
+    "westminster_constituency": "Westminster Constituency",
+    "devolved_constituency": "Devolved Constituency"
+  },
+  "representatives": [
+    {
+      "name": "Representative Name",
+      "email": "rep@example.com",
+      "title": "Member of Parliament",
+      "type": "MP"
+    },
+    {
+      "name": "Another Rep",
+      "email": "rep2@example.com",
+      "title": "Local Councillor",
+      "type": "Councillor"
+    }
+  ]
+}
+```
+
+**Legacy format (still supported):**
 
 ```json
 [
@@ -196,15 +225,11 @@ The Representatives API should return data in the following format:
     "email": "rep@example.com",
     "title": "Member of Parliament",
     "type": "MP"
-  },
-  {
-    "name": "Another Rep",
-    "email": "rep2@example.com",
-    "title": "Local Councillor",
-    "type": "Councillor"
   }
 ]
 ```
+
+When using the enhanced format, geographic information is displayed to users before the list of representatives. See `API-INTEGRATION.md` for detailed documentation.
 
 ## License
 
