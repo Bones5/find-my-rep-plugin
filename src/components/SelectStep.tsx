@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import type { Representative } from '../types';
+import type { Representative, GeographicInfo } from '../types';
 
 interface SelectStepProps {
 	representatives: Representative[];
+	geographicInfo?: GeographicInfo;
 	onContinue: ( selectedReps: Representative[] ) => void;
 }
 
 export const SelectStep: React.FC< SelectStepProps > = ( {
 	representatives,
+	geographicInfo,
 	onContinue,
 } ) => {
 	const [ selectedIds, setSelectedIds ] = useState< Set< number > >(
@@ -44,6 +46,7 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 				{ representatives.map( ( rep, index ) => {
 					// Use email as unique key, fallback to index if email is missing
 					const key = rep.email || `rep-${ index }`;
+					const repType = rep.type || rep.title || 'Representative';
 					return (
 						<div key={ key } className="representative-item">
 							<input
@@ -53,15 +56,48 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 								onChange={ () => handleCheckboxChange( index ) }
 							/>
 							<label htmlFor={ `rep-${ index }` }>
-								<strong>{ rep.name }</strong>
-								<br />
-								<em>
-									{ rep.title ||
-										rep.type ||
-										'Representative' }
-								</em>
-								<br />
-								{ rep.email }
+								<div className="rep-type-title">
+									{ repType }
+								</div>
+								{ geographicInfo && (
+									<div className="rep-geographic-info">
+										{ geographicInfo.area && (
+											<span className="geo-detail">
+												{ geographicInfo.area }
+											</span>
+										) }
+										{ geographicInfo.ward && (
+											<span className="geo-detail">
+												{ geographicInfo.ward }
+											</span>
+										) }
+										{ geographicInfo.westminster_constituency && (
+											<span className="geo-detail">
+												{
+													geographicInfo.westminster_constituency
+												}
+											</span>
+										) }
+										{ geographicInfo.devolved_constituency && (
+											<span className="geo-detail">
+												{
+													geographicInfo.devolved_constituency
+												}
+											</span>
+										) }
+									</div>
+								) }
+								<div className="rep-details">
+									<strong>{ rep.name }</strong>
+									{ rep.title && (
+										<div className="rep-title-detail">
+											{ rep.title }
+										</div>
+									) }
+									<div className="rep-email">
+										{ rep.email }
+									</div>
+								</div>
 							</label>
 						</div>
 					);

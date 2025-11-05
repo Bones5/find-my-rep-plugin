@@ -9,6 +9,8 @@ import type {
 	WPAjaxResponse,
 	ErrorData,
 	SuccessData,
+	GeographicInfo,
+	RepresentativesResponse,
 } from '../types';
 import { PostcodeStep } from './PostcodeStep';
 import { SelectStep } from './SelectStep';
@@ -29,6 +31,9 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( { blockId } ) => {
 	const [ selectedReps, setSelectedReps ] = useState< Representative[] >(
 		[]
 	);
+	const [ geographicInfo, setGeographicInfo ] = useState<
+		GeographicInfo | undefined
+	>( undefined );
 	const [ error, setError ] = useState< string >( '' );
 	const [ success, setSuccess ] = useState< string >( '' );
 	const [ loading, setLoading ] = useState( false );
@@ -56,7 +61,7 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( { blockId } ) => {
 				throw new Error( `HTTP error! status: ${ response.status }` );
 			}
 
-			const data: WPAjaxResponse< Representative[] | ErrorData > =
+			const data: WPAjaxResponse< RepresentativesResponse | ErrorData > =
 				await response.json();
 
 			if (
@@ -67,9 +72,22 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( { blockId } ) => {
 				throw new Error( 'Invalid response format' );
 			}
 
-			if ( data.success && Array.isArray( data.data ) ) {
-				setRepresentatives( data.data );
-				setCurrentStep( 'select' );
+			if ( data.success ) {
+				if (
+					typeof data.data === 'object' &&
+					data.data !== null &&
+					'representatives' in data.data
+				) {
+					const responseData = data.data as RepresentativesResponse;
+					setRepresentatives( responseData.representatives );
+					setGeographicInfo( responseData.geographic_info );
+					setCurrentStep( 'select' );
+				} else {
+					const errorData = data.data as ErrorData;
+					setError(
+						errorData?.message || 'Failed to fetch representatives.'
+					);
+				}
 			} else {
 				const errorData = data.data as ErrorData;
 				setError(
@@ -163,6 +181,7 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( { blockId } ) => {
 			{ currentStep === 'select' && (
 				<SelectStep
 					representatives={ representatives }
+					geographicInfo={ geographicInfo }
 					onContinue={ handleContinue }
 				/>
 			) }

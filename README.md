@@ -190,21 +190,31 @@ npm run env:stop
 The Representatives API should return data in the following format:
 
 ```json
-[
-  {
-    "name": "Representative Name",
-    "email": "rep@example.com",
-    "title": "Member of Parliament",
-    "type": "MP"
+{
+  "geographic_info": {
+    "area": "Area Name",
+    "ward": "Ward Name",
+    "westminster_constituency": "Westminster Constituency",
+    "devolved_constituency": "Devolved Constituency"
   },
-  {
-    "name": "Another Rep",
-    "email": "rep2@example.com",
-    "title": "Local Councillor",
-    "type": "Councillor"
-  }
-]
+  "representatives": [
+    {
+      "name": "Representative Name",
+      "email": "rep@example.com",
+      "title": "Member of Parliament",
+      "type": "MP"
+    },
+    {
+      "name": "Another Rep",
+      "email": "rep2@example.com",
+      "title": "Local Councillor",
+      "type": "Councillor"
+    }
+  ]
+}
 ```
+
+Geographic information is displayed to users before the list of representatives. See `API-INTEGRATION.md` for detailed documentation.
 
 ## License
 
