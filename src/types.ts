@@ -9,7 +9,7 @@ export interface FindMyRepData {
 	letterTemplate: string;
 }
 
-// Representative data structure
+// Representative data structure (internal, normalized format)
 export interface Representative {
 	name: string;
 	email: string;
@@ -17,7 +17,7 @@ export interface Representative {
 	type?: string;
 }
 
-// Geographic location data
+// Geographic location data (legacy format, still used internally)
 export interface GeographicInfo {
 	area?: string;
 	ward?: string;
@@ -25,7 +25,71 @@ export interface GeographicInfo {
 	devolved_constituency?: string;
 }
 
-// API Response for representatives with geographic info
+// New API Response structures
+export interface Councillor {
+	id: number;
+	name: string;
+	party: string;
+	ward: string;
+	council: string;
+	email: string;
+	phone: string;
+}
+
+export interface PCC {
+	id: number;
+	name: string;
+	force: string;
+	area: string;
+	email: string;
+	website: string;
+}
+
+export interface MP {
+	id: number;
+	name: string;
+	party: string;
+	constituency: string;
+	email: string;
+	phone: string;
+	website: string;
+}
+
+export interface MS {
+	id: number;
+	name: string;
+	party: string;
+	constituency: string;
+	email: string;
+	phone: string;
+	website: string;
+}
+
+export interface AreaInfoDetail {
+	id: number;
+	name: string;
+	code: string;
+	type?: string;
+}
+
+export interface AreaInfo {
+	constituency?: AreaInfoDetail;
+	localAuthority?: AreaInfoDetail;
+	ward?: AreaInfoDetail;
+	region?: AreaInfoDetail;
+}
+
+// API Response for representatives (new format from external API)
+export interface ExternalApiResponse {
+	postcode: string;
+	councillors?: Councillor[];
+	pcc?: PCC;
+	mp?: MP;
+	ms?: MS;
+	areaInfo?: AreaInfo;
+}
+
+// API Response for representatives with geographic info (internal format)
 export interface RepresentativesResponse {
 	geographic_info?: GeographicInfo;
 	representatives: Representative[];

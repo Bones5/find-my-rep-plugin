@@ -265,7 +265,99 @@ class Find_My_Rep_Plugin {
             return;
         }
         
-        wp_send_json_success($data);
+        // Transform new API format to internal format
+        $transformed_data = $this->transform_api_response($data);
+        
+        wp_send_json_success($transformed_data);
+    }
+    
+    /**
+     * Transform new API response format to internal format
+     */
+    private function transform_api_response($data) {
+        // Check if data is already in old format (backwards compatibility)
+        if (isset($data['representatives']) && is_array($data['representatives'])) {
+            return $data;
+        }
+        
+        // Transform new format to internal format
+        $representatives = array();
+        $geographic_info = array();
+        
+        // Extract area information from areaInfo
+        if (isset($data['areaInfo'])) {
+            $area_info = $data['areaInfo'];
+            
+            if (isset($area_info['localAuthority']['name'])) {
+                $geographic_info['area'] = $area_info['localAuthority']['name'];
+            }
+            
+            if (isset($area_info['ward']['name'])) {
+                $geographic_info['ward'] = $area_info['ward']['name'];
+            }
+            
+            if (isset($area_info['constituency']['name'])) {
+                $geographic_info['westminster_constituency'] = $area_info['constituency']['name'];
+            }
+        }
+        
+        // Transform MP
+        if (isset($data['mp']) && !empty($data['mp'])) {
+            $mp = $data['mp'];
+            if (isset($mp['name']) && isset($mp['email']) && isset($mp['constituency'])) {
+                $representatives[] = array(
+                    'name' => $mp['name'],
+                    'email' => $mp['email'],
+                    'title' => 'Member of Parliament for ' . $mp['constituency'],
+                    'type' => 'MP'
+                );
+            }
+        }
+        
+        // Transform MS (Member of the Senedd)
+        if (isset($data['ms']) && !empty($data['ms'])) {
+            $ms = $data['ms'];
+            if (isset($ms['name']) && isset($ms['email']) && isset($ms['constituency'])) {
+                $representatives[] = array(
+                    'name' => $ms['name'],
+                    'email' => $ms['email'],
+                    'title' => 'Member of the Senedd for ' . $ms['constituency'],
+                    'type' => 'MS'
+                );
+            }
+        }
+        
+        // Transform PCC (Police and Crime Commissioner)
+        if (isset($data['pcc']) && !empty($data['pcc'])) {
+            $pcc = $data['pcc'];
+            if (isset($pcc['name']) && isset($pcc['email'])) {
+                $representatives[] = array(
+                    'name' => $pcc['name'],
+                    'email' => $pcc['email'],
+                    'title' => 'Police and Crime Commissioner',
+                    'type' => 'PCC'
+                );
+            }
+        }
+        
+        // Transform Councillors
+        if (isset($data['councillors']) && !empty($data['councillors']) && is_array($data['councillors'])) {
+            foreach ($data['councillors'] as $councillor) {
+                if (isset($councillor['name']) && isset($councillor['email']) && isset($councillor['ward'])) {
+                    $representatives[] = array(
+                        'name' => $councillor['name'],
+                        'email' => $councillor['email'],
+                        'title' => 'Councillor for ' . $councillor['ward'],
+                        'type' => 'Councillor'
+                    );
+                }
+            }
+        }
+        
+        return array(
+            'geographic_info' => $geographic_info,
+            'representatives' => $representatives
+        );
     }
     
     /**
