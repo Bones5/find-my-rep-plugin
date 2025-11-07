@@ -21,9 +21,13 @@ type Step = 'postcode' | 'select' | 'letter';
 
 interface FindMyRepAppProps {
 	blockId: string;
+	perBlockTemplate: string;
 }
 
-export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( { blockId } ) => {
+export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
+	blockId,
+	perBlockTemplate,
+} ) => {
 	const [ currentStep, setCurrentStep ] = useState< Step >( 'postcode' );
 	const [ representatives, setRepresentatives ] = useState<
 		Representative[]
@@ -39,6 +43,9 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( { blockId } ) => {
 	const [ loading, setLoading ] = useState( false );
 
 	const { ajaxUrl, nonce, letterTemplate } = window.findMyRepData;
+
+	// Use per-block template if available, otherwise use global template
+	const effectiveTemplate = perBlockTemplate || letterTemplate;
 
 	const handleFindReps = async ( postcode: string ) => {
 		setLoading( true );
@@ -188,7 +195,7 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( { blockId } ) => {
 			{ currentStep === 'letter' && (
 				<LetterStep
 					selectedReps={ selectedReps }
-					letterTemplate={ letterTemplate }
+					letterTemplate={ effectiveTemplate }
 					onSend={ handleSend }
 					loading={ loading }
 					success={ success }

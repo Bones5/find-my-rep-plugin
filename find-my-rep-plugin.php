@@ -74,6 +74,10 @@ class Find_My_Rep_Plugin {
                 'blockId' => array(
                     'type' => 'string',
                     'default' => ''
+                ),
+                'letterTemplate' => array(
+                    'type' => 'string',
+                    'default' => ''
                 )
             )
         ));
@@ -85,6 +89,7 @@ class Find_My_Rep_Plugin {
     public function render_block($attributes) {
         $block_id = !empty($attributes['blockId']) ? $attributes['blockId'] : 'block-' . uniqid();
         $letter_template = get_option('find_my_rep_letter_template', '');
+        $per_block_template = !empty($attributes['letterTemplate']) ? $attributes['letterTemplate'] : '';
         
         // Load asset file for dependencies and version
         $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.tsx.asset.php';
@@ -109,7 +114,7 @@ class Find_My_Rep_Plugin {
         // Return the container div - React will render the content
         ob_start();
         ?>
-        <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>"></div>
+        <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>" data-letter-template="<?php echo esc_attr($per_block_template); ?>"></div>
         <?php
         return ob_get_clean();
     }
