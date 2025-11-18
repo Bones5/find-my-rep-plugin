@@ -1,95 +1,112 @@
 /**
  * Styles for Find My Rep plugin
+ * Theme-compatible styling that inherits from active WordPress theme
  */
 
 .find-my-rep-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    padding: 1.25rem;
+    font-family: inherit;
 }
 
 .find-my-rep-step {
-    background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    background: var(--wp--preset--color--base, #fff);
+    padding: clamp(1.5rem, 4vw, 2rem);
+    border-radius: var(--wp--custom--spacing--small, 0.5rem);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
 }
 
 .find-my-rep-step h3 {
     margin-top: 0;
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 24px;
+    margin-bottom: 1.25rem;
+    color: inherit;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    font-weight: inherit;
 }
 
 .find-my-rep-step label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
     font-weight: 500;
-    color: #555;
+    color: inherit;
 }
 
 .postcode-input,
 .sender-name,
 .sender-email {
     width: 100%;
-    max-width: 400px;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    margin-bottom: 15px;
+    max-width: 25rem;
+    padding: 0.625rem 1rem;
+    border: 1px solid var(--wp--preset--color--contrast, currentColor);
+    border-radius: var(--wp--custom--spacing--small, 0.25rem);
+    font-size: inherit;
+    font-family: inherit;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+    background-color: var(--wp--preset--color--base, #fff);
+    color: inherit;
+    opacity: 0.9;
 }
 
 .postcode-input:focus,
 .sender-name:focus,
 .sender-email:focus,
 .letter-content:focus {
-    outline: none;
-    border-color: #0073aa;
-    box-shadow: 0 0 0 1px #0073aa;
+    outline: 2px solid var(--wp--preset--color--primary, currentColor);
+    outline-offset: 2px;
+    border-color: var(--wp--preset--color--primary, currentColor);
+    opacity: 1;
 }
 
 .button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
+    padding: 0.75rem 1.5rem;
+    border: 2px solid var(--wp--preset--color--primary, currentColor);
+    border-radius: var(--wp--custom--spacing--small, 0.25rem);
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
 }
 
 .button-primary {
-    background: #0073aa;
-    color: #fff;
+    background: var(--wp--preset--color--primary, #000);
+    color: var(--wp--preset--color--base, #fff);
+    border-color: var(--wp--preset--color--primary, #000);
 }
 
-.button-primary:hover {
-    background: #005a87;
+.button-primary:hover,
+.button-primary:focus {
+    background: var(--wp--preset--color--contrast, #000);
+    border-color: var(--wp--preset--color--contrast, #000);
+    opacity: 0.9;
 }
 
 .button-primary:active {
-    background: #004668;
+    opacity: 0.8;
+    transform: scale(0.98);
 }
 
 .error-message {
-    color: #d63638;
-    background: #fcf0f1;
-    padding: 12px 16px;
-    border-radius: 4px;
-    margin-top: 15px;
-    border-left: 4px solid #d63638;
+    color: #b32d2e;
+    background: rgba(179, 45, 46, 0.08);
+    padding: 1rem;
+    border-radius: var(--wp--custom--spacing--small, 0.25rem);
+    margin-top: 1rem;
+    border-left: 4px solid currentColor;
 }
 
 .success-message {
-    color: #007017;
-    background: #ecf7ed;
-    padding: 12px 16px;
-    border-radius: 4px;
-    margin-top: 15px;
-    border-left: 4px solid #007017;
+    color: #1a7f37;
+    background: rgba(26, 127, 55, 0.08);
+    padding: 1rem;
+    border-radius: var(--wp--custom--spacing--small, 0.25rem);
+    margin-top: 1rem;
+    border-left: 4px solid currentColor;
 }
 
 .representatives-list {
@@ -99,24 +116,28 @@
 .representative-item {
     display: flex;
     align-items: flex-start;
-    padding: 15px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--wp--preset--color--contrast, currentColor);
+    border-radius: var(--wp--custom--spacing--small, 0.25rem);
+    transition: all 0.2s ease;
+    background-color: transparent;
+    opacity: 0.9;
 }
 
 .representative-item:hover {
-    background-color: #f9f9f9;
+    opacity: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .representative-item input[type="checkbox"] {
-    margin-right: 15px;
-    margin-top: 5px;
-    width: 18px;
-    height: 18px;
+    margin-right: 1rem;
+    margin-top: 0.25rem;
+    width: 1.125rem;
+    height: 1.125rem;
     cursor: pointer;
     flex-shrink: 0;
+    accent-color: var(--wp--preset--color--primary, currentColor);
 }
 
 .representative-item label {
@@ -127,20 +148,21 @@
 }
 
 .rep-type-title {
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 700;
-    color: #0073aa;
-    margin-bottom: 8px;
+    color: var(--wp--preset--color--primary, inherit);
+    margin-bottom: 0.5rem;
 }
 
 .rep-geographic-info {
-    background: #f0f6fc;
-    padding: 8px 12px;
-    border-radius: 3px;
-    margin-bottom: 10px;
-    font-size: 13px;
-    color: #555;
-    line-height: 1.6;
+    background: var(--wp--preset--color--contrast, currentColor);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--wp--custom--spacing--small, 0.25rem);
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--wp--preset--color--base, #fff);
+    line-height: 1.5;
+    opacity: 0.8;
 }
 
 .rep-geographic-info .geo-detail {
@@ -164,24 +186,27 @@
 }
 
 .rep-details {
-    font-size: 14px;
+    font-size: 0.9375rem;
 }
 
 .rep-details strong {
-    color: #333;
-    font-size: 16px;
+    color: inherit;
+    font-size: 1.0625rem;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
 }
 
 .rep-title-detail {
-    color: #666;
+    color: inherit;
     font-style: italic;
-    margin-bottom: 4px;
+    margin-bottom: 0.25rem;
+    opacity: 0.8;
 }
 
 .rep-email {
-    color: #555;
+    color: inherit;
+    opacity: 0.7;
 }
 
 .letter-fields {
@@ -198,14 +223,18 @@
 
 .letter-content {
     width: 100%;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 1rem;
+    border: 1px solid var(--wp--preset--color--contrast, currentColor);
+    border-radius: var(--wp--custom--spacing--small, 0.25rem);
+    font-size: inherit;
     font-family: inherit;
     line-height: 1.6;
-    margin-bottom: 15px;
+    margin-bottom: 1rem;
     resize: vertical;
+    box-sizing: border-box;
+    background-color: var(--wp--preset--color--base, #fff);
+    color: inherit;
+    opacity: 0.9;
 }
 
 .loading-spinner {
@@ -222,12 +251,13 @@
 .spinner {
     display: inline-block;
     visibility: hidden;
-    width: 20px;
-    height: 20px;
+    width: 1.25rem;
+    height: 1.25rem;
     margin: 0;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #0073aa;
+    border: 3px solid var(--wp--preset--color--contrast, currentColor);
+    border-top: 3px solid var(--wp--preset--color--primary, currentColor);
     border-radius: 50%;
+    opacity: 0.3;
 }
 
 .spinner.is-active {
@@ -247,16 +277,31 @@
 /* Responsive styles */
 @media (max-width: 768px) {
     .find-my-rep-container {
-        padding: 10px;
+        padding: 1rem;
     }
     
     .find-my-rep-step {
-        padding: 20px;
+        padding: 1.25rem;
     }
     
     .postcode-input,
     .sender-name,
     .sender-email {
         max-width: 100%;
+    }
+}
+
+/* Ensure theme compatibility */
+.find-my-rep-container * {
+    box-sizing: border-box;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    .button,
+    .representative-item,
+    .spinner {
+        transition: none;
+        animation: none;
     }
 }
