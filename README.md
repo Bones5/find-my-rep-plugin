@@ -136,9 +136,52 @@ Auto-fix linting issues:
 npm run lint:js -- --fix
 ```
 
-### Running E2E Tests
+### Email Transport Modes
 
-This plugin includes end-to-end tests using wp-env and Playwright.
+The plugin supports multiple email transport modes for development and production:
+
+1. **Resend API** (default for production): Uses the Resend API to send emails
+2. **SMTP (wp_mail)**: Uses WordPress's built-in wp_mail() function (useful with MailHog for local development)
+3. **Test (Log to File)**: Logs emails to a file for testing without sending (stored in `wp-content/uploads/find-my-rep-test-mails.log`)
+
+Configure the transport mode in **Settings > Find My Rep > Email Transport**.
+
+For local development with MailHog, see [docs/MAILHOG-DEV.md](docs/MAILHOG-DEV.md).
+
+### Testing
+
+The plugin includes three types of tests:
+
+#### PHPUnit Tests
+
+Run PHP unit tests for the email service:
+
+```bash
+npm run test:phpunit
+# or directly: vendor/bin/phpunit
+```
+
+Tests include:
+- Template rendering and placeholder replacement
+- Email transport behavior (resend, smtp, test)
+- Error handling and edge cases
+
+#### Jest Tests
+
+Run React component tests:
+
+```bash
+npm run test:jest
+```
+
+Tests include:
+- LetterStep component validation
+- User interaction flows
+- Button states and loading indicators
+
+#### E2E Tests (Playwright)
+
+Run end-to-end tests using wp-env and Playwright.
 
 #### Setup
 
