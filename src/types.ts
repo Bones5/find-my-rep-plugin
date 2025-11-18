@@ -115,6 +115,7 @@ export interface SuccessData {
 // Block attributes
 export interface BlockAttributes {
 	blockId: string;
+	letterTemplate?: string;
 }
 
 // Declare global WordPress data

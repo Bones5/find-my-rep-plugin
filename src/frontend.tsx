@@ -11,8 +11,15 @@ const initializeApp = () => {
 
 	containers.forEach( ( container ) => {
 		const blockId = container.id;
+		const perBlockTemplate =
+			container.getAttribute( 'data-letter-template' ) || '';
 		const root = createRoot( container );
-		root.render( <FindMyRepApp blockId={ blockId } /> );
+		root.render(
+			<FindMyRepApp
+				blockId={ blockId }
+				perBlockTemplate={ perBlockTemplate }
+			/>
+		);
 	} );
 };
 
