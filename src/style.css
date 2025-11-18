@@ -11,24 +11,26 @@
 
 .find-my-rep-step {
     background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border: 1px solid #c3c4c7;
+    border-radius: 0;
     margin-bottom: 20px;
 }
 
 .find-my-rep-step h3 {
     margin-top: 0;
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 24px;
+    margin-bottom: 15px;
+    color: #1d2327;
+    font-size: 1.3em;
+    font-weight: 600;
 }
 
 .find-my-rep-step label {
     display: block;
     margin-bottom: 8px;
-    font-weight: 500;
-    color: #555;
+    font-weight: 600;
+    color: #1d2327;
+    font-size: 14px;
 }
 
 .postcode-input,
@@ -36,11 +38,15 @@
 .sender-email {
     width: 100%;
     max-width: 400px;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
+    padding: 0 8px;
+    height: 30px;
+    border: 1px solid #8c8f94;
+    border-radius: 0;
+    font-size: 14px;
+    line-height: 2;
     margin-bottom: 15px;
+    box-sizing: border-box;
+    background-color: #fff;
 }
 
 .postcode-input:focus,
@@ -48,48 +54,56 @@
 .sender-email:focus,
 .letter-content:focus {
     outline: none;
-    border-color: #0073aa;
-    box-shadow: 0 0 0 1px #0073aa;
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
 }
 
 .button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
+    padding: 0 12px;
+    height: 30px;
+    line-height: 2;
+    border: 1px solid #2271b1;
+    border-radius: 3px;
+    font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
+    display: inline-block;
+    text-decoration: none;
+    box-sizing: border-box;
 }
 
 .button-primary {
-    background: #0073aa;
+    background: #2271b1;
     color: #fff;
+    border-color: #2271b1;
 }
 
 .button-primary:hover {
-    background: #005a87;
+    background: #135e96;
+    border-color: #135e96;
 }
 
 .button-primary:active {
-    background: #004668;
+    background: #135e96;
+    border-color: #135e96;
 }
 
 .error-message {
     color: #d63638;
     background: #fcf0f1;
-    padding: 12px 16px;
-    border-radius: 4px;
-    margin-top: 15px;
+    padding: 8px 12px;
+    border-radius: 0;
+    margin-top: 12px;
     border-left: 4px solid #d63638;
 }
 
 .success-message {
-    color: #007017;
+    color: #00a32a;
     background: #ecf7ed;
-    padding: 12px 16px;
-    border-radius: 4px;
-    margin-top: 15px;
-    border-left: 4px solid #007017;
+    padding: 8px 12px;
+    border-radius: 0;
+    margin-top: 12px;
+    border-left: 4px solid #00a32a;
 }
 
 .representatives-list {
@@ -99,24 +113,28 @@
 .representative-item {
     display: flex;
     align-items: flex-start;
-    padding: 15px;
+    padding: 12px;
     margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+    border: 1px solid #c3c4c7;
+    border-radius: 0;
+    transition: background-color 0.1s;
+    background-color: #fff;
 }
 
 .representative-item:hover {
-    background-color: #f9f9f9;
+    background-color: #f6f7f7;
 }
 
 .representative-item input[type="checkbox"] {
-    margin-right: 15px;
-    margin-top: 5px;
-    width: 18px;
-    height: 18px;
+    margin-right: 12px;
+    margin-top: 3px;
+    width: 16px;
+    height: 16px;
     cursor: pointer;
     flex-shrink: 0;
+    border: 1px solid #8c8f94;
+    border-radius: 0;
+    background: #fff;
 }
 
 .representative-item label {
@@ -127,20 +145,20 @@
 }
 
 .rep-type-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #0073aa;
-    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2271b1;
+    margin-bottom: 6px;
 }
 
 .rep-geographic-info {
     background: #f0f6fc;
-    padding: 8px 12px;
-    border-radius: 3px;
-    margin-bottom: 10px;
-    font-size: 13px;
-    color: #555;
-    line-height: 1.6;
+    padding: 6px 8px;
+    border-radius: 0;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #50575e;
+    line-height: 1.5;
 }
 
 .rep-geographic-info .geo-detail {
@@ -164,24 +182,25 @@
 }
 
 .rep-details {
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .rep-details strong {
-    color: #333;
-    font-size: 16px;
+    color: #1d2327;
+    font-size: 14px;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
+    font-weight: 600;
 }
 
 .rep-title-detail {
-    color: #666;
+    color: #646970;
     font-style: italic;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
 .rep-email {
-    color: #555;
+    color: #50575e;
 }
 
 .letter-fields {
@@ -198,14 +217,16 @@
 
 .letter-content {
     width: 100%;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 0;
     font-size: 14px;
     font-family: inherit;
     line-height: 1.6;
     margin-bottom: 15px;
     resize: vertical;
+    box-sizing: border-box;
+    background-color: #fff;
 }
 
 .loading-spinner {
@@ -225,8 +246,8 @@
     width: 20px;
     height: 20px;
     margin: 0;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #0073aa;
+    border: 3px solid #f0f0f1;
+    border-top: 3px solid #2271b1;
     border-radius: 50%;
 }
 
@@ -251,7 +272,7 @@
     }
     
     .find-my-rep-step {
-        padding: 20px;
+        padding: 15px;
     }
     
     .postcode-input,
