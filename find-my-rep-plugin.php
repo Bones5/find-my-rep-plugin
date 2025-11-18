@@ -20,6 +20,9 @@ define('FIND_MY_REP_VERSION', '1.0.0');
 define('FIND_MY_REP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('FIND_MY_REP_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+// Load email service class
+require_once FIND_MY_REP_PLUGIN_DIR . 'includes/class-find-my-rep-email-service.php';
+
 /**
  * Main plugin class
  */
@@ -36,6 +39,21 @@ class Find_My_Rep_Plugin {
         add_action('wp_ajax_nopriv_find_my_rep_get_representatives', array($this, 'ajax_get_representatives'));
         add_action('wp_ajax_find_my_rep_send_letter', array($this, 'ajax_send_letter'));
         add_action('wp_ajax_nopriv_find_my_rep_send_letter', array($this, 'ajax_send_letter'));
+    }
+    
+    /**
+     * Get email service instance
+     *
+     * @return Find_My_Rep_Email_Service
+     */
+    private function get_email_service() {
+        // Get transport from option, default to 'resend'
+        $transport = get_option('find_my_rep_email_transport', 'resend');
+        
+        // Allow filtering for development/testing purposes
+        $transport = apply_filters('find_my_rep_email_transport', $transport);
+        
+        return new Find_My_Rep_Email_Service($transport);
     }
     
     /**
@@ -134,6 +152,7 @@ class Find_My_Rep_Plugin {
         register_setting('find_my_rep_settings', 'find_my_rep_letter_template');
         register_setting('find_my_rep_settings', 'find_my_rep_resend_api_key');
         register_setting('find_my_rep_settings', 'find_my_rep_api_url');
+        register_setting('find_my_rep_settings', 'find_my_rep_email_transport');
         
         add_settings_section(
             'find_my_rep_main_section',
@@ -162,6 +181,14 @@ class Find_My_Rep_Plugin {
             'find_my_rep_letter_template',
             __('Letter Template', 'find-my-rep'),
             array($this, 'letter_template_field_callback'),
+            'find-my-rep-settings',
+            'find_my_rep_main_section'
+        );
+        
+        add_settings_field(
+            'find_my_rep_email_transport',
+            __('Email Transport', 'find-my-rep'),
+            array($this, 'email_transport_field_callback'),
             'find-my-rep-settings',
             'find_my_rep_main_section'
         );
@@ -199,6 +226,21 @@ class Find_My_Rep_Plugin {
         $value = get_option('find_my_rep_letter_template', '');
         echo '<textarea name="find_my_rep_letter_template" rows="10" class="large-text">' . esc_textarea($value) . '</textarea>';
         echo '<p class="description">' . esc_html__('Enter the default letter template. Use {{representative_name}} and {{representative_title}} as placeholders.', 'find-my-rep') . '</p>';
+    }
+    
+    /**
+     * Email transport field callback
+     */
+    public function email_transport_field_callback() {
+        $value = get_option('find_my_rep_email_transport', 'resend');
+        ?>
+        <select name="find_my_rep_email_transport" class="regular-text">
+            <option value="resend" <?php selected($value, 'resend'); ?>><?php esc_html_e('Resend API', 'find-my-rep'); ?></option>
+            <option value="smtp" <?php selected($value, 'smtp'); ?>><?php esc_html_e('SMTP (wp_mail)', 'find-my-rep'); ?></option>
+            <option value="test" <?php selected($value, 'test'); ?>><?php esc_html_e('Test (Log to File)', 'find-my-rep'); ?></option>
+        </select>
+        <p class="description"><?php esc_html_e('Select the email transport method. Use "Test" for development to log emails to file.', 'find-my-rep'); ?></p>
+        <?php
     }
     
     /**
@@ -370,12 +412,6 @@ class Find_My_Rep_Plugin {
         $sender_email = sanitize_email($_POST['sender_email']);
         $letter_content = sanitize_textarea_field($_POST['letter_content']);
         $representatives = json_decode(stripslashes($_POST['representatives']), true);
-        $resend_api_key = get_option('find_my_rep_resend_api_key', '');
-        
-        if (empty($resend_api_key)) {
-            wp_send_json_error(array('message' => __('Resend API key not configured.', 'find-my-rep')));
-            return;
-        }
         
         // Validate that representatives were parsed correctly
         if (!is_array($representatives) || empty($representatives)) {
@@ -383,36 +419,34 @@ class Find_My_Rep_Plugin {
             return;
         }
         
+        // Get email service instance
+        $email_service = $this->get_email_service();
+        
         $sent_count = 0;
         $errors = array();
         
         foreach ($representatives as $rep) {
-            // Replace placeholders in letter
-            $personalized_letter = str_replace(
-                array('{{representative_name}}', '{{representative_title}}'),
-                array($rep['name'], $rep['title']),
-                $letter_content
+            // Prepare placeholders for template rendering
+            $placeholders = array(
+                '{{representative_name}}' => isset($rep['name']) ? $rep['name'] : '',
+                '{{representative_title}}' => isset($rep['title']) ? $rep['title'] : '',
             );
             
-            // Send email via Resend API
-            $response = wp_remote_post('https://api.resend.com/emails', array(
-                'headers' => array(
-                    'Authorization' => 'Bearer ' . $resend_api_key,
-                    'Content-Type' => 'application/json',
-                ),
-                'body' => json_encode(array(
-                    'from' => $sender_email,
-                    'to' => $rep['email'],
-                    'subject' => 'Letter from constituent',
-                    'text' => $personalized_letter,
-                    'reply_to' => $sender_email,
-                )),
-            ));
+            // Render personalized letter
+            $personalized_letter = $email_service->render_template($letter_content, $placeholders);
             
-            if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+            // Send email
+            $result = $email_service->send_letter(
+                $sender_email,
+                $rep['email'],
+                'Letter from constituent',
+                $personalized_letter
+            );
+            
+            if ($result['success']) {
                 $sent_count++;
             } else {
-                $errors[] = sprintf(__('Failed to send to %s', 'find-my-rep'), $rep['name']);
+                $errors[] = sprintf(__('Failed to send to %s: %s', 'find-my-rep'), $rep['name'], $result['message']);
             }
         }
         

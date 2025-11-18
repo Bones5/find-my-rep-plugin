@@ -82,11 +82,11 @@ export const LetterStep: React.FC< LetterStepProps > = ( {
 			/>
 			{ ! success && (
 				<button
-					className="button button-primary send-btn"
+					className="button button-primary send-btn send-button"
 					onClick={ handleSend }
 					disabled={ loading }
 				>
-					Send Letters
+					{ loading ? 'Sending...' : 'Send' }
 				</button>
 			) }
 			{ success && (
