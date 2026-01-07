@@ -5,6 +5,7 @@
   "main": "build/index.js",
   "scripts": {
     "build": "wp-scripts build src/index.tsx src/frontend.tsx --output-path=build && cp src/style.css build/style.css",
+    "package": "npm run build && rm -f find-my-rep-plugin.zip && zip -r find-my-rep-plugin.zip . -x \"node_modules/*\" \"build/*.map\" \"src/*\" \"tests/*\" \".git/*\" \"*.log\" \"wp-env.json\" \"wp-env.override.json\"",
     "start": "wp-scripts start src/index.tsx src/frontend.tsx --output-path=build",
     "lint:js": "wp-scripts lint-js src",
     "format:js": "wp-scripts format-js src",
