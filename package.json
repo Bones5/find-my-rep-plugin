@@ -4,10 +4,10 @@
   "description": "A WordPress plugin for contacting local representatives",
   "main": "build/index.js",
   "scripts": {
-    "start": "wp-env start && wp-scripts start src/index.tsx src/frontend.tsx --output-path=build",
-    "build": "wp-scripts build src/index.tsx src/frontend.tsx --output-path=build && cp src/style.css build/style.css",
+    "start": "wp-env start && wp-scripts start",
+    "build": "wp-scripts build && cp src/style.css build/style.css",
     "package": "npm run build && rm -f find-my-rep-plugin.zip && zip -r find-my-rep-plugin.zip . -x \"node_modules/*\" \"build/*.map\" \"src/*\" \"tests/*\" \".git/*\" \"*.log\" \"wp-env.json\" \"wp-env.override.json\"",
-    "watch": "wp-scripts start src/index.tsx src/frontend.tsx --output-path=build",
+    "watch": "wp-scripts start",
     "stop": "wp-env stop",
     "test": "jest && vendor/bin/phpunit",
     "test:jest": "jest",

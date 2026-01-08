@@ -61,7 +61,7 @@ class Find_My_Rep_Plugin {
      */
     public function register_block() {
         // Load asset file for dependencies and version
-        $asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/index.tsx.asset.php';
+        $asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/index.asset.php';
         if (!file_exists($asset_file_path)) {
             return;
         }
@@ -70,7 +70,7 @@ class Find_My_Rep_Plugin {
         // Register block script
         wp_register_script(
             'find-my-rep-block-editor',
-            FIND_MY_REP_PLUGIN_URL . 'build/index.tsx.js',
+            FIND_MY_REP_PLUGIN_URL . 'build/index.js',
             $asset_file['dependencies'],
             $asset_file['version']
         );
@@ -114,13 +114,13 @@ class Find_My_Rep_Plugin {
         $per_block_template = !empty($attributes['letterTemplate']) ? $attributes['letterTemplate'] : '';
         
         // Load asset file for dependencies and version
-        $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.tsx.asset.php';
+        $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.asset.php';
         $frontend_asset_file = file_exists($frontend_asset_file_path) ? include($frontend_asset_file_path) : array('dependencies' => array(), 'version' => FIND_MY_REP_VERSION);
         
         // Enqueue frontend script
         wp_enqueue_script(
             'find-my-rep-frontend',
-            FIND_MY_REP_PLUGIN_URL . 'build/frontend.tsx.js',
+            FIND_MY_REP_PLUGIN_URL . 'build/frontend.js',
             $frontend_asset_file['dependencies'],
             $frontend_asset_file['version'],
             true
@@ -214,7 +214,7 @@ class Find_My_Rep_Plugin {
      * API URL field callback
      */
     public function api_url_field_callback() {
-        $value = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/postcode');
+        $value = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
         echo '<input type="url" name="find_my_rep_api_url" value="' . esc_attr($value) . '" class="regular-text" />';
         echo '<p class="description">' . esc_html__('Enter the API endpoint URL to fetch representatives by postcode.', 'find-my-rep') . '</p>';
     }
@@ -280,7 +280,7 @@ class Find_My_Rep_Plugin {
         check_ajax_referer('find_my_rep_nonce', 'nonce');
         
         $postcode = sanitize_text_field($_POST['postcode']);
-        $api_url = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/postcode');
+        $api_url = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
         
         // Build request URL safely (avoid double slashes)
         $request_url = rtrim($api_url, '/') . '/' . urlencode($postcode);
@@ -295,9 +295,13 @@ class Find_My_Rep_Plugin {
         
         // Check HTTP response code
         $response_code = wp_remote_retrieve_response_code($response);
-        if ($response_code === 404) {
-            // Treat 404 as "no representatives found" for better UX
-            wp_send_json_error(array('message' => __('No representatives found for this postcode.', 'find-my-rep')));
+        if ($response_code === 400) {
+            // Validation error from API (invalid postcode format)
+            wp_send_json_error(array('message' => __('Invalid postcode format. Please enter a valid UK postcode.', 'find-my-rep')));
+            return;
+        } elseif ($response_code === 404) {
+            // Postcode not in coverage area
+            wp_send_json_error(array('message' => __('This postcode is not in our coverage area.', 'find-my-rep')));
             return;
         } elseif ($response_code < 200 || $response_code >= 300) {
             wp_send_json_error(array('message' => sprintf(__('API request failed (HTTP %d). Please check the API URL in settings.', 'find-my-rep'), $response_code)));
