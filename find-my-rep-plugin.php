@@ -282,8 +282,11 @@ class Find_My_Rep_Plugin {
         $postcode = sanitize_text_field($_POST['postcode']);
         $api_url = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/postcode');
         
+        // Build request URL safely (avoid double slashes)
+        $request_url = rtrim($api_url, '/') . '/' . urlencode($postcode);
+        
         // Make API request to get representatives
-        $response = wp_remote_get($api_url . '/' . urlencode($postcode));
+        $response = wp_remote_get($request_url);
         
         if (is_wp_error($response)) {
             wp_send_json_error(array('message' => __('Failed to fetch representatives.', 'find-my-rep')));
@@ -292,8 +295,12 @@ class Find_My_Rep_Plugin {
         
         // Check HTTP response code
         $response_code = wp_remote_retrieve_response_code($response);
-        if ($response_code !== 200) {
-            wp_send_json_error(array('message' => sprintf(__('API request failed with status code: %d', 'find-my-rep'), $response_code)));
+        if ($response_code === 404) {
+            // Treat 404 as "no representatives found" for better UX
+            wp_send_json_error(array('message' => __('No representatives found for this postcode.', 'find-my-rep')));
+            return;
+        } elseif ($response_code < 200 || $response_code >= 300) {
+            wp_send_json_error(array('message' => sprintf(__('API request failed (HTTP %d). Please check the API URL in settings.', 'find-my-rep'), $response_code)));
             return;
         }
         
