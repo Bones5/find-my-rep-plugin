@@ -61,7 +61,7 @@ class Find_My_Rep_Plugin {
      */
     public function register_block() {
         // Load asset file for dependencies and version
-        $asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/index.tsx.asset.php';
+        $asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/index.asset.php';
         if (!file_exists($asset_file_path)) {
             return;
         }
@@ -70,15 +70,19 @@ class Find_My_Rep_Plugin {
         // Register block script
         wp_register_script(
             'find-my-rep-block-editor',
-            FIND_MY_REP_PLUGIN_URL . 'build/index.tsx.js',
+            FIND_MY_REP_PLUGIN_URL . 'build/index.js',
             $asset_file['dependencies'],
             $asset_file['version']
         );
         
-        // Register block styles
+        // Register block styles (fallback to src/style.css during dev)
+        $built_style_path = FIND_MY_REP_PLUGIN_DIR . 'build/style.css';
+        $style_url = file_exists($built_style_path)
+            ? FIND_MY_REP_PLUGIN_URL . 'build/style.css'
+            : FIND_MY_REP_PLUGIN_URL . 'src/style.css';
         wp_register_style(
             'find-my-rep-block-style',
-            FIND_MY_REP_PLUGIN_URL . 'build/style.css',
+            $style_url,
             array(),
             FIND_MY_REP_VERSION
         );
@@ -110,13 +114,13 @@ class Find_My_Rep_Plugin {
         $per_block_template = !empty($attributes['letterTemplate']) ? $attributes['letterTemplate'] : '';
         
         // Load asset file for dependencies and version
-        $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.tsx.asset.php';
+        $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.asset.php';
         $frontend_asset_file = file_exists($frontend_asset_file_path) ? include($frontend_asset_file_path) : array('dependencies' => array(), 'version' => FIND_MY_REP_VERSION);
         
         // Enqueue frontend script
         wp_enqueue_script(
             'find-my-rep-frontend',
-            FIND_MY_REP_PLUGIN_URL . 'build/frontend.tsx.js',
+            FIND_MY_REP_PLUGIN_URL . 'build/frontend.js',
             $frontend_asset_file['dependencies'],
             $frontend_asset_file['version'],
             true
@@ -210,7 +214,7 @@ class Find_My_Rep_Plugin {
      * API URL field callback
      */
     public function api_url_field_callback() {
-        $value = get_option('find_my_rep_api_url', '');
+        $value = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
         echo '<input type="url" name="find_my_rep_api_url" value="' . esc_attr($value) . '" class="regular-text" />';
         echo '<p class="description">' . esc_html__('Enter the API endpoint URL to fetch representatives by postcode.', 'find-my-rep') . '</p>';
     }
@@ -276,15 +280,13 @@ class Find_My_Rep_Plugin {
         check_ajax_referer('find_my_rep_nonce', 'nonce');
         
         $postcode = sanitize_text_field($_POST['postcode']);
-        $api_url = get_option('find_my_rep_api_url', '');
+        $api_url = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
         
-        if (empty($api_url)) {
-            wp_send_json_error(array('message' => __('API URL not configured.', 'find-my-rep')));
-            return;
-        }
+        // Build request URL safely (avoid double slashes)
+        $request_url = rtrim($api_url, '/') . '/' . urlencode($postcode);
         
         // Make API request to get representatives
-        $response = wp_remote_get($api_url . '/' . urlencode($postcode));
+        $response = wp_remote_get($request_url);
         
         if (is_wp_error($response)) {
             wp_send_json_error(array('message' => __('Failed to fetch representatives.', 'find-my-rep')));
@@ -293,8 +295,16 @@ class Find_My_Rep_Plugin {
         
         // Check HTTP response code
         $response_code = wp_remote_retrieve_response_code($response);
-        if ($response_code !== 200) {
-            wp_send_json_error(array('message' => sprintf(__('API request failed with status code: %d', 'find-my-rep'), $response_code)));
+        if ($response_code === 400) {
+            // Validation error from API (invalid postcode format)
+            wp_send_json_error(array('message' => __('Invalid postcode format. Please enter a valid UK postcode.', 'find-my-rep')));
+            return;
+        } elseif ($response_code === 404) {
+            // Postcode not in coverage area
+            wp_send_json_error(array('message' => __('This postcode is not in our coverage area.', 'find-my-rep')));
+            return;
+        } elseif ($response_code < 200 || $response_code >= 300) {
+            wp_send_json_error(array('message' => sprintf(__('API request failed (HTTP %d). Please check the API URL in settings.', 'find-my-rep'), $response_code)));
             return;
         }
         
@@ -312,99 +322,15 @@ class Find_My_Rep_Plugin {
             return;
         }
         
-        // Transform new API format to internal format
-        $transformed_data = $this->transform_api_response($data);
-        
-        wp_send_json_success($transformed_data);
-    }
-    
-    /**
-     * Transform new API response format to internal format
-     */
-    private function transform_api_response($data) {
-        // Check if data is already in old format (backwards compatibility)
-        if (isset($data['representatives']) && is_array($data['representatives'])) {
-            return $data;
+        // Check if we have any representatives
+        $has_reps = !empty($data['mp']) || !empty($data['ms']) || !empty($data['pcc']) || !empty($data['councillors']);
+        if (!$has_reps) {
+            wp_send_json_error(array('message' => __('No representatives found for this postcode.', 'find-my-rep')));
+            return;
         }
         
-        // Transform new format to internal format
-        $representatives = array();
-        $geographic_info = array();
-        
-        // Extract area information from areaInfo
-        if (isset($data['areaInfo'])) {
-            $area_info = $data['areaInfo'];
-            
-            if (isset($area_info['localAuthority']['name'])) {
-                $geographic_info['area'] = $area_info['localAuthority']['name'];
-            }
-            
-            if (isset($area_info['ward']['name'])) {
-                $geographic_info['ward'] = $area_info['ward']['name'];
-            }
-            
-            if (isset($area_info['constituency']['name'])) {
-                $geographic_info['westminster_constituency'] = $area_info['constituency']['name'];
-            }
-        }
-        
-        // Transform MP
-        if (isset($data['mp']) && !empty($data['mp'])) {
-            $mp = $data['mp'];
-            if (isset($mp['name']) && isset($mp['email']) && isset($mp['constituency'])) {
-                $representatives[] = array(
-                    'name' => $mp['name'],
-                    'email' => $mp['email'],
-                    'title' => 'Member of Parliament for ' . $mp['constituency'],
-                    'type' => 'MP'
-                );
-            }
-        }
-        
-        // Transform MS (Member of the Senedd)
-        if (isset($data['ms']) && !empty($data['ms'])) {
-            $ms = $data['ms'];
-            if (isset($ms['name']) && isset($ms['email']) && isset($ms['constituency'])) {
-                $representatives[] = array(
-                    'name' => $ms['name'],
-                    'email' => $ms['email'],
-                    'title' => 'Member of the Senedd for ' . $ms['constituency'],
-                    'type' => 'MS'
-                );
-            }
-        }
-        
-        // Transform PCC (Police and Crime Commissioner)
-        if (isset($data['pcc']) && !empty($data['pcc'])) {
-            $pcc = $data['pcc'];
-            if (isset($pcc['name']) && isset($pcc['email'])) {
-                $representatives[] = array(
-                    'name' => $pcc['name'],
-                    'email' => $pcc['email'],
-                    'title' => 'Police and Crime Commissioner',
-                    'type' => 'PCC'
-                );
-            }
-        }
-        
-        // Transform Councillors
-        if (isset($data['councillors']) && !empty($data['councillors']) && is_array($data['councillors'])) {
-            foreach ($data['councillors'] as $councillor) {
-                if (isset($councillor['name']) && isset($councillor['email']) && isset($councillor['ward'])) {
-                    $representatives[] = array(
-                        'name' => $councillor['name'],
-                        'email' => $councillor['email'],
-                        'title' => 'Councillor for ' . $councillor['ward'],
-                        'type' => 'Councillor'
-                    );
-                }
-            }
-        }
-        
-        return array(
-            'geographic_info' => $geographic_info,
-            'representatives' => $representatives
-        );
+        // Pass through API data directly - no transformation needed
+        wp_send_json_success($data);
     }
     
     /**
@@ -431,10 +357,13 @@ class Find_My_Rep_Plugin {
         $errors = array();
         
         foreach ($representatives as $rep) {
+            // Build title based on representative type
+            $title = $this->get_representative_title($rep);
+            
             // Prepare placeholders for template rendering
             $placeholders = array(
                 '{{representative_name}}' => isset($rep['name']) ? $rep['name'] : '',
-                '{{representative_title}}' => isset($rep['title']) ? $rep['title'] : '',
+                '{{representative_title}}' => $title,
             );
             
             // Render personalized letter
@@ -475,6 +404,43 @@ class Find_My_Rep_Plugin {
                 'message' => __('Failed to send any letters.', 'find-my-rep'),
                 'errors' => $errors
             ));
+        }
+    }
+    
+    /**
+     * Get a human-readable title for a representative based on their type
+     *
+     * @param array $rep Representative data with 'type' field
+     * @return string Human-readable title
+     */
+    private function get_representative_title($rep) {
+        $type = isset($rep['type']) ? $rep['type'] : '';
+        
+        switch ($type) {
+            case 'MP':
+                $constituency = isset($rep['constituency']) ? $rep['constituency'] : '';
+                return $constituency ? 'Member of Parliament for ' . $constituency : 'Member of Parliament';
+            
+            case 'MS':
+                $constituency = isset($rep['constituency']) ? $rep['constituency'] : '';
+                return $constituency ? 'Member of the Senedd for ' . $constituency : 'Member of the Senedd';
+            
+            case 'PCC':
+                $force = isset($rep['force']) ? $rep['force'] : '';
+                return $force ? 'Police and Crime Commissioner for ' . $force : 'Police and Crime Commissioner';
+            
+            case 'Councillor':
+                $ward = isset($rep['ward']) ? $rep['ward'] : '';
+                $council = isset($rep['council']) ? $rep['council'] : '';
+                if ($ward && $council) {
+                    return 'Councillor for ' . $ward . ', ' . $council;
+                } elseif ($ward) {
+                    return 'Councillor for ' . $ward;
+                }
+                return 'Councillor';
+            
+            default:
+                return 'Representative';
         }
     }
 }

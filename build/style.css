@@ -110,24 +110,75 @@
 }
 
 .representatives-list {
-    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .representative-item {
     display: flex;
     align-items: flex-start;
     padding: 1rem;
-    margin-bottom: 0.75rem;
-    border: 1px solid var(--wp--preset--color--contrast, currentColor);
-    border-radius: var(--wp--custom--spacing--small, 0.25rem);
+    border: 2px solid var(--wp--preset--color--contrast, #ddd);
+    border-radius: var(--wp--custom--spacing--small, 0.5rem);
     transition: all 0.2s ease;
-    background-color: transparent;
-    opacity: 0.9;
+    background-color: var(--wp--preset--color--base, #fff);
+    border-left-width: 4px;
 }
 
 .representative-item:hover {
-    opacity: 1;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Type-specific colors */
+.representative-item.rep-type-mp {
+    border-left-color: #4a6da7;
+}
+
+.representative-item.rep-type-mp .rep-icon {
+    color: #4a6da7;
+}
+
+.representative-item.rep-type-mp .rep-type-title {
+    color: #4a6da7;
+}
+
+.representative-item.rep-type-ms {
+    border-left-color: #00a651;
+}
+
+.representative-item.rep-type-ms .rep-icon {
+    color: #00a651;
+}
+
+.representative-item.rep-type-ms .rep-type-title {
+    color: #00a651;
+}
+
+.representative-item.rep-type-pcc {
+    border-left-color: #1a365d;
+}
+
+.representative-item.rep-type-pcc .rep-icon {
+    color: #1a365d;
+}
+
+.representative-item.rep-type-pcc .rep-type-title {
+    color: #1a365d;
+}
+
+.representative-item.rep-type-councillor {
+    border-left-color: #7c3aed;
+}
+
+.representative-item.rep-type-councillor .rep-icon {
+    color: #7c3aed;
+}
+
+.representative-item.rep-type-councillor .rep-type-title {
+    color: #7c3aed;
 }
 
 .representative-item input[type="checkbox"] {
@@ -147,42 +198,50 @@
     font-weight: normal;
 }
 
+.rep-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.rep-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+}
+
 .rep-type-title {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--wp--preset--color--primary, inherit);
+    margin-bottom: 0;
+}
+
+.rep-context {
+    font-size: 0.875rem;
+    color: inherit;
+    opacity: 0.7;
     margin-bottom: 0.5rem;
 }
 
-.rep-geographic-info {
-    background: var(--wp--preset--color--contrast, currentColor);
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--wp--custom--spacing--small, 0.25rem);
-    margin-bottom: 0.75rem;
-    font-size: 0.875rem;
-    color: var(--wp--preset--color--base, #fff);
-    line-height: 1.5;
+.area-info-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--wp--preset--color--contrast, currentColor);
     opacity: 0.8;
 }
 
-.rep-geographic-info .geo-detail {
+.area-badge {
     display: inline-block;
-    margin-right: 12px;
-}
-
-.rep-geographic-info .geo-detail:last-child {
-    margin-right: 0;
-}
-
-.rep-geographic-info .geo-detail::after {
-    content: " • ";
-    margin-left: 12px;
-    color: #999;
-}
-
-.rep-geographic-info .geo-detail:last-child::after {
-    content: "";
-    margin-left: 0;
+    padding: 0.25rem 0.75rem;
+    background: var(--wp--preset--color--contrast, currentColor);
+    color: var(--wp--preset--color--base, #fff);
+    border-radius: 1rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
 }
 
 .rep-details {
@@ -192,21 +251,47 @@
 .rep-details strong {
     color: inherit;
     font-size: 1.0625rem;
-    display: block;
-    margin-bottom: 0.25rem;
+    display: inline;
+    margin-right: 0.5rem;
     font-weight: 600;
 }
 
-.rep-title-detail {
-    color: inherit;
-    font-style: italic;
-    margin-bottom: 0.25rem;
+.rep-party {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    background: var(--wp--preset--color--contrast, currentColor);
+    color: var(--wp--preset--color--base, #fff);
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
     opacity: 0.8;
+    vertical-align: middle;
+}
+
+.rep-contact-info {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.875rem;
 }
 
 .rep-email {
     color: inherit;
     opacity: 0.7;
+}
+
+.rep-phone a,
+.rep-website a {
+    color: var(--wp--preset--color--primary, inherit);
+    text-decoration: none;
+    opacity: 0.8;
+}
+
+.rep-phone a:hover,
+.rep-website a:hover {
+    opacity: 1;
+    text-decoration: underline;
 }
 
 .letter-fields {
@@ -288,6 +373,14 @@
     .sender-name,
     .sender-email {
         max-width: 100%;
+    }
+
+    .representatives-list {
+        grid-template-columns: 1fr;
+    }
+
+    .representative-item:hover {
+        transform: none;
     }
 }
 

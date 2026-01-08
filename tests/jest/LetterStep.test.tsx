@@ -1,15 +1,17 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { LetterStep } from '../../src/components/LetterStep';
-import type { Representative } from '../../src/types';
+import type { SelectableRepresentative } from '../../src/types';
 
 describe('LetterStep Component', () => {
-  const mockSelectedReps: Representative[] = [
+  const mockSelectedReps: SelectableRepresentative[] = [
     {
+      type: 'MP',
+      id: 1,
       name: 'John Smith',
       email: 'john@example.com',
-      title: 'Member of Parliament',
-      type: 'MP'
+      party: 'Labour',
+      constituency: 'Test Constituency'
     }
   ];
 
