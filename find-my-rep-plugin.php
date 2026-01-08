@@ -75,10 +75,14 @@ class Find_My_Rep_Plugin {
             $asset_file['version']
         );
         
-        // Register block styles
+        // Register block styles (fallback to src/style.css during dev)
+        $built_style_path = FIND_MY_REP_PLUGIN_DIR . 'build/style.css';
+        $style_url = file_exists($built_style_path)
+            ? FIND_MY_REP_PLUGIN_URL . 'build/style.css'
+            : FIND_MY_REP_PLUGIN_URL . 'src/style.css';
         wp_register_style(
             'find-my-rep-block-style',
-            FIND_MY_REP_PLUGIN_URL . 'build/style.css',
+            $style_url,
             array(),
             FIND_MY_REP_VERSION
         );
