@@ -1,15 +1,50 @@
 import React, { useState } from 'react';
-import type { Representative, GeographicInfo } from '../types';
+import type { SelectableRepresentative, AreaInfo } from '../types';
 
 interface SelectStepProps {
-	representatives: Representative[];
-	geographicInfo?: GeographicInfo;
-	onContinue: ( selectedReps: Representative[] ) => void;
+	representatives: SelectableRepresentative[];
+	areaInfo: AreaInfo | null;
+	onContinue: ( selectedReps: SelectableRepresentative[] ) => void;
+}
+
+/**
+ * Get descriptive title for a representative type
+ */
+function getRepresentativeTypeLabel( type: string ): string {
+	switch ( type ) {
+		case 'MP':
+			return 'Member of Parliament';
+		case 'MS':
+			return 'Member of the Senedd';
+		case 'PCC':
+			return 'Police and Crime Commissioner';
+		case 'Councillor':
+			return 'Local Councillor';
+		default:
+			return type;
+	}
+}
+
+/**
+ * Get contextual information for a representative (constituency, ward, etc.)
+ */
+function getRepresentativeContext( rep: SelectableRepresentative ): string {
+	switch ( rep.type ) {
+		case 'MP':
+		case 'MS':
+			return rep.constituency || '';
+		case 'PCC':
+			return rep.force || rep.area || '';
+		case 'Councillor':
+			return [ rep.ward, rep.council ].filter( Boolean ).join( ', ' );
+		default:
+			return '';
+	}
 }
 
 export const SelectStep: React.FC< SelectStepProps > = ( {
 	representatives,
-	geographicInfo,
+	areaInfo,
 	onContinue,
 } ) => {
 	const [ selectedIds, setSelectedIds ] = useState< Set< number > >(
@@ -42,11 +77,29 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 	return (
 		<div className="find-my-rep-step step-select">
 			<h3>Select Representatives to Contact</h3>
+
+			{ /* Area information header */ }
+			{ areaInfo && (
+				<div className="area-info-summary">
+					{ areaInfo.localAuthority && (
+						<span className="area-badge">
+							{ areaInfo.localAuthority.name }
+						</span>
+					) }
+					{ areaInfo.constituency && (
+						<span className="area-badge">
+							{ areaInfo.constituency.name }
+						</span>
+					) }
+				</div>
+			) }
+
 			<div className="representatives-list">
 				{ representatives.map( ( rep, index ) => {
-					// Use email as unique key, fallback to index if email is missing
-					const key = rep.email || `rep-${ index }`;
-					const repType = rep.type || rep.title || 'Representative';
+					const key = `${ rep.type }-${ rep.id }`;
+					const typeLabel = getRepresentativeTypeLabel( rep.type );
+					const context = getRepresentativeContext( rep );
+
 					return (
 						<div key={ key } className="representative-item">
 							<input
@@ -57,45 +110,44 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 							/>
 							<label htmlFor={ `rep-${ index }` }>
 								<div className="rep-type-title">
-									{ repType }
+									{ typeLabel }
 								</div>
-								{ geographicInfo && (
-									<div className="rep-geographic-info">
-										{ geographicInfo.area && (
-											<span className="geo-detail">
-												{ geographicInfo.area }
-											</span>
-										) }
-										{ geographicInfo.ward && (
-											<span className="geo-detail">
-												{ geographicInfo.ward }
-											</span>
-										) }
-										{ geographicInfo.westminster_constituency && (
-											<span className="geo-detail">
-												{
-													geographicInfo.westminster_constituency
-												}
-											</span>
-										) }
-										{ geographicInfo.devolved_constituency && (
-											<span className="geo-detail">
-												{
-													geographicInfo.devolved_constituency
-												}
-											</span>
-										) }
+								{ context && (
+									<div className="rep-context">
+										{ context }
 									</div>
 								) }
 								<div className="rep-details">
 									<strong>{ rep.name }</strong>
-									{ rep.title && (
-										<div className="rep-title-detail">
-											{ rep.title }
-										</div>
+									{ rep.party && (
+										<span className="rep-party">
+											{ rep.party }
+										</span>
 									) }
-									<div className="rep-email">
-										{ rep.email }
+									<div className="rep-contact-info">
+										<span className="rep-email">
+											{ rep.email }
+										</span>
+										{ rep.phone && (
+											<span className="rep-phone">
+												<a
+													href={ `tel:${ rep.phone }` }
+												>
+													{ rep.phone }
+												</a>
+											</span>
+										) }
+										{ rep.website && (
+											<span className="rep-website">
+												<a
+													href={ rep.website }
+													target="_blank"
+													rel="noopener noreferrer"
+												>
+													Website
+												</a>
+											</span>
+										) }
 									</div>
 								</div>
 							</label>

@@ -5,13 +5,14 @@
  */
 import React, { useState } from 'react';
 import type {
-	Representative,
+	SelectableRepresentative,
 	WPAjaxResponse,
 	ErrorData,
 	SuccessData,
-	GeographicInfo,
-	RepresentativesResponse,
+	RepresentativesApiResponse,
+	AreaInfo,
 } from '../types';
+import { apiResponseToSelectableReps } from '../types';
 import { PostcodeStep } from './PostcodeStep';
 import { SelectStep } from './SelectStep';
 import { LetterStep } from './LetterStep';
@@ -30,14 +31,12 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
 } ) => {
 	const [ currentStep, setCurrentStep ] = useState< Step >( 'postcode' );
 	const [ representatives, setRepresentatives ] = useState<
-		Representative[]
+		SelectableRepresentative[]
 	>( [] );
-	const [ selectedReps, setSelectedReps ] = useState< Representative[] >(
-		[]
-	);
-	const [ geographicInfo, setGeographicInfo ] = useState<
-		GeographicInfo | undefined
-	>( undefined );
+	const [ selectedReps, setSelectedReps ] = useState<
+		SelectableRepresentative[]
+	>( [] );
+	const [ areaInfo, setAreaInfo ] = useState< AreaInfo | null >( null );
 	const [ error, setError ] = useState< string >( '' );
 	const [ success, setSuccess ] = useState< string >( '' );
 	const [ loading, setLoading ] = useState( false );
@@ -68,8 +67,9 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
 				throw new Error( `HTTP error! status: ${ response.status }` );
 			}
 
-			const data: WPAjaxResponse< RepresentativesResponse | ErrorData > =
-				await response.json();
+			const data: WPAjaxResponse<
+				RepresentativesApiResponse | ErrorData
+			> = await response.json();
 
 			if (
 				typeof data !== 'object' ||
@@ -80,14 +80,16 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
 			}
 
 			if ( data.success ) {
+				// Check if this is the API response format (has postcode field)
 				if (
 					typeof data.data === 'object' &&
 					data.data !== null &&
-					'representatives' in data.data
+					'postcode' in data.data
 				) {
-					const responseData = data.data as RepresentativesResponse;
-					setRepresentatives( responseData.representatives );
-					setGeographicInfo( responseData.geographic_info );
+					const apiData = data.data as RepresentativesApiResponse;
+					const reps = apiResponseToSelectableReps( apiData );
+					setRepresentatives( reps );
+					setAreaInfo( apiData.areaInfo || null );
 					setCurrentStep( 'select' );
 				} else {
 					const errorData = data.data as ErrorData;
@@ -110,7 +112,7 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
 		}
 	};
 
-	const handleContinue = ( reps: Representative[] ) => {
+	const handleContinue = ( reps: SelectableRepresentative[] ) => {
 		setSelectedReps( reps );
 		setCurrentStep( 'letter' );
 	};
@@ -188,7 +190,7 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
 			{ currentStep === 'select' && (
 				<SelectStep
 					representatives={ representatives }
-					geographicInfo={ geographicInfo }
+					areaInfo={ areaInfo }
 					onContinue={ handleContinue }
 				/>
 			) }

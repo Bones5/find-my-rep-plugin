@@ -6,22 +6,19 @@ This document describes how to integrate your representatives API with the Find 
 
 Configure your API endpoint in **WordPress Admin > Settings > Find My Rep**.
 
-## API Request Format
-
-The plugin will make a GET request to your configured API endpoint with the following parameter:
-
+The plugin expects the API to be structured as:
 ```
-GET {your-api-url}?postcode={user-entered-postcode}
+{your-api-url}/{postcode}
 ```
 
-Example:
+For example, if your API URL is `https://api.example.com/api/reps`, the plugin will make requests to:
 ```
-GET https://api.example.com/representatives?postcode=SW1A1AA
+GET https://api.example.com/api/reps/SW1A1AA
 ```
 
 ## API Response Format
 
-Your API should return data in the following format:
+Your API should return data in the following JSON format:
 
 ```json
 {
@@ -34,15 +31,6 @@ Your API should return data in the following format:
       "ward": "St James's",
       "council": "Westminster City Council",
       "email": "john.smith@westminster.gov.uk",
-      "phone": "020 7641 6000"
-    },
-    {
-      "id": 2,
-      "name": "Jane Doe",
-      "party": "Labour",
-      "ward": "St James's",
-      "council": "Westminster City Council",
-      "email": "jane.doe@westminster.gov.uk",
       "phone": "020 7641 6000"
     }
   ],
@@ -183,33 +171,11 @@ At minimum, your API should return the postcode and at least one representative:
 }
 ```
 
-### Backwards Compatibility
-
-The plugin also supports the legacy response format for backwards compatibility:
-
-```json
-{
-  "geographic_info": {
-    "area": "Example Area",
-    "ward": "Example Ward",
-    "westminster_constituency": "Example Westminster Constituency"
-  },
-  "representatives": [
-    {
-      "name": "Representative Name",
-      "email": "email@example.com",
-      "title": "Representative Title",
-      "type": "MP"
-    }
-  ]
-}
-```
-
 ## Error Handling
 
 If no representatives are found or an error occurs:
 
-- Return an empty representatives array: `{"representatives": []}`
+- Return an empty response with no representative fields
 - Or return an appropriate HTTP error code (404, 500, etc.)
 
 The plugin will display an appropriate error message to the user.

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import type { Representative } from '../types';
+import type { SelectableRepresentative } from '../types';
 
 interface LetterStepProps {
-	selectedReps: Representative[];
+	selectedReps: SelectableRepresentative[];
 	letterTemplate: string;
 	onSend: (
 		senderName: string,
