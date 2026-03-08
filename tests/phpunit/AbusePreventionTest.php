@@ -41,7 +41,8 @@ class AbusePreventionTest extends TestCase {
             $this->plugin,
             'Test User',
             'test@example.com',
-            'You should go die for this decision.'
+            'You should go die for this decision.',
+            '1'
         );
         
         $this->assertSame(
@@ -58,11 +59,30 @@ class AbusePreventionTest extends TestCase {
             $this->plugin,
             'Test User',
             'test@example.com',
-            'Please read https://example.com/one https://example.com/two https://example.com/three'
+            'Please read https://example.com/one https://example.com/two https://example.com/three',
+            '1'
         );
         
         $this->assertSame(
             'Please remove excessive links before sending your message.',
+            $result
+        );
+    }
+
+    public function test_validate_letter_request_requires_robot_confirmation() {
+        $method = $this->reflection->getMethod('validate_letter_request');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            'Test User',
+            'test@example.com',
+            'Please support this issue.',
+            '0'
+        );
+
+        $this->assertSame(
+            'Please confirm you are not a robot before sending.',
             $result
         );
     }

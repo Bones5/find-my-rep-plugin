@@ -8,7 +8,8 @@ interface LetterStepProps {
 	onSend: (
 		senderName: string,
 		senderEmail: string,
-		letterContent: string
+		letterContent: string,
+		isHumanConfirmed: boolean
 	) => void;
 	loading: boolean;
 	success?: string;
@@ -26,6 +27,7 @@ export const LetterStep: React.FC< LetterStepProps > = ( {
 	const [ senderName, setSenderName ] = useState( '' );
 	const [ senderEmail, setSenderEmail ] = useState( '' );
 	const [ letterContent, setLetterContent ] = useState( letterTemplate );
+	const [ isHumanConfirmed, setIsHumanConfirmed ] = useState( false );
 
 	const isValidEmail = ( email: string ): boolean => {
 		return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test( email );
@@ -53,6 +55,12 @@ export const LetterStep: React.FC< LetterStepProps > = ( {
 			return;
 		}
 
+		if ( ! isHumanConfirmed ) {
+			// eslint-disable-next-line no-alert
+			alert( 'Please confirm you are not a robot before sending.' );
+			return;
+		}
+
 		if (
 			abuseFilter.isProfane( senderName ) ||
 			abuseFilter.isProfane( letterContent ) ||
@@ -65,7 +73,7 @@ export const LetterStep: React.FC< LetterStepProps > = ( {
 			return;
 		}
 
-		onSend( senderName, senderEmail, letterContent );
+		onSend( senderName, senderEmail, letterContent, isHumanConfirmed );
 	};
 
 	return (
@@ -105,6 +113,17 @@ export const LetterStep: React.FC< LetterStepProps > = ( {
 				Please keep your message respectful. Abusive, threatening, or
 				spam-like content will be blocked.
 			</p>
+			<label className="robot-check">
+				<input
+					type="checkbox"
+					checked={ isHumanConfirmed }
+					onChange={ ( e ) =>
+						setIsHumanConfirmed( e.target.checked )
+					}
+					disabled={ loading || !! success }
+				/>{ ' ' }
+				I&apos;m not a robot
+			</label>
 			{ ! success && (
 				<button
 					className="button button-primary send-btn send-button"

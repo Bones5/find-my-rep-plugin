@@ -100,6 +100,7 @@ describe('LetterStep Component', () => {
     fireEvent.change(nameInput, { target: { value: 'Test User' } });
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(letterTextarea, { target: { value: 'Updated letter content' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: /i'm not a robot/i }));
     
     const sendButton = screen.getByRole('button', { name: /Send/i });
     fireEvent.click(sendButton);
@@ -107,8 +108,31 @@ describe('LetterStep Component', () => {
     expect(mockOnSend).toHaveBeenCalledWith(
       'Test User',
       'test@example.com',
-      'Updated letter content'
+      'Updated letter content',
+      true
     );
+  });
+
+  test('shows validation alert when robot confirmation is missing', () => {
+    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+
+    render(<LetterStep {...defaultProps} />);
+
+    fireEvent.change(screen.getByLabelText(/Your Name:/i), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(/Your Email:/i), {
+      target: { value: 'test@example.com' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Send/i }));
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Please confirm you are not a robot before sending.'
+    );
+    expect(mockOnSend).not.toHaveBeenCalled();
+
+    alertSpy.mockRestore();
   });
 
   test('shows guidance about respectful messages', () => {
@@ -130,6 +154,7 @@ describe('LetterStep Component', () => {
     fireEvent.change(screen.getByLabelText(/Your Email:/i), {
       target: { value: 'test@example.com' },
     });
+    fireEvent.click(screen.getByRole('checkbox', { name: /i'm not a robot/i }));
     fireEvent.change(screen.getByDisplayValue(/Dear {{representative_name}}/i), {
       target: { value: 'This is fuck and should be blocked.' },
     });
@@ -163,10 +188,12 @@ describe('LetterStep Component', () => {
     
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
+    const robotCheckbox = screen.getByRole('checkbox', { name: /i'm not a robot/i });
     const letterTextarea = screen.getByDisplayValue(/Dear {{representative_name}}/i);
     
     expect(nameInput).toBeDisabled();
     expect(emailInput).toBeDisabled();
+    expect(robotCheckbox).toBeDisabled();
     expect(letterTextarea).toBeDisabled();
   });
 
@@ -175,10 +202,12 @@ describe('LetterStep Component', () => {
     
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
+    const robotCheckbox = screen.getByRole('checkbox', { name: /i'm not a robot/i });
     const letterTextarea = screen.getByDisplayValue(/Dear {{representative_name}}/i);
     
     expect(nameInput).toBeDisabled();
     expect(emailInput).toBeDisabled();
+    expect(robotCheckbox).toBeDisabled();
     expect(letterTextarea).toBeDisabled();
   });
 

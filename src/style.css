@@ -39,6 +39,13 @@
     font-size: 0.95rem;
 }
 
+.robot-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
 .postcode-input,
 .sender-name,
 .sender-email {

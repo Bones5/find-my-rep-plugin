@@ -13,6 +13,7 @@ A WordPress plugin that creates a Gutenberg block for contacting local represent
 - **Multi-recipient**: Users can select multiple representatives to contact at once
 - **Email Integration**: Sends letters via Resend API
 - **Abuse Protection**: Blocks abusive language, excessive link spam, and repeated rapid submissions
+- **Bot Check**: Requires users to confirm they are not a robot before sending
 
 ## Installation
 
@@ -65,7 +66,8 @@ Sincerely,
 1. **Enter Postcode**: Users enter their postcode to find representatives
 2. **Select Representatives**: Choose which representatives to contact (MP, MS, councillor, PCC)
 3. **Edit Letter**: Review and customize the letter template
-4. **Send**: Submit to send letters to all selected representatives
+4. **Confirm You're Human**: Tick the "I'm not a robot" confirmation
+5. **Send**: Submit to send letters to all selected representatives
 
 ## Development
 

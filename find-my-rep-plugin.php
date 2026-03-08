@@ -352,8 +352,9 @@ class Find_My_Rep_Plugin {
         $sender_name = sanitize_text_field($_POST['sender_name']);
         $sender_email = sanitize_email($_POST['sender_email']);
         $letter_content = sanitize_textarea_field($_POST['letter_content']);
+        $not_robot = isset($_POST['not_robot']) ? sanitize_text_field($_POST['not_robot']) : '0';
         $representatives = json_decode(stripslashes($_POST['representatives']), true);
-        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content);
+        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $not_robot);
         
         if ($validation_message) {
             wp_send_json_error(array('message' => $validation_message));
@@ -475,13 +476,17 @@ class Find_My_Rep_Plugin {
      * @param string $letter_content Letter content
      * @return string Empty string when valid, translated error message when invalid
      */
-    private function validate_letter_request($sender_name, $sender_email, $letter_content) {
+    private function validate_letter_request($sender_name, $sender_email, $letter_content, $not_robot = '0') {
         if (empty($sender_name) || empty($sender_email) || empty($letter_content)) {
             return __('Please fill in all fields.', 'find-my-rep');
         }
         
         if (!is_email($sender_email)) {
             return __('Please enter a valid email address.', 'find-my-rep');
+        }
+
+        if ($not_robot !== '1') {
+            return __('Please confirm you are not a robot before sending.', 'find-my-rep');
         }
         
         if (strlen($letter_content) > 5000) {

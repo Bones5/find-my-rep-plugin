@@ -120,7 +120,8 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
 	const handleSend = async (
 		senderName: string,
 		senderEmail: string,
-		letterContent: string
+		letterContent: string,
+		isHumanConfirmed: boolean
 	) => {
 		setLoading( true );
 
@@ -136,6 +137,7 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
 					sender_name: senderName,
 					sender_email: senderEmail,
 					letter_content: letterContent,
+					not_robot: isHumanConfirmed ? '1' : '0',
 					representatives: JSON.stringify( selectedReps ),
 				} ),
 			} );
