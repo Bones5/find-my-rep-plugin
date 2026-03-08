@@ -15,6 +15,7 @@ module.exports = {
     }]
   },
   moduleNameMapper: {
+    '^bad-words$': '<rootDir>/tests/jest/__mocks__/badWordsMock.js',
     '\\.(css|less|scss|sass)$': '<rootDir>/tests/jest/__mocks__/styleMock.js',
   },
   collectCoverageFrom: [

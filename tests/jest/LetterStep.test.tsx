@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { LetterStep } from '../../src/components/LetterStep';
 import type { SelectableRepresentative } from '../../src/types';
 
@@ -108,6 +109,39 @@ describe('LetterStep Component', () => {
       'test@example.com',
       'Updated letter content'
     );
+  });
+
+  test('shows guidance about respectful messages', () => {
+    render(<LetterStep {...defaultProps} />);
+    
+    expect(
+      screen.getByText(/Abusive, threatening, or spam-like content will be blocked\./i)
+    ).toBeInTheDocument();
+  });
+
+  test('blocks abusive language before sending', () => {
+    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+
+    render(<LetterStep {...defaultProps} />);
+
+    fireEvent.change(screen.getByLabelText(/Your Name:/i), {
+      target: { value: 'Test User' },
+    });
+    fireEvent.change(screen.getByLabelText(/Your Email:/i), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.change(screen.getByDisplayValue(/Dear {{representative_name}}/i), {
+      target: { value: 'This is fuck and should be blocked.' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Send/i }));
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Please remove abusive or spam-like content before sending your message.'
+    );
+    expect(mockOnSend).not.toHaveBeenCalled();
+
+    alertSpy.mockRestore();
   });
 
   test('displays "Sending..." when loading', () => {

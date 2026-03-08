@@ -12,6 +12,7 @@ A WordPress plugin that creates a Gutenberg block for contacting local represent
 - **Customizable Letters**: Admin-defined template letters that users can edit
 - **Multi-recipient**: Users can select multiple representatives to contact at once
 - **Email Integration**: Sends letters via Resend API
+- **Abuse Protection**: Blocks abusive language, excessive link spam, and repeated rapid submissions
 
 ## Installation
 
@@ -74,6 +75,7 @@ Sincerely,
 - **React**: Modern component-based UI framework
 - **WordPress Blocks API**: Gutenberg block integration
 - **@wordpress/scripts**: Build tooling and linting
+- **bad-words**: Frontend screening for abusive language before submission
 
 ### Requirements
 

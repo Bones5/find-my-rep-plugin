@@ -33,6 +33,12 @@
     color: inherit;
 }
 
+.letter-guidance {
+    margin: 0.75rem 0 1rem;
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 0.95rem;
+}
+
 .postcode-input,
 .sender-name,
 .sender-email {

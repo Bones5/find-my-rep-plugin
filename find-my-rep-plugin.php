@@ -27,6 +27,9 @@ require_once FIND_MY_REP_PLUGIN_DIR . 'includes/class-find-my-rep-email-service.
  * Main plugin class
  */
 class Find_My_Rep_Plugin {
+    const RATE_LIMIT_MAX_ATTEMPTS = 3;
+    const RATE_LIMIT_WINDOW = 600;
+    
     
     /**
      * Constructor
@@ -343,6 +346,19 @@ class Find_My_Rep_Plugin {
         $sender_email = sanitize_email($_POST['sender_email']);
         $letter_content = sanitize_textarea_field($_POST['letter_content']);
         $representatives = json_decode(stripslashes($_POST['representatives']), true);
+        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content);
+        
+        if ($validation_message) {
+            wp_send_json_error(array('message' => $validation_message));
+            return;
+        }
+        
+        if ($this->is_rate_limited($sender_email)) {
+            wp_send_json_error(array(
+                'message' => __('Please wait a few minutes before sending more messages.', 'find-my-rep')
+            ));
+            return;
+        }
         
         // Validate that representatives were parsed correctly
         if (!is_array($representatives) || empty($representatives)) {
@@ -442,6 +458,102 @@ class Find_My_Rep_Plugin {
             default:
                 return 'Representative';
         }
+    }
+    
+    /**
+     * Validate a letter request before attempting delivery
+     *
+     * @param string $sender_name Sender name
+     * @param string $sender_email Sender email
+     * @param string $letter_content Letter content
+     * @return string Empty string when valid, translated error message when invalid
+     */
+    private function validate_letter_request($sender_name, $sender_email, $letter_content) {
+        if (empty($sender_name) || empty($sender_email) || empty($letter_content)) {
+            return __('Please fill in all fields.', 'find-my-rep');
+        }
+        
+        if (!is_email($sender_email)) {
+            return __('Please enter a valid email address.', 'find-my-rep');
+        }
+        
+        if (strlen($letter_content) > 5000) {
+            return __('Please shorten your message before sending.', 'find-my-rep');
+        }
+        
+        if ($this->contains_abusive_content($sender_name) || $this->contains_abusive_content($letter_content)) {
+            return __('Please remove abusive or threatening language before sending your message.', 'find-my-rep');
+        }
+        
+        if ($this->contains_excessive_links($letter_content)) {
+            return __('Please remove excessive links before sending your message.', 'find-my-rep');
+        }
+        
+        return '';
+    }
+    
+    /**
+     * Check whether submitted content contains abusive language
+     *
+     * @param string $content Content to inspect
+     * @return bool
+     */
+    private function contains_abusive_content($content) {
+        $patterns = apply_filters('find_my_rep_blocked_message_patterns', array(
+            '/\b(fuck|shit|cunt|bitch|bastard|asshole)\b/i',
+            '/\b(kill yourself|kill you|go die|you should die|i will hurt you)\b/i',
+        ));
+        
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $content) === 1) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check whether a message includes excessive links
+     *
+     * @param string $content Message content
+     * @return bool
+     */
+    private function contains_excessive_links($content) {
+        return preg_match_all('/(?:https?:\/\/|www\.)/i', $content) > 2;
+    }
+    
+    /**
+     * Apply a simple per-sender rate limit
+     *
+     * @param string $sender_email Sender email address
+     * @return bool
+     */
+    private function is_rate_limited($sender_email) {
+        if (!function_exists('get_transient') || !function_exists('set_transient')) {
+            return false;
+        }
+        
+        $rate_limit_key = $this->get_rate_limit_key($sender_email);
+        $attempts = (int) get_transient($rate_limit_key);
+        
+        if ($attempts >= self::RATE_LIMIT_MAX_ATTEMPTS) {
+            return true;
+        }
+        
+        set_transient($rate_limit_key, $attempts + 1, self::RATE_LIMIT_WINDOW);
+        return false;
+    }
+    
+    /**
+     * Build the transient key used for rate limiting
+     *
+     * @param string $sender_email Sender email address
+     * @return string
+     */
+    private function get_rate_limit_key($sender_email) {
+        $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : '';
+        return 'find_my_rep_rate_' . md5(strtolower(trim($sender_email)) . '|' . $remote_addr);
     }
 }
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Filter } from 'bad-words';
 import type { SelectableRepresentative } from '../types';
 
 interface LetterStepProps {
@@ -13,6 +14,9 @@ interface LetterStepProps {
 	success?: string;
 }
 
+const abuseFilter = new Filter();
+abuseFilter.removeWords( 'damn', 'hell' );
+
 export const LetterStep: React.FC< LetterStepProps > = ( {
 	letterTemplate,
 	onSend,
@@ -25,6 +29,11 @@ export const LetterStep: React.FC< LetterStepProps > = ( {
 
 	const isValidEmail = ( email: string ): boolean => {
 		return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test( email );
+	};
+
+	const containsTooManyLinks = ( value: string ): boolean => {
+		const links = value.match( /(https?:\/\/|www\.)/gi );
+		return ( links?.length || 0 ) > 2;
 	};
 
 	const handleSend = () => {
@@ -41,6 +50,18 @@ export const LetterStep: React.FC< LetterStepProps > = ( {
 		if ( ! isValidEmail( senderEmail ) ) {
 			// eslint-disable-next-line no-alert
 			alert( 'Please enter a valid email address.' );
+			return;
+		}
+
+		if (
+			abuseFilter.isProfane( senderName ) ||
+			abuseFilter.isProfane( letterContent ) ||
+			containsTooManyLinks( letterContent )
+		) {
+			// eslint-disable-next-line no-alert
+			alert(
+				'Please remove abusive or spam-like content before sending your message.'
+			);
 			return;
 		}
 
@@ -80,6 +101,10 @@ export const LetterStep: React.FC< LetterStepProps > = ( {
 				onChange={ ( e ) => setLetterContent( e.target.value ) }
 				disabled={ loading || !! success }
 			/>
+			<p className="letter-guidance">
+				Please keep your message respectful. Abusive, threatening, or
+				spam-like content will be blocked.
+			</p>
 			{ ! success && (
 				<button
 					className="button button-primary send-btn send-button"
