@@ -290,57 +290,14 @@ class Find_My_Rep_Plugin {
         check_ajax_referer('find_my_rep_nonce', 'nonce');
         
         $postcode = sanitize_text_field($_POST['postcode']);
-        $api_url = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
-        
-        // Build request URL safely (avoid double slashes)
-        $request_url = rtrim($api_url, '/') . '/' . urlencode($postcode);
-        
-        // Make API request to get representatives
-        $response = wp_remote_get($request_url);
-        
-        if (is_wp_error($response)) {
-            wp_send_json_error(array('message' => __('Failed to fetch representatives.', 'find-my-rep')));
+        $result = $this->get_representatives_for_postcode($postcode);
+
+        if (!$result['success']) {
+            wp_send_json_error(array('message' => $result['message']));
             return;
         }
-        
-        // Check HTTP response code
-        $response_code = wp_remote_retrieve_response_code($response);
-        if ($response_code === 400) {
-            // Validation error from API (invalid postcode format)
-            wp_send_json_error(array('message' => __('Invalid postcode format. Please enter a valid UK postcode.', 'find-my-rep')));
-            return;
-        } elseif ($response_code === 404) {
-            // Postcode not in coverage area
-            wp_send_json_error(array('message' => __('This postcode is not in our coverage area.', 'find-my-rep')));
-            return;
-        } elseif ($response_code < 200 || $response_code >= 300) {
-            wp_send_json_error(array('message' => sprintf(__('API request failed (HTTP %d). Please check the API URL in settings.', 'find-my-rep'), $response_code)));
-            return;
-        }
-        
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-        
-        // Check for JSON decode errors
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            wp_send_json_error(array('message' => __('Invalid response from API.', 'find-my-rep')));
-            return;
-        }
-        
-        if (empty($data)) {
-            wp_send_json_error(array('message' => __('No representatives found for this postcode.', 'find-my-rep')));
-            return;
-        }
-        
-        // Check if we have any representatives
-        $has_reps = !empty($data['mp']) || !empty($data['ms']) || !empty($data['pcc']) || !empty($data['councillors']);
-        if (!$has_reps) {
-            wp_send_json_error(array('message' => __('No representatives found for this postcode.', 'find-my-rep')));
-            return;
-        }
-        
-        // Pass through API data directly - no transformation needed
-        wp_send_json_success($data);
+
+        wp_send_json_success($result['data']);
     }
     
     /**
@@ -352,6 +309,7 @@ class Find_My_Rep_Plugin {
         $sender_name = sanitize_text_field($_POST['sender_name']);
         $sender_email = sanitize_email($_POST['sender_email']);
         $letter_content = sanitize_textarea_field($_POST['letter_content']);
+        $postcode = isset($_POST['postcode']) ? sanitize_text_field($_POST['postcode']) : '';
         $not_robot = isset($_POST['not_robot']) ? sanitize_text_field($_POST['not_robot']) : '0';
         $representatives = json_decode(stripslashes($_POST['representatives']), true);
         $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $not_robot);
@@ -373,6 +331,13 @@ class Find_My_Rep_Plugin {
             wp_send_json_error(array('message' => __('Invalid representatives data.', 'find-my-rep')));
             return;
         }
+
+        $verified_selection = $this->get_verified_representatives($postcode, $representatives);
+        if (!$verified_selection['success']) {
+            wp_send_json_error(array('message' => $verified_selection['message']));
+            return;
+        }
+        $representatives = $verified_selection['representatives'];
         
         // Get email service instance
         $email_service = $this->get_email_service();
@@ -502,6 +467,197 @@ class Find_My_Rep_Plugin {
         }
         
         return '';
+    }
+
+    /**
+     * Fetch representatives for a postcode using the configured API endpoint.
+     *
+     * @param string $postcode Postcode to lookup.
+     * @return array Array with success/message and optionally data.
+     */
+    private function get_representatives_for_postcode($postcode) {
+        if (empty($postcode)) {
+            return array(
+                'success' => false,
+                'message' => __('Please search for your postcode again before sending.', 'find-my-rep'),
+            );
+        }
+
+        $api_url = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
+
+        // Build request URL safely (avoid double slashes)
+        $request_url = rtrim($api_url, '/') . '/' . urlencode($postcode);
+
+        // Make API request to get representatives
+        $response = wp_remote_get($request_url);
+
+        if (is_wp_error($response)) {
+            return array(
+                'success' => false,
+                'message' => __('Failed to fetch representatives.', 'find-my-rep'),
+            );
+        }
+
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code === 400) {
+            return array(
+                'success' => false,
+                'message' => __('Invalid postcode format. Please enter a valid UK postcode.', 'find-my-rep'),
+            );
+        }
+
+        if ($response_code === 404) {
+            return array(
+                'success' => false,
+                'message' => __('This postcode is not in our coverage area.', 'find-my-rep'),
+            );
+        }
+
+        if ($response_code < 200 || $response_code >= 300) {
+            return array(
+                'success' => false,
+                'message' => sprintf(__('API request failed (HTTP %d). Please check the API URL in settings.', 'find-my-rep'), $response_code),
+            );
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return array(
+                'success' => false,
+                'message' => __('Invalid response from API.', 'find-my-rep'),
+            );
+        }
+
+        if (empty($data)) {
+            return array(
+                'success' => false,
+                'message' => __('No representatives found for this postcode.', 'find-my-rep'),
+            );
+        }
+
+        $has_reps = !empty($data['mp']) || !empty($data['ms']) || !empty($data['pcc']) || !empty($data['councillors']);
+        if (!$has_reps) {
+            return array(
+                'success' => false,
+                'message' => __('No representatives found for this postcode.', 'find-my-rep'),
+            );
+        }
+
+        return array(
+            'success' => true,
+            'data' => $data,
+        );
+    }
+
+    /**
+     * Verify that submitted representatives match the server-side postcode lookup.
+     *
+     * @param string $postcode Postcode used to fetch representatives.
+     * @param array  $representatives Representatives submitted by the client.
+     * @return array Array with success/message and optionally authoritative representatives.
+     */
+    private function get_verified_representatives($postcode, $representatives) {
+        $lookup = $this->get_representatives_for_postcode($postcode);
+        if (!$lookup['success']) {
+            return $lookup;
+        }
+
+        $allowed_representatives = $this->flatten_representatives_response($lookup['data']);
+        $allowed_map = array();
+        foreach ($allowed_representatives as $representative) {
+            $allowed_map[$this->get_representative_key($representative)] = $representative;
+        }
+
+        $verified = array();
+        $seen = array();
+
+        foreach ($representatives as $representative) {
+            if (!is_array($representative) || !isset($representative['type']) || !isset($representative['id'])) {
+                return array(
+                    'success' => false,
+                    'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
+                );
+            }
+
+            $key = $this->get_representative_key($representative);
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            if (!isset($allowed_map[$key])) {
+                return array(
+                    'success' => false,
+                    'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
+                );
+            }
+
+            $verified[] = $allowed_map[$key];
+            $seen[$key] = true;
+        }
+
+        if (empty($verified)) {
+            return array(
+                'success' => false,
+                'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
+            );
+        }
+
+        return array(
+            'success' => true,
+            'representatives' => $verified,
+        );
+    }
+
+    /**
+     * Flatten the API response into the selectable representative structure used by the frontend.
+     *
+     * @param array $data Raw postcode lookup response.
+     * @return array
+     */
+    private function flatten_representatives_response($data) {
+        $representatives = array();
+
+        if (!empty($data['mp'])) {
+            $data['mp']['type'] = 'MP';
+            $representatives[] = $data['mp'];
+        }
+
+        if (!empty($data['ms'])) {
+            $data['ms']['type'] = 'MS';
+            $representatives[] = $data['ms'];
+        }
+
+        if (!empty($data['pcc'])) {
+            $data['pcc']['type'] = 'PCC';
+            $representatives[] = $data['pcc'];
+        }
+
+        if (!empty($data['councillors']) && is_array($data['councillors'])) {
+            foreach ($data['councillors'] as $councillor) {
+                if (!is_array($councillor)) {
+                    continue;
+                }
+                $councillor['type'] = 'Councillor';
+                $representatives[] = $councillor;
+            }
+        }
+
+        return $representatives;
+    }
+
+    /**
+     * Build a stable key for a representative.
+     *
+     * @param array $representative Representative data.
+     * @return string
+     */
+    private function get_representative_key($representative) {
+        $type = isset($representative['type']) ? sanitize_text_field($representative['type']) : '';
+        $id = isset($representative['id']) ? (int) $representative['id'] : 0;
+
+        return $type . ':' . $id;
     }
     
     /**

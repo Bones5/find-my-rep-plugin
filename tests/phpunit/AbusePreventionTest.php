@@ -25,8 +25,9 @@ class AbusePreventionTest extends TestCase {
     protected function setUp(): void {
         parent::setUp();
         
-        global $test_transients;
+        global $test_transients, $test_wp_remote_get_response;
         $test_transients = array();
+        $test_wp_remote_get_response = null;
         
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $this->plugin = new Find_My_Rep_Plugin();
@@ -95,5 +96,82 @@ class AbusePreventionTest extends TestCase {
         $this->assertFalse($method->invoke($this->plugin, 'test@example.com'));
         $this->assertFalse($method->invoke($this->plugin, 'test@example.com'));
         $this->assertTrue($method->invoke($this->plugin, 'test@example.com'));
+    }
+
+    public function test_verified_representatives_use_authoritative_server_email() {
+        global $test_wp_remote_get_response;
+
+        $test_wp_remote_get_response = array(
+            'body' => json_encode(array(
+                'postcode' => 'CF10 1AA',
+                'mp' => array(
+                    'id' => 1,
+                    'name' => 'Jane Representative',
+                    'email' => 'jane.official@example.org',
+                    'party' => 'Test Party',
+                    'constituency' => 'Cardiff Test',
+                ),
+            )),
+            'response' => array('code' => 200),
+        );
+
+        $method = $this->reflection->getMethod('get_verified_representatives');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            'CF10 1AA',
+            array(
+                array(
+                    'type' => 'MP',
+                    'id' => 1,
+                    'name' => 'Jane Representative',
+                    'email' => 'attacker@example.com',
+                ),
+            )
+        );
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('jane.official@example.org', $result['representatives'][0]['email']);
+    }
+
+    public function test_verified_representatives_reject_tampered_selection() {
+        global $test_wp_remote_get_response;
+
+        $test_wp_remote_get_response = array(
+            'body' => json_encode(array(
+                'postcode' => 'CF10 1AA',
+                'mp' => array(
+                    'id' => 1,
+                    'name' => 'Jane Representative',
+                    'email' => 'jane.official@example.org',
+                    'party' => 'Test Party',
+                    'constituency' => 'Cardiff Test',
+                ),
+            )),
+            'response' => array('code' => 200),
+        );
+
+        $method = $this->reflection->getMethod('get_verified_representatives');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            'CF10 1AA',
+            array(
+                array(
+                    'type' => 'MP',
+                    'id' => 999,
+                    'name' => 'Injected Recipient',
+                    'email' => 'attacker@example.com',
+                ),
+            )
+        );
+
+        $this->assertFalse($result['success']);
+        $this->assertSame(
+            'Selected representatives could not be verified. Please search by postcode again and try again.',
+            $result['message']
+        );
     }
 }

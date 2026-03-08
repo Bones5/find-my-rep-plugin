@@ -36,6 +36,7 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
 	const [ selectedReps, setSelectedReps ] = useState<
 		SelectableRepresentative[]
 	>( [] );
+	const [ postcode, setPostcode ] = useState( '' );
 	const [ areaInfo, setAreaInfo ] = useState< AreaInfo | null >( null );
 	const [ error, setError ] = useState< string >( '' );
 	const [ success, setSuccess ] = useState< string >( '' );
@@ -89,6 +90,7 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
 					const apiData = data.data as RepresentativesApiResponse;
 					const reps = apiResponseToSelectableReps( apiData );
 					setRepresentatives( reps );
+					setPostcode( apiData.postcode || '' );
 					setAreaInfo( apiData.areaInfo || null );
 					setCurrentStep( 'select' );
 				} else {
@@ -137,6 +139,7 @@ export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
 					sender_name: senderName,
 					sender_email: senderEmail,
 					letter_content: letterContent,
+					postcode,
 					not_robot: isHumanConfirmed ? '1' : '0',
 					representatives: JSON.stringify( selectedReps ),
 				} ),

@@ -112,6 +112,13 @@ if (!function_exists('wp_remote_post')) {
     }
 }
 
+if (!function_exists('wp_remote_get')) {
+    function wp_remote_get($url, $args = array()) {
+        global $test_wp_remote_get_response;
+        return isset($test_wp_remote_get_response) ? $test_wp_remote_get_response : array('body' => '', 'response' => array('code' => 200));
+    }
+}
+
 if (!function_exists('is_wp_error')) {
     function is_wp_error($thing) {
         return ($thing instanceof WP_Error);
