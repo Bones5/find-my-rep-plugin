@@ -46,7 +46,7 @@ if (!function_exists('get_option')) {
 
 if (!function_exists('sanitize_text_field')) {
     function sanitize_text_field($text) {
-        return trim(filter_var($text, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES));
+        return trim(preg_replace('/\s+/', ' ', strip_tags((string) $text)));
     }
 }
 
@@ -58,7 +58,7 @@ if (!function_exists('sanitize_email')) {
 
 if (!function_exists('sanitize_textarea_field')) {
     function sanitize_textarea_field($text) {
-        return trim(filter_var($text, FILTER_UNSAFE_RAW));
+        return trim(str_replace("\r", '', strip_tags((string) $text)));
     }
 }
 

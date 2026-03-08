@@ -27,7 +27,14 @@ require_once FIND_MY_REP_PLUGIN_DIR . 'includes/class-find-my-rep-email-service.
  * Main plugin class
  */
 class Find_My_Rep_Plugin {
+    /**
+     * Maximum number of letter submissions allowed within the rate limit window.
+     */
     const RATE_LIMIT_MAX_ATTEMPTS = 3;
+    
+    /**
+     * Rate limit window in seconds (10 minutes).
+     */
     const RATE_LIMIT_WINDOW = 600;
     
     
@@ -546,14 +553,16 @@ class Find_My_Rep_Plugin {
     }
     
     /**
-     * Build the transient key used for rate limiting
+     * Build the transient key used for rate limiting using sender email and server-reported IP
      *
      * @param string $sender_email Sender email address
      * @return string
      */
     private function get_rate_limit_key($sender_email) {
-        $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : '';
-        return 'find_my_rep_rate_' . md5(strtolower(trim($sender_email)) . '|' . $remote_addr);
+        $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? trim($_SERVER['REMOTE_ADDR']) : '';
+        $client_ip = filter_var($remote_addr, FILTER_VALIDATE_IP) ? $remote_addr : '';
+        
+        return 'find_my_rep_rate_' . md5(strtolower(trim($sender_email)) . '|' . $client_ip);
     }
 }
 
