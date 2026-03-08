@@ -4,12 +4,16 @@ import '@testing-library/jest-dom';
 import { FindMyRepApp } from '../../src/components/FindMyRepApp';
 
 jest.mock('../../src/components/PostcodeStep', () => ({
-	PostcodeStep: ( { onFindReps }: { onFindReps: ( postcode: string ) => void } ) => (
+	PostcodeStep: ( {
+		onFindReps,
+	}: {
+		onFindReps: ( postcode: string ) => void;
+	} ) => (
 		<button onClick={ () => onFindReps( 'CF10 1AA' ) }>Find reps</button>
 	),
 }));
 
-jest.mock('../../src/components/SelectStep', () => ( {
+jest.mock('../../src/components/SelectStep', () => ({
 	SelectStep: ( {
 		onContinue,
 	}: {
@@ -31,7 +35,7 @@ jest.mock('../../src/components/SelectStep', () => ( {
 			Continue
 		</button>
 	),
-} ) );
+}));
 
 jest.mock('../../src/components/LetterStep', () => ({
 	LetterStep: ( {

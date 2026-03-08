@@ -473,7 +473,9 @@ class Find_My_Rep_Plugin {
      * Fetch representatives for a postcode using the configured API endpoint.
      *
      * @param string $postcode Postcode to lookup.
-     * @return array Array with success/message and optionally data.
+     * @return array Array containing 'success' (bool) and either:
+     *               - 'data' (array) with the postcode lookup response keys such as 'postcode', 'mp', 'ms', 'pcc', 'councillors', and 'areaInfo'
+     *               - 'message' (string) on failure
      */
     private function get_representatives_for_postcode($postcode) {
         if (empty($postcode)) {
@@ -556,7 +558,7 @@ class Find_My_Rep_Plugin {
      *
      * @param string $postcode Postcode used to fetch representatives.
      * @param array  $representatives Representatives submitted by the client.
-     * @return array Array with success/message and optionally authoritative representatives.
+     * @return array Array containing 'success' (bool) and either 'representatives' (array) on success or 'message' (string) on failure.
      */
     private function get_verified_representatives($postcode, $representatives) {
         $lookup = $this->get_representatives_for_postcode($postcode);
@@ -613,7 +615,7 @@ class Find_My_Rep_Plugin {
     /**
      * Flatten the API response into the selectable representative structure used by the frontend.
      *
-     * @param array $data Raw postcode lookup response.
+     * @param array $data Raw postcode lookup response containing representative keys such as 'mp', 'ms', 'pcc', and 'councillors'.
      * @return array
      */
     private function flatten_representatives_response($data) {
@@ -651,7 +653,7 @@ class Find_My_Rep_Plugin {
      * Build a stable key for a representative.
      *
      * @param array $representative Representative data.
-     * @return string
+     * @return string Key in the format "type:id".
      */
     private function get_representative_key($representative) {
         $type = isset($representative['type']) ? sanitize_text_field($representative['type']) : '';
