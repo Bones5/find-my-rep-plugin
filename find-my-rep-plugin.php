@@ -33,9 +33,9 @@ class Find_My_Rep_Plugin {
     const RATE_LIMIT_MAX_ATTEMPTS = 3;
     
     /**
-     * Cache duration for postcode lookups in seconds (5 minutes).
+     * Postcode lookup cache window in seconds (5 minutes).
      */
-    const POSTCODE_CACHE_TTL = 300;
+    const POSTCODE_CACHE_WINDOW = 300;
     
     /**
      * Rate limit window in seconds (10 minutes).
@@ -480,7 +480,11 @@ class Find_My_Rep_Plugin {
             return __('Please shorten your message before sending.', 'find-my-rep');
         }
         
-        if ($this->contains_abusive_content($sender_name) || $this->contains_abusive_content($letter_content)) {
+        if (
+            $this->contains_abusive_content($sender_name) ||
+            $this->contains_abusive_content($sender_email) ||
+            $this->contains_abusive_content($letter_content)
+        ) {
             return __('Please remove abusive or threatening language before sending your message.', 'find-my-rep');
         }
         
@@ -500,6 +504,8 @@ class Find_My_Rep_Plugin {
      *               - 'message' (string) on failure
      */
     private function get_representatives_for_postcode($postcode) {
+        $postcode = trim((string) $postcode);
+
         if (empty($postcode)) {
             return array(
                 'success' => false,
@@ -507,13 +513,11 @@ class Find_My_Rep_Plugin {
             );
         }
 
-        // Check transient cache first
-        $cache_key = 'fmr_pc_' . md5(strtoupper(trim($postcode)));
-        $cached = get_transient($cache_key);
-        if ($cached !== false) {
+        $cached_lookup = $this->get_cached_postcode_lookup($postcode);
+        if (!empty($cached_lookup)) {
             return array(
                 'success' => true,
-                'data' => $cached,
+                'data' => $cached_lookup,
             );
         }
 
@@ -569,9 +573,6 @@ class Find_My_Rep_Plugin {
                 'success' => false,
                 'message' => __('No representatives found for this postcode.', 'find-my-rep'),
             );
-        // Cache successful lookups
-        set_transient($cache_key, $data, self::POSTCODE_CACHE_TTL);
-
         }
 
         $has_reps = !empty($data['mp']) || !empty($data['ms']) || !empty($data['pcc']) || !empty($data['councillors']);
@@ -582,10 +583,52 @@ class Find_My_Rep_Plugin {
             );
         }
 
+        $this->cache_postcode_lookup($postcode, $data);
+
         return array(
             'success' => true,
             'data' => $data,
         );
+    }
+
+    /**
+     * Get a cached postcode lookup response when available.
+     *
+     * @param string $postcode Postcode used to build the cache key.
+     * @return array
+     */
+    private function get_cached_postcode_lookup($postcode) {
+        if (!function_exists('get_transient')) {
+            return array();
+        }
+
+        $cached_lookup = get_transient($this->get_postcode_cache_key($postcode));
+        return is_array($cached_lookup) ? $cached_lookup : array();
+    }
+
+    /**
+     * Cache a successful postcode lookup response.
+     *
+     * @param string $postcode Postcode used to build the cache key.
+     * @param array  $data Successful postcode lookup response data.
+     * @return void
+     */
+    private function cache_postcode_lookup($postcode, $data) {
+        if (!function_exists('set_transient')) {
+            return;
+        }
+
+        set_transient($this->get_postcode_cache_key($postcode), $data, self::POSTCODE_CACHE_WINDOW);
+    }
+
+    /**
+     * Build the transient key used for postcode lookup caching.
+     *
+     * @param string $postcode Postcode used to build the cache key.
+     * @return string
+     */
+    private function get_postcode_cache_key($postcode) {
+        return 'find_my_rep_postcode_' . md5(strtolower(trim((string) $postcode)));
     }
 
     /**
@@ -751,13 +794,13 @@ class Find_My_Rep_Plugin {
     }
     
     /**
-     * Build the transient key used for rate limiting using the sender email
+     * Build the transient key used for rate limiting using sender email only
      *
      * @param string $sender_email Sender email address
      * @return string
      */
     private function get_rate_limit_key($sender_email) {
-        return 'find_my_rep_rate_' . md5(strtolower(trim($sender_email)));
+        return 'find_my_rep_rate_' . md5(strtolower(trim((string) $sender_email)));
     }
 }
 

@@ -25,9 +25,10 @@ class AbusePreventionTest extends TestCase {
     protected function setUp(): void {
         parent::setUp();
         
-        global $test_transients, $test_wp_remote_get_response;
+        global $test_transients, $test_wp_remote_get_response, $test_wp_remote_get_calls;
         $test_transients = array();
         $test_wp_remote_get_response = null;
+        $test_wp_remote_get_calls = array();
         
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $this->plugin = new Find_My_Rep_Plugin();
@@ -88,6 +89,24 @@ class AbusePreventionTest extends TestCase {
         );
     }
 
+    public function test_validate_letter_request_rejects_abusive_sender_email() {
+        $method = $this->reflection->getMethod('validate_letter_request');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            'Test User',
+            'fuck@example.com',
+            'Please support this issue.',
+            ''
+        );
+
+        $this->assertSame(
+            'Please remove abusive or threatening language before sending your message.',
+            $result
+        );
+    }
+
     public function test_validate_letter_request_passes_with_empty_honeypot() {
         $method = $this->reflection->getMethod('validate_letter_request');
         $method->setAccessible(true);
@@ -111,6 +130,51 @@ class AbusePreventionTest extends TestCase {
         $this->assertFalse($method->invoke($this->plugin, 'test@example.com'));
         $this->assertFalse($method->invoke($this->plugin, 'test@example.com'));
         $this->assertTrue($method->invoke($this->plugin, 'test@example.com'));
+    }
+
+    public function test_is_rate_limited_uses_email_consistently_across_ip_changes() {
+        $method = $this->reflection->getMethod('is_rate_limited');
+        $method->setAccessible(true);
+
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $this->assertFalse($method->invoke($this->plugin, 'test@example.com'));
+
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.5';
+        $this->assertFalse($method->invoke($this->plugin, 'test@example.com'));
+
+        $_SERVER['REMOTE_ADDR'] = '192.168.0.10';
+        $this->assertFalse($method->invoke($this->plugin, 'test@example.com'));
+
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.8';
+        $this->assertTrue($method->invoke($this->plugin, 'test@example.com'));
+    }
+
+    public function test_get_representatives_for_postcode_uses_cached_lookup() {
+        global $test_wp_remote_get_response, $test_wp_remote_get_calls;
+
+        $test_wp_remote_get_response = array(
+            'body' => json_encode(array(
+                'postcode' => 'CF10 1AA',
+                'mp' => array(
+                    'id' => 1,
+                    'name' => 'Jane Representative',
+                    'email' => 'jane.official@example.org',
+                    'party' => 'Test Party',
+                    'constituency' => 'Cardiff Test',
+                ),
+            )),
+            'response' => array('code' => 200),
+        );
+
+        $method = $this->reflection->getMethod('get_representatives_for_postcode');
+        $method->setAccessible(true);
+
+        $first_result = $method->invoke($this->plugin, 'CF10 1AA');
+        $second_result = $method->invoke($this->plugin, 'CF10 1AA');
+
+        $this->assertTrue($first_result['success']);
+        $this->assertTrue($second_result['success']);
+        $this->assertCount(1, $test_wp_remote_get_calls);
     }
 
     public function test_verified_representatives_use_authoritative_server_email() {
