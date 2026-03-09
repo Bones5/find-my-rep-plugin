@@ -33,6 +33,19 @@
     color: inherit;
 }
 
+.letter-guidance {
+    margin: 0.75rem 0 1rem;
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 0.95rem;
+}
+
+.robot-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
 .postcode-input,
 .sender-name,
 .sender-email {

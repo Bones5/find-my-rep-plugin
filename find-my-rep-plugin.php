@@ -27,6 +27,21 @@ require_once FIND_MY_REP_PLUGIN_DIR . 'includes/class-find-my-rep-email-service.
  * Main plugin class
  */
 class Find_My_Rep_Plugin {
+    /**
+     * Maximum number of letter submissions allowed within the rate limit window.
+     */
+    const RATE_LIMIT_MAX_ATTEMPTS = 3;
+    
+    /**
+     * Postcode lookup cache window in seconds (5 minutes).
+     */
+    const POSTCODE_CACHE_WINDOW = 300;
+    
+    /**
+     * Rate limit window in seconds (10 minutes).
+     */
+    const RATE_LIMIT_WINDOW = 600;
+    
     
     /**
      * Constructor
@@ -160,7 +175,9 @@ class Find_My_Rep_Plugin {
     public function register_settings() {
         register_setting('find_my_rep_settings', 'find_my_rep_letter_template');
         register_setting('find_my_rep_settings', 'find_my_rep_resend_api_key');
-        register_setting('find_my_rep_settings', 'find_my_rep_api_url');
+        register_setting('find_my_rep_settings', 'find_my_rep_api_url', array(
+            'sanitize_callback' => array($this, 'sanitize_api_url'),
+        ));
         register_setting('find_my_rep_settings', 'find_my_rep_email_transport');
         
         add_settings_section(
@@ -204,6 +221,19 @@ class Find_My_Rep_Plugin {
     }
     
     /**
+     * Sanitize API URL setting - preserve existing value when field is empty
+     *
+     * @param string $value The submitted value.
+     * @return string The sanitized URL or the existing value if empty.
+     */
+    public function sanitize_api_url($value) {
+        if (empty(trim($value))) {
+            return get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
+        }
+        return esc_url_raw($value);
+    }
+
+    /**
      * Settings section callback
      */
     public function settings_section_callback() {
@@ -215,8 +245,10 @@ class Find_My_Rep_Plugin {
      */
     public function api_url_field_callback() {
         $value = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
-        echo '<input type="url" name="find_my_rep_api_url" value="' . esc_attr($value) . '" class="regular-text" />';
-        echo '<p class="description">' . esc_html__('Enter the API endpoint URL to fetch representatives by postcode.', 'find-my-rep') . '</p>';
+        echo '<input type="url" name="find_my_rep_api_url" value="' . esc_attr($value) . '" class="regular-text" placeholder="http://host.docker.internal:3000/api/reps" />';
+        echo '<p class="description">' . esc_html__('The Find My Rep API endpoint used to look up representatives by postcode.', 'find-my-rep') . '</p>';
+        echo '<p class="description">' . esc_html__('For local development with Docker, use http://host.docker.internal:3000/api/reps (the default).', 'find-my-rep') . '</p>';
+        echo '<p class="description">' . esc_html__('For production, use the deployed API URL (e.g. https://find-my-rep.fly.dev/api/reps).', 'find-my-rep') . '</p>';
     }
     
     /**
@@ -280,57 +312,14 @@ class Find_My_Rep_Plugin {
         check_ajax_referer('find_my_rep_nonce', 'nonce');
         
         $postcode = sanitize_text_field($_POST['postcode']);
-        $api_url = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
-        
-        // Build request URL safely (avoid double slashes)
-        $request_url = rtrim($api_url, '/') . '/' . urlencode($postcode);
-        
-        // Make API request to get representatives
-        $response = wp_remote_get($request_url);
-        
-        if (is_wp_error($response)) {
-            wp_send_json_error(array('message' => __('Failed to fetch representatives.', 'find-my-rep')));
+        $result = $this->get_representatives_for_postcode($postcode);
+
+        if (!$result['success']) {
+            wp_send_json_error(array('message' => $result['message']));
             return;
         }
-        
-        // Check HTTP response code
-        $response_code = wp_remote_retrieve_response_code($response);
-        if ($response_code === 400) {
-            // Validation error from API (invalid postcode format)
-            wp_send_json_error(array('message' => __('Invalid postcode format. Please enter a valid UK postcode.', 'find-my-rep')));
-            return;
-        } elseif ($response_code === 404) {
-            // Postcode not in coverage area
-            wp_send_json_error(array('message' => __('This postcode is not in our coverage area.', 'find-my-rep')));
-            return;
-        } elseif ($response_code < 200 || $response_code >= 300) {
-            wp_send_json_error(array('message' => sprintf(__('API request failed (HTTP %d). Please check the API URL in settings.', 'find-my-rep'), $response_code)));
-            return;
-        }
-        
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-        
-        // Check for JSON decode errors
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            wp_send_json_error(array('message' => __('Invalid response from API.', 'find-my-rep')));
-            return;
-        }
-        
-        if (empty($data)) {
-            wp_send_json_error(array('message' => __('No representatives found for this postcode.', 'find-my-rep')));
-            return;
-        }
-        
-        // Check if we have any representatives
-        $has_reps = !empty($data['mp']) || !empty($data['ms']) || !empty($data['pcc']) || !empty($data['councillors']);
-        if (!$has_reps) {
-            wp_send_json_error(array('message' => __('No representatives found for this postcode.', 'find-my-rep')));
-            return;
-        }
-        
-        // Pass through API data directly - no transformation needed
-        wp_send_json_success($data);
+
+        wp_send_json_success($result['data']);
     }
     
     /**
@@ -342,13 +331,35 @@ class Find_My_Rep_Plugin {
         $sender_name = sanitize_text_field($_POST['sender_name']);
         $sender_email = sanitize_email($_POST['sender_email']);
         $letter_content = sanitize_textarea_field($_POST['letter_content']);
+        $postcode = isset($_POST['postcode']) ? sanitize_text_field($_POST['postcode']) : '';
+        $honeypot = isset($_POST['website_url']) ? sanitize_text_field($_POST['website_url']) : '';
         $representatives = json_decode(stripslashes($_POST['representatives']), true);
+        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot);
+        
+        if ($validation_message) {
+            wp_send_json_error(array('message' => $validation_message));
+            return;
+        }
+        
+        if ($this->is_rate_limited($sender_email)) {
+            wp_send_json_error(array(
+                'message' => __('Please wait a few minutes before sending more messages.', 'find-my-rep')
+            ));
+            return;
+        }
         
         // Validate that representatives were parsed correctly
         if (!is_array($representatives) || empty($representatives)) {
             wp_send_json_error(array('message' => __('Invalid representatives data.', 'find-my-rep')));
             return;
         }
+
+        $verified_selection = $this->get_verified_representatives($postcode, $representatives);
+        if (!$verified_selection['success']) {
+            wp_send_json_error(array('message' => $verified_selection['message']));
+            return;
+        }
+        $representatives = $verified_selection['representatives'];
         
         // Get email service instance
         $email_service = $this->get_email_service();
@@ -442,6 +453,354 @@ class Find_My_Rep_Plugin {
             default:
                 return 'Representative';
         }
+    }
+    
+    /**
+     * Validate a letter request before attempting delivery
+     *
+     * @param string $sender_name Sender name
+     * @param string $sender_email Sender email
+     * @param string $letter_content Letter content
+     * @return string Empty string when valid, translated error message when invalid
+     */
+    private function validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot = '') {
+        if (empty($sender_name) || empty($sender_email) || empty($letter_content)) {
+            return __('Please fill in all fields.', 'find-my-rep');
+        }
+        
+        if (!is_email($sender_email)) {
+            return __('Please enter a valid email address.', 'find-my-rep');
+        }
+
+        if (!empty($honeypot)) {
+            return __('Spam detected.', 'find-my-rep');
+        }
+        
+        if (strlen($letter_content) > 5000) {
+            return __('Please shorten your message before sending.', 'find-my-rep');
+        }
+        
+        if (
+            $this->contains_abusive_content($sender_name) ||
+            $this->contains_abusive_content($sender_email) ||
+            $this->contains_abusive_content($letter_content)
+        ) {
+            return __('Please remove abusive or threatening language before sending your message.', 'find-my-rep');
+        }
+        
+        if ($this->contains_excessive_links($letter_content)) {
+            return __('Please remove excessive links before sending your message.', 'find-my-rep');
+        }
+        
+        return '';
+    }
+
+    /**
+     * Fetch representatives for a postcode using the configured API endpoint.
+     *
+     * @param string $postcode Postcode to lookup.
+     * @return array Array containing 'success' (bool) and either:
+     *               - 'data' (array) with the postcode lookup response keys such as 'postcode', 'mp', 'ms', 'pcc', 'councillors', and 'areaInfo'
+     *               - 'message' (string) on failure
+     */
+    private function get_representatives_for_postcode($postcode) {
+        $postcode = trim((string) $postcode);
+
+        if (empty($postcode)) {
+            return array(
+                'success' => false,
+                'message' => __('Please search for your postcode again before sending.', 'find-my-rep'),
+            );
+        }
+
+        $cached_lookup = $this->get_cached_postcode_lookup($postcode);
+        if (!empty($cached_lookup)) {
+            return array(
+                'success' => true,
+                'data' => $cached_lookup,
+            );
+        }
+
+        $api_url = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
+
+        // Build request URL safely (avoid double slashes)
+        $request_url = rtrim($api_url, '/') . '/' . urlencode($postcode);
+
+        // Make API request to get representatives
+        $response = wp_remote_get($request_url);
+
+        if (is_wp_error($response)) {
+            return array(
+                'success' => false,
+                'message' => __('Failed to fetch representatives.', 'find-my-rep'),
+            );
+        }
+
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code === 400) {
+            return array(
+                'success' => false,
+                'message' => __('Invalid postcode format. Please enter a valid UK postcode.', 'find-my-rep'),
+            );
+        }
+
+        if ($response_code === 404) {
+            return array(
+                'success' => false,
+                'message' => __('This postcode is not in our coverage area.', 'find-my-rep'),
+            );
+        }
+
+        if ($response_code < 200 || $response_code >= 300) {
+            return array(
+                'success' => false,
+                'message' => sprintf(__('API request failed (HTTP %d). Please check the API URL in settings.', 'find-my-rep'), $response_code),
+            );
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return array(
+                'success' => false,
+                'message' => __('Invalid response from API.', 'find-my-rep'),
+            );
+        }
+
+        if (empty($data)) {
+            return array(
+                'success' => false,
+                'message' => __('No representatives found for this postcode.', 'find-my-rep'),
+            );
+        }
+
+        $has_reps = !empty($data['mp']) || !empty($data['ms']) || !empty($data['pcc']) || !empty($data['councillors']);
+        if (!$has_reps) {
+            return array(
+                'success' => false,
+                'message' => __('No representatives found for this postcode.', 'find-my-rep'),
+            );
+        }
+
+        $this->cache_postcode_lookup($postcode, $data);
+
+        return array(
+            'success' => true,
+            'data' => $data,
+        );
+    }
+
+    /**
+     * Get a cached postcode lookup response when available.
+     *
+     * @param string $postcode Postcode used to build the cache key.
+     * @return array
+     */
+    private function get_cached_postcode_lookup($postcode) {
+        if (!function_exists('get_transient')) {
+            return array();
+        }
+
+        $cached_lookup = get_transient($this->get_postcode_cache_key($postcode));
+        return is_array($cached_lookup) ? $cached_lookup : array();
+    }
+
+    /**
+     * Cache a successful postcode lookup response.
+     *
+     * @param string $postcode Postcode used to build the cache key.
+     * @param array  $data Successful postcode lookup response data.
+     * @return void
+     */
+    private function cache_postcode_lookup($postcode, $data) {
+        if (!function_exists('set_transient')) {
+            return;
+        }
+
+        set_transient($this->get_postcode_cache_key($postcode), $data, self::POSTCODE_CACHE_WINDOW);
+    }
+
+    /**
+     * Build the transient key used for postcode lookup caching.
+     *
+     * @param string $postcode Postcode used to build the cache key.
+     * @return string
+     */
+    private function get_postcode_cache_key($postcode) {
+        return 'find_my_rep_postcode_' . md5(strtolower(trim((string) $postcode)));
+    }
+
+    /**
+     * Verify that submitted representatives match the server-side postcode lookup.
+     *
+     * @param string $postcode Postcode used to fetch representatives.
+     * @param array  $representatives Representatives submitted by the client.
+     * @return array Array containing 'success' (bool) and either 'representatives' (array) on success or 'message' (string) on failure.
+     */
+    private function get_verified_representatives($postcode, $representatives) {
+        $lookup = $this->get_representatives_for_postcode($postcode);
+        if (!$lookup['success']) {
+            return $lookup;
+        }
+
+        $allowed_representatives = $this->flatten_representatives_response($lookup['data']);
+        $allowed_map = array();
+        foreach ($allowed_representatives as $representative) {
+            $allowed_map[$this->get_representative_key($representative)] = $representative;
+        }
+
+        $verified = array();
+        $seen = array();
+
+        foreach ($representatives as $representative) {
+            if (!is_array($representative) || !isset($representative['type']) || !isset($representative['id'])) {
+                return array(
+                    'success' => false,
+                    'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
+                );
+            }
+
+            $key = $this->get_representative_key($representative);
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            if (!isset($allowed_map[$key])) {
+                return array(
+                    'success' => false,
+                    'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
+                );
+            }
+
+            $verified[] = $allowed_map[$key];
+            $seen[$key] = true;
+        }
+
+        if (empty($verified)) {
+            return array(
+                'success' => false,
+                'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
+            );
+        }
+
+        return array(
+            'success' => true,
+            'representatives' => $verified,
+        );
+    }
+
+    /**
+     * Flatten the API response into the selectable representative structure used by the frontend.
+     *
+     * @param array $data Raw postcode lookup response containing representative keys such as 'mp', 'ms', 'pcc', and 'councillors'.
+     * @return array
+     */
+    private function flatten_representatives_response($data) {
+        $representatives = array();
+
+        if (!empty($data['mp'])) {
+            $data['mp']['type'] = 'MP';
+            $representatives[] = $data['mp'];
+        }
+
+        if (!empty($data['ms'])) {
+            $data['ms']['type'] = 'MS';
+            $representatives[] = $data['ms'];
+        }
+
+        if (!empty($data['pcc'])) {
+            $data['pcc']['type'] = 'PCC';
+            $representatives[] = $data['pcc'];
+        }
+
+        if (!empty($data['councillors']) && is_array($data['councillors'])) {
+            foreach ($data['councillors'] as $councillor) {
+                if (!is_array($councillor)) {
+                    continue;
+                }
+                $councillor['type'] = 'Councillor';
+                $representatives[] = $councillor;
+            }
+        }
+
+        return $representatives;
+    }
+
+    /**
+     * Build a stable key for a representative.
+     *
+     * @param array $representative Representative data.
+     * @return string Key in the format "type:id".
+     */
+    private function get_representative_key($representative) {
+        $type = isset($representative['type']) ? sanitize_text_field($representative['type']) : '';
+        $id = isset($representative['id']) ? (int) $representative['id'] : 0;
+
+        return $type . ':' . $id;
+    }
+    
+    /**
+     * Check whether submitted content contains abusive language
+     *
+     * @param string $content Content to inspect
+     * @return bool
+     */
+    private function contains_abusive_content($content) {
+        $patterns = apply_filters('find_my_rep_blocked_message_patterns', array(
+            '/\b(fuck|shit|cunt|bitch|bastard|asshole)\b/i',
+            '/\b(kill yourself|kill you|go die|you should die|i will hurt you)\b/i',
+        ));
+        
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $content) === 1) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check whether a message includes excessive links
+     *
+     * @param string $content Message content
+     * @return bool
+     */
+    private function contains_excessive_links($content) {
+        return preg_match_all('/(?:https?:\/\/|www\.)/i', $content) > 2;
+    }
+    
+    /**
+     * Apply a simple per-sender rate limit
+     *
+     * @param string $sender_email Sender email address
+     * @return bool
+     */
+    private function is_rate_limited($sender_email) {
+        if (!function_exists('get_transient') || !function_exists('set_transient')) {
+            return false;
+        }
+        
+        $rate_limit_key = $this->get_rate_limit_key($sender_email);
+        $attempts = (int) get_transient($rate_limit_key);
+        
+        if ($attempts >= self::RATE_LIMIT_MAX_ATTEMPTS) {
+            return true;
+        }
+        
+        set_transient($rate_limit_key, $attempts + 1, self::RATE_LIMIT_WINDOW);
+        return false;
+    }
+    
+    /**
+     * Build the transient key used for rate limiting using sender email only
+     *
+     * @param string $sender_email Sender email address
+     * @return string
+     */
+    private function get_rate_limit_key($sender_email) {
+        return 'find_my_rep_rate_' . md5(strtolower(trim((string) $sender_email)));
     }
 }
 

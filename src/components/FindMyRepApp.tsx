@@ -3,207 +3,206 @@
  * Note: Uses alert() for error messages to maintain consistency with original implementation.
  * Future enhancement: Replace with inline error messages or toast notifications.
  */
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import type {
-	SelectableRepresentative,
-	WPAjaxResponse,
-	ErrorData,
-	SuccessData,
-	RepresentativesApiResponse,
-	AreaInfo,
-} from '../types';
-import { apiResponseToSelectableReps } from '../types';
-import { PostcodeStep } from './PostcodeStep';
-import { SelectStep } from './SelectStep';
-import { LetterStep } from './LetterStep';
-import { LoadingSpinner } from './LoadingSpinner';
+  SelectableRepresentative,
+  WPAjaxResponse,
+  ErrorData,
+  SuccessData,
+  RepresentativesApiResponse,
+  AreaInfo,
+} from "../types";
+import { apiResponseToSelectableReps } from "../types";
+import { PostcodeStep } from "./PostcodeStep";
+import { SelectStep } from "./SelectStep";
+import { LetterStep } from "./LetterStep";
+import { LoadingSpinner } from "./LoadingSpinner";
 
-type Step = 'postcode' | 'select' | 'letter';
+type Step = "postcode" | "select" | "letter";
 
 interface FindMyRepAppProps {
-	blockId: string;
-	perBlockTemplate: string;
+  blockId: string;
+  perBlockTemplate: string;
 }
 
-export const FindMyRepApp: React.FC< FindMyRepAppProps > = ( {
-	blockId,
-	perBlockTemplate,
-} ) => {
-	const [ currentStep, setCurrentStep ] = useState< Step >( 'postcode' );
-	const [ representatives, setRepresentatives ] = useState<
-		SelectableRepresentative[]
-	>( [] );
-	const [ selectedReps, setSelectedReps ] = useState<
-		SelectableRepresentative[]
-	>( [] );
-	const [ areaInfo, setAreaInfo ] = useState< AreaInfo | null >( null );
-	const [ error, setError ] = useState< string >( '' );
-	const [ success, setSuccess ] = useState< string >( '' );
-	const [ loading, setLoading ] = useState( false );
+export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
+  blockId,
+  perBlockTemplate,
+}) => {
+  const [currentStep, setCurrentStep] = useState<Step>("postcode");
+  const [representatives, setRepresentatives] = useState<
+    SelectableRepresentative[]
+  >([]);
+  const [selectedReps, setSelectedReps] = useState<SelectableRepresentative[]>(
+    [],
+  );
+  const [postcode, setPostcode] = useState("");
+  const [areaInfo, setAreaInfo] = useState<AreaInfo | null>(null);
+  const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
-	const { ajaxUrl, nonce, letterTemplate } = window.findMyRepData;
+  const { ajaxUrl, nonce, letterTemplate } = window.findMyRepData;
 
-	// Use per-block template if available, otherwise use global template
-	const effectiveTemplate = perBlockTemplate || letterTemplate;
+  // Use per-block template if available, otherwise use global template
+  const effectiveTemplate = perBlockTemplate || letterTemplate;
 
-	const handleFindReps = async ( postcode: string ) => {
-		setLoading( true );
-		setError( '' );
+  const handleFindReps = async (postcode: string) => {
+    setLoading(true);
+    setError("");
 
-		try {
-			const response = await fetch( ajaxUrl, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams( {
-					action: 'find_my_rep_get_representatives',
-					nonce,
-					postcode,
-				} ),
-			} );
+    try {
+      const response = await fetch(ajaxUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          action: "find_my_rep_get_representatives",
+          nonce,
+          postcode,
+        }),
+      });
 
-			if ( ! response.ok ) {
-				throw new Error( `HTTP error! status: ${ response.status }` );
-			}
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-			const data: WPAjaxResponse<
-				RepresentativesApiResponse | ErrorData
-			> = await response.json();
+      const data: WPAjaxResponse<RepresentativesApiResponse | ErrorData> =
+        await response.json();
 
-			if (
-				typeof data !== 'object' ||
-				data === null ||
-				typeof data.success !== 'boolean'
-			) {
-				throw new Error( 'Invalid response format' );
-			}
+      if (
+        typeof data !== "object" ||
+        data === null ||
+        typeof data.success !== "boolean"
+      ) {
+        throw new Error("Invalid response format");
+      }
 
-			if ( data.success ) {
-				// Check if this is the API response format (has postcode field)
-				if (
-					typeof data.data === 'object' &&
-					data.data !== null &&
-					'postcode' in data.data
-				) {
-					const apiData = data.data as RepresentativesApiResponse;
-					const reps = apiResponseToSelectableReps( apiData );
-					setRepresentatives( reps );
-					setAreaInfo( apiData.areaInfo || null );
-					setCurrentStep( 'select' );
-				} else {
-					const errorData = data.data as ErrorData;
-					setError(
-						errorData?.message || 'Failed to fetch representatives.'
-					);
-				}
-			} else {
-				const errorData = data.data as ErrorData;
-				setError(
-					errorData?.message || 'Failed to fetch representatives.'
-				);
-			}
-		} catch ( err ) {
-			setError( 'An error occurred. Please try again.' );
-			// eslint-disable-next-line no-console
-			console.error( 'Error:', err );
-		} finally {
-			setLoading( false );
-		}
-	};
+      if (data.success) {
+        // Check if this is the API response format (has postcode field)
+        if (
+          typeof data.data === "object" &&
+          data.data !== null &&
+          "postcode" in data.data
+        ) {
+          const apiData = data.data as RepresentativesApiResponse;
+          const reps = apiResponseToSelectableReps(apiData);
+          setRepresentatives(reps);
+          setPostcode(apiData.postcode || "");
+          setAreaInfo(apiData.areaInfo || null);
+          setCurrentStep("select");
+        } else {
+          const errorData = data.data as ErrorData;
+          setError(errorData?.message || "Failed to fetch representatives.");
+        }
+      } else {
+        const errorData = data.data as ErrorData;
+        setError(errorData?.message || "Failed to fetch representatives.");
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+      // eslint-disable-next-line no-console
+      console.error("Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-	const handleContinue = ( reps: SelectableRepresentative[] ) => {
-		setSelectedReps( reps );
-		setCurrentStep( 'letter' );
-	};
+  const handleContinue = (reps: SelectableRepresentative[]) => {
+    setSelectedReps(reps);
+    setCurrentStep("letter");
+  };
 
-	const handleSend = async (
-		senderName: string,
-		senderEmail: string,
-		letterContent: string
-	) => {
-		setLoading( true );
+  const handleSend = async (
+    senderName: string,
+    senderEmail: string,
+    letterContent: string,
+    honeypot: string,
+  ) => {
+    setLoading(true);
 
-		try {
-			const response = await fetch( ajaxUrl, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams( {
-					action: 'find_my_rep_send_letter',
-					nonce,
-					sender_name: senderName,
-					sender_email: senderEmail,
-					letter_content: letterContent,
-					representatives: JSON.stringify( selectedReps ),
-				} ),
-			} );
+    try {
+      const response = await fetch(ajaxUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          action: "find_my_rep_send_letter",
+          nonce,
+          sender_name: senderName,
+          sender_email: senderEmail,
+          letter_content: letterContent,
+          postcode,
+          website_url: honeypot,
+          representatives: JSON.stringify(selectedReps),
+        }),
+      });
 
-			if ( ! response.ok ) {
-				throw new Error( `HTTP error! status: ${ response.status }` );
-			}
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-			const data: WPAjaxResponse< SuccessData | ErrorData > =
-				await response.json();
+      const data: WPAjaxResponse<SuccessData | ErrorData> =
+        await response.json();
 
-			if (
-				typeof data !== 'object' ||
-				data === null ||
-				typeof data.success !== 'boolean'
-			) {
-				throw new Error( 'Invalid response format' );
-			}
+      if (
+        typeof data !== "object" ||
+        data === null ||
+        typeof data.success !== "boolean"
+      ) {
+        throw new Error("Invalid response format");
+      }
 
-			if ( data.success ) {
-				const successData = data.data as SuccessData;
-				let message = successData.message;
-				if ( successData.errors && successData.errors.length > 0 ) {
-					message +=
-						'\n\nErrors:\n' + successData.errors.join( '\n' );
-				}
-				setSuccess( message );
-			} else {
-				const errorData = data.data as ErrorData;
-				// eslint-disable-next-line no-alert
-				alert( errorData?.message || 'Failed to send letters.' );
-			}
-		} catch ( err ) {
-			// eslint-disable-next-line no-alert
-			alert( 'An error occurred. Please try again.' );
-			// eslint-disable-next-line no-console
-			console.error( 'Error:', err );
-		} finally {
-			setLoading( false );
-		}
-	};
+      if (data.success) {
+        const successData = data.data as SuccessData;
+        let message = successData.message;
+        if (successData.errors && successData.errors.length > 0) {
+          message += "\n\nErrors:\n" + successData.errors.join("\n");
+        }
+        setSuccess(message);
+      } else {
+        const errorData = data.data as ErrorData;
+        // eslint-disable-next-line no-alert
+        alert(errorData?.message || "Failed to send letters.");
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-alert
+      alert("An error occurred. Please try again.");
+      // eslint-disable-next-line no-console
+      console.error("Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-	return (
-		<div className="find-my-rep-container" id={ blockId }>
-			{ currentStep === 'postcode' && (
-				<PostcodeStep
-					onFindReps={ handleFindReps }
-					error={ error }
-					loading={ loading }
-				/>
-			) }
-			{ currentStep === 'select' && (
-				<SelectStep
-					representatives={ representatives }
-					areaInfo={ areaInfo }
-					onContinue={ handleContinue }
-				/>
-			) }
-			{ currentStep === 'letter' && (
-				<LetterStep
-					selectedReps={ selectedReps }
-					letterTemplate={ effectiveTemplate }
-					onSend={ handleSend }
-					loading={ loading }
-					success={ success }
-				/>
-			) }
-			<LoadingSpinner visible={ loading } />
-		</div>
-	);
+  return (
+    <div className="find-my-rep-container" id={blockId}>
+      {currentStep === "postcode" && (
+        <PostcodeStep
+          onFindReps={handleFindReps}
+          error={error}
+          loading={loading}
+        />
+      )}
+      {currentStep === "select" && (
+        <SelectStep
+          representatives={representatives}
+          areaInfo={areaInfo}
+          onContinue={handleContinue}
+        />
+      )}
+      {currentStep === "letter" && (
+        <LetterStep
+          selectedReps={selectedReps}
+          letterTemplate={effectiveTemplate}
+          onSend={handleSend}
+          loading={loading}
+          success={success}
+        />
+      )}
+      <LoadingSpinner visible={loading} />
+    </div>
+  );
 };

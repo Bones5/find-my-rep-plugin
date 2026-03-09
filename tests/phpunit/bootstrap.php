@@ -15,6 +15,18 @@ if (!function_exists('__')) {
     }
 }
 
+if (!function_exists('add_action')) {
+    function add_action($hook, $callback, $priority = 10, $accepted_args = 1) {
+        return true;
+    }
+}
+
+if (!function_exists('apply_filters')) {
+    function apply_filters($hook_name, $value) {
+        return $value;
+    }
+}
+
 if (!function_exists('esc_html__')) {
     function esc_html__($text, $domain = 'default') {
         return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
@@ -32,10 +44,85 @@ if (!function_exists('get_option')) {
     }
 }
 
+if (!function_exists('sanitize_text_field')) {
+    function sanitize_text_field($text) {
+        return trim(preg_replace('/\s+/', ' ', strip_tags((string) $text)));
+    }
+}
+
+if (!function_exists('sanitize_email')) {
+    function sanitize_email($email) {
+        return filter_var($email, FILTER_SANITIZE_EMAIL);
+    }
+}
+
+if (!function_exists('sanitize_textarea_field')) {
+    function sanitize_textarea_field($text) {
+        return trim(str_replace("\r", '', strip_tags((string) $text)));
+    }
+}
+
+if (!function_exists('is_email')) {
+    function is_email($email) {
+        return (bool) filter_var($email, FILTER_VALIDATE_EMAIL);
+    }
+}
+
+if (!function_exists('plugin_dir_path')) {
+    function plugin_dir_path($file) {
+        return dirname($file) . '/';
+    }
+}
+
+if (!function_exists('plugin_dir_url')) {
+    function plugin_dir_url($file) {
+        return 'http://example.com/wp-content/plugins/find-my-rep-plugin/';
+    }
+}
+
+if (!function_exists('get_transient')) {
+    function get_transient($transient) {
+        global $test_transients;
+        if (!isset($test_transients[$transient])) {
+            return false;
+        }
+        if ($test_transients[$transient]['expires'] < time()) {
+            unset($test_transients[$transient]);
+            return false;
+        }
+        return $test_transients[$transient]['value'];
+    }
+}
+
+if (!function_exists('set_transient')) {
+    function set_transient($transient, $value, $expiration) {
+        global $test_transients;
+        $test_transients[$transient] = array(
+            'value' => $value,
+            'expires' => time() + (int) $expiration,
+        );
+        return true;
+    }
+}
+
 if (!function_exists('wp_remote_post')) {
     function wp_remote_post($url, $args = array()) {
         global $test_wp_remote_response;
         return isset($test_wp_remote_response) ? $test_wp_remote_response : array('body' => '', 'response' => array('code' => 200));
+    }
+}
+
+if (!function_exists('wp_remote_get')) {
+    function wp_remote_get($url, $args = array()) {
+        global $test_wp_remote_get_response, $test_wp_remote_get_calls;
+        if (!isset($test_wp_remote_get_calls)) {
+            $test_wp_remote_get_calls = array();
+        }
+        $test_wp_remote_get_calls[] = array(
+            'url' => $url,
+            'args' => $args,
+        );
+        return isset($test_wp_remote_get_response) ? $test_wp_remote_get_response : array('body' => '', 'response' => array('code' => 200));
     }
 }
 
@@ -103,6 +190,10 @@ if (!defined('ABSPATH')) {
     define('ABSPATH', '/tmp/wordpress/');
 }
 
+if (!defined('MINUTE_IN_SECONDS')) {
+    define('MINUTE_IN_SECONDS', 60);
+}
+
 if (!defined('WP_CONTENT_DIR')) {
     define('WP_CONTENT_DIR', ABSPATH . 'wp-content');
 }
@@ -126,4 +217,9 @@ if (!class_exists('WP_Error')) {
 require_once dirname(dirname(__DIR__)) . '/includes/class-find-my-rep-email-service.php';
 
 // Load Composer autoloader
-require_once dirname(dirname(__DIR__)) . '/vendor/autoload.php';
+$autoload_path = dirname(dirname(__DIR__)) . '/vendor/autoload.php';
+if (file_exists($autoload_path)) {
+    require_once $autoload_path;
+}
+
+require_once dirname(dirname(__DIR__)) . '/find-my-rep-plugin.php';
