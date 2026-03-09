@@ -7,12 +7,16 @@ node_modules/
 *.swo
 *~
 
+# Build output
+build/
+
 # Composer
 vendor/
 composer.lock
 
 # wp-env
 .wp-env/
+.wp-env.override.json
 
 # Playwright
 test-results/

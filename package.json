@@ -4,7 +4,7 @@
   "description": "A WordPress plugin for contacting local representatives",
   "main": "build/index.js",
   "scripts": {
-    "start": "wp-env start && wp-scripts start",
+    "start": "node scripts/find-port-and-start.js && wp-scripts start",
     "build": "wp-scripts build && cp src/style.css build/style.css",
     "package": "npm run build && rm -f find-my-rep-plugin.zip && zip -r find-my-rep-plugin.zip . -x \"node_modules/*\" \"build/*.map\" \"src/*\" \"tests/*\" \".git/*\" \"*.log\" \"wp-env.json\" \"wp-env.override.json\"",
     "watch": "wp-scripts start",
@@ -48,7 +48,6 @@
     "@wordpress/components": "^25.0.0",
     "@wordpress/element": "^5.0.0",
     "@wordpress/i18n": "^4.0.0",
-    "bad-words": "^4.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }

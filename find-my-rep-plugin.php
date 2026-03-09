@@ -33,6 +33,11 @@ class Find_My_Rep_Plugin {
     const RATE_LIMIT_MAX_ATTEMPTS = 3;
     
     /**
+     * Cache duration for postcode lookups in seconds (5 minutes).
+     */
+    const POSTCODE_CACHE_TTL = 300;
+    
+    /**
      * Rate limit window in seconds (10 minutes).
      */
     const RATE_LIMIT_WINDOW = 600;
@@ -170,7 +175,9 @@ class Find_My_Rep_Plugin {
     public function register_settings() {
         register_setting('find_my_rep_settings', 'find_my_rep_letter_template');
         register_setting('find_my_rep_settings', 'find_my_rep_resend_api_key');
-        register_setting('find_my_rep_settings', 'find_my_rep_api_url');
+        register_setting('find_my_rep_settings', 'find_my_rep_api_url', array(
+            'sanitize_callback' => array($this, 'sanitize_api_url'),
+        ));
         register_setting('find_my_rep_settings', 'find_my_rep_email_transport');
         
         add_settings_section(
@@ -214,6 +221,19 @@ class Find_My_Rep_Plugin {
     }
     
     /**
+     * Sanitize API URL setting - preserve existing value when field is empty
+     *
+     * @param string $value The submitted value.
+     * @return string The sanitized URL or the existing value if empty.
+     */
+    public function sanitize_api_url($value) {
+        if (empty(trim($value))) {
+            return get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
+        }
+        return esc_url_raw($value);
+    }
+
+    /**
      * Settings section callback
      */
     public function settings_section_callback() {
@@ -225,8 +245,10 @@ class Find_My_Rep_Plugin {
      */
     public function api_url_field_callback() {
         $value = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
-        echo '<input type="url" name="find_my_rep_api_url" value="' . esc_attr($value) . '" class="regular-text" />';
-        echo '<p class="description">' . esc_html__('Enter the API endpoint URL to fetch representatives by postcode.', 'find-my-rep') . '</p>';
+        echo '<input type="url" name="find_my_rep_api_url" value="' . esc_attr($value) . '" class="regular-text" placeholder="http://host.docker.internal:3000/api/reps" />';
+        echo '<p class="description">' . esc_html__('The Find My Rep API endpoint used to look up representatives by postcode.', 'find-my-rep') . '</p>';
+        echo '<p class="description">' . esc_html__('For local development with Docker, use http://host.docker.internal:3000/api/reps (the default).', 'find-my-rep') . '</p>';
+        echo '<p class="description">' . esc_html__('For production, use the deployed API URL (e.g. https://find-my-rep.fly.dev/api/reps).', 'find-my-rep') . '</p>';
     }
     
     /**
@@ -310,9 +332,9 @@ class Find_My_Rep_Plugin {
         $sender_email = sanitize_email($_POST['sender_email']);
         $letter_content = sanitize_textarea_field($_POST['letter_content']);
         $postcode = isset($_POST['postcode']) ? sanitize_text_field($_POST['postcode']) : '';
-        $not_robot = isset($_POST['not_robot']) ? sanitize_text_field($_POST['not_robot']) : '0';
+        $honeypot = isset($_POST['website_url']) ? sanitize_text_field($_POST['website_url']) : '';
         $representatives = json_decode(stripslashes($_POST['representatives']), true);
-        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $not_robot);
+        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot);
         
         if ($validation_message) {
             wp_send_json_error(array('message' => $validation_message));
@@ -441,7 +463,7 @@ class Find_My_Rep_Plugin {
      * @param string $letter_content Letter content
      * @return string Empty string when valid, translated error message when invalid
      */
-    private function validate_letter_request($sender_name, $sender_email, $letter_content, $not_robot = '0') {
+    private function validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot = '') {
         if (empty($sender_name) || empty($sender_email) || empty($letter_content)) {
             return __('Please fill in all fields.', 'find-my-rep');
         }
@@ -450,8 +472,8 @@ class Find_My_Rep_Plugin {
             return __('Please enter a valid email address.', 'find-my-rep');
         }
 
-        if ($not_robot !== '1') {
-            return __('Please confirm you are not a robot before sending.', 'find-my-rep');
+        if (!empty($honeypot)) {
+            return __('Spam detected.', 'find-my-rep');
         }
         
         if (strlen($letter_content) > 5000) {
@@ -482,6 +504,16 @@ class Find_My_Rep_Plugin {
             return array(
                 'success' => false,
                 'message' => __('Please search for your postcode again before sending.', 'find-my-rep'),
+            );
+        }
+
+        // Check transient cache first
+        $cache_key = 'fmr_pc_' . md5(strtoupper(trim($postcode)));
+        $cached = get_transient($cache_key);
+        if ($cached !== false) {
+            return array(
+                'success' => true,
+                'data' => $cached,
             );
         }
 
@@ -537,6 +569,9 @@ class Find_My_Rep_Plugin {
                 'success' => false,
                 'message' => __('No representatives found for this postcode.', 'find-my-rep'),
             );
+        // Cache successful lookups
+        set_transient($cache_key, $data, self::POSTCODE_CACHE_TTL);
+
         }
 
         $has_reps = !empty($data['mp']) || !empty($data['ms']) || !empty($data['pcc']) || !empty($data['councillors']);
@@ -716,16 +751,13 @@ class Find_My_Rep_Plugin {
     }
     
     /**
-     * Build the transient key used for rate limiting using sender email and server-reported IP
+     * Build the transient key used for rate limiting using the sender email
      *
      * @param string $sender_email Sender email address
      * @return string
      */
     private function get_rate_limit_key($sender_email) {
-        $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? trim($_SERVER['REMOTE_ADDR']) : '';
-        $client_ip = filter_var($remote_addr, FILTER_VALIDATE_IP) ? $remote_addr : '';
-        
-        return 'find_my_rep_rate_' . md5(strtolower(trim($sender_email)) . '|' . $client_ip);
+        return 'find_my_rep_rate_' . md5(strtolower(trim($sender_email)));
     }
 }
 

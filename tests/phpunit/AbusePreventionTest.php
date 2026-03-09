@@ -43,7 +43,7 @@ class AbusePreventionTest extends TestCase {
             'Test User',
             'test@example.com',
             'You should go die for this decision.',
-            '1'
+            ''
         );
         
         $this->assertSame(
@@ -61,7 +61,7 @@ class AbusePreventionTest extends TestCase {
             'Test User',
             'test@example.com',
             'Please read https://example.com/one https://example.com/two https://example.com/three',
-            '1'
+            ''
         );
         
         $this->assertSame(
@@ -70,7 +70,7 @@ class AbusePreventionTest extends TestCase {
         );
     }
 
-    public function test_validate_letter_request_requires_robot_confirmation() {
+    public function test_validate_letter_request_rejects_filled_honeypot() {
         $method = $this->reflection->getMethod('validate_letter_request');
         $method->setAccessible(true);
 
@@ -79,13 +79,28 @@ class AbusePreventionTest extends TestCase {
             'Test User',
             'test@example.com',
             'Please support this issue.',
-            '0'
+            'http://spam.example.com'
         );
 
         $this->assertSame(
-            'Please confirm you are not a robot before sending.',
+            'Spam detected.',
             $result
         );
+    }
+
+    public function test_validate_letter_request_passes_with_empty_honeypot() {
+        $method = $this->reflection->getMethod('validate_letter_request');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            'Test User',
+            'test@example.com',
+            'Please support this issue.',
+            ''
+        );
+
+        $this->assertSame('', $result);
     }
     
     public function test_is_rate_limited_blocks_after_three_attempts() {
