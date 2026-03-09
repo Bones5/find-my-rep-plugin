@@ -36,6 +36,11 @@ class Find_My_Rep_Plugin {
      * Rate limit window in seconds (10 minutes).
      */
     const RATE_LIMIT_WINDOW = 600;
+
+    /**
+     * Postcode lookup cache window in seconds (5 minutes).
+     */
+    const POSTCODE_CACHE_WINDOW = 300;
     
     
     /**
@@ -451,14 +456,18 @@ class Find_My_Rep_Plugin {
         }
 
         if ($not_robot !== '1') {
-            return __('Please confirm you are not a robot before sending.', 'find-my-rep');
+            return __('Please confirm you are sending this message yourself before sending.', 'find-my-rep');
         }
         
         if (strlen($letter_content) > 5000) {
             return __('Please shorten your message before sending.', 'find-my-rep');
         }
         
-        if ($this->contains_abusive_content($sender_name) || $this->contains_abusive_content($letter_content)) {
+        if (
+            $this->contains_abusive_content($sender_name) ||
+            $this->contains_abusive_content($sender_email) ||
+            $this->contains_abusive_content($letter_content)
+        ) {
             return __('Please remove abusive or threatening language before sending your message.', 'find-my-rep');
         }
         
@@ -478,10 +487,20 @@ class Find_My_Rep_Plugin {
      *               - 'message' (string) on failure
      */
     private function get_representatives_for_postcode($postcode) {
+        $postcode = trim((string) $postcode);
+
         if (empty($postcode)) {
             return array(
                 'success' => false,
                 'message' => __('Please search for your postcode again before sending.', 'find-my-rep'),
+            );
+        }
+
+        $cached_lookup = $this->get_cached_postcode_lookup($postcode);
+        if (!empty($cached_lookup)) {
+            return array(
+                'success' => true,
+                'data' => $cached_lookup,
             );
         }
 
@@ -547,10 +566,52 @@ class Find_My_Rep_Plugin {
             );
         }
 
+        $this->cache_postcode_lookup($postcode, $data);
+
         return array(
             'success' => true,
             'data' => $data,
         );
+    }
+
+    /**
+     * Get a cached postcode lookup response when available.
+     *
+     * @param string $postcode Postcode used to build the cache key.
+     * @return array
+     */
+    private function get_cached_postcode_lookup($postcode) {
+        if (!function_exists('get_transient')) {
+            return array();
+        }
+
+        $cached_lookup = get_transient($this->get_postcode_cache_key($postcode));
+        return is_array($cached_lookup) ? $cached_lookup : array();
+    }
+
+    /**
+     * Cache a successful postcode lookup response.
+     *
+     * @param string $postcode Postcode used to build the cache key.
+     * @param array  $data Successful postcode lookup response data.
+     * @return void
+     */
+    private function cache_postcode_lookup($postcode, $data) {
+        if (!function_exists('set_transient')) {
+            return;
+        }
+
+        set_transient($this->get_postcode_cache_key($postcode), $data, self::POSTCODE_CACHE_WINDOW);
+    }
+
+    /**
+     * Build the transient key used for postcode lookup caching.
+     *
+     * @param string $postcode Postcode used to build the cache key.
+     * @return string
+     */
+    private function get_postcode_cache_key($postcode) {
+        return 'find_my_rep_postcode_' . md5(strtolower(trim((string) $postcode)));
     }
 
     /**
@@ -716,16 +777,13 @@ class Find_My_Rep_Plugin {
     }
     
     /**
-     * Build the transient key used for rate limiting using sender email and server-reported IP
+     * Build the transient key used for rate limiting using sender email only
      *
      * @param string $sender_email Sender email address
      * @return string
      */
     private function get_rate_limit_key($sender_email) {
-        $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? trim($_SERVER['REMOTE_ADDR']) : '';
-        $client_ip = filter_var($remote_addr, FILTER_VALIDATE_IP) ? $remote_addr : '';
-        
-        return 'find_my_rep_rate_' . md5(strtolower(trim($sender_email)) . '|' . $client_ip);
+        return 'find_my_rep_rate_' . md5(strtolower(trim((string) $sender_email)));
     }
 }
 

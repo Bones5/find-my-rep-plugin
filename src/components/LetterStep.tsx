@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Filter } from 'bad-words';
 import type { SelectableRepresentative } from '../types';
 
 interface LetterStepProps {
@@ -14,9 +13,6 @@ interface LetterStepProps {
 	loading: boolean;
 	success?: string;
 }
-
-const abuseFilter = new Filter();
-abuseFilter.removeWords( 'damn', 'hell' );
 
 export const LetterStep: React.FC< LetterStepProps > = ( {
 	letterTemplate,
@@ -57,19 +53,15 @@ export const LetterStep: React.FC< LetterStepProps > = ( {
 
 		if ( ! isHumanConfirmed ) {
 			// eslint-disable-next-line no-alert
-			alert( 'Please confirm you are not a robot before sending.' );
+			alert(
+				'Please confirm you are sending this message yourself before sending.'
+			);
 			return;
 		}
 
-		if (
-			abuseFilter.isProfane( senderName ) ||
-			abuseFilter.isProfane( letterContent ) ||
-			containsTooManyLinks( letterContent )
-		) {
+		if ( containsTooManyLinks( letterContent ) ) {
 			// eslint-disable-next-line no-alert
-			alert(
-				'Please remove abusive or spam-like content before sending your message.'
-			);
+			alert( 'Please remove excessive links before sending your message.' );
 			return;
 		}
 
@@ -122,7 +114,7 @@ export const LetterStep: React.FC< LetterStepProps > = ( {
 					}
 					disabled={ loading || !! success }
 				/>{ ' ' }
-				I&apos;m not a robot
+				I confirm I am sending this message myself
 			</label>
 			{ ! success && (
 				<button

@@ -114,7 +114,14 @@ if (!function_exists('wp_remote_post')) {
 
 if (!function_exists('wp_remote_get')) {
     function wp_remote_get($url, $args = array()) {
-        global $test_wp_remote_get_response;
+        global $test_wp_remote_get_response, $test_wp_remote_get_calls;
+        if (!isset($test_wp_remote_get_calls)) {
+            $test_wp_remote_get_calls = array();
+        }
+        $test_wp_remote_get_calls[] = array(
+            'url' => $url,
+            'args' => $args,
+        );
         return isset($test_wp_remote_get_response) ? $test_wp_remote_get_response : array('body' => '', 'response' => array('code' => 200));
     }
 }

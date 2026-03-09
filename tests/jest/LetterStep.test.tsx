@@ -100,7 +100,7 @@ describe('LetterStep Component', () => {
     fireEvent.change(nameInput, { target: { value: 'Test User' } });
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(letterTextarea, { target: { value: 'Updated letter content' } });
-    fireEvent.click(screen.getByRole('checkbox', { name: /i'm not a robot/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /i confirm i am sending this message myself/i }));
     
     const sendButton = screen.getByRole('button', { name: /Send/i });
     fireEvent.click(sendButton);
@@ -128,7 +128,7 @@ describe('LetterStep Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /Send/i }));
 
     expect(alertSpy).toHaveBeenCalledWith(
-      'Please confirm you are not a robot before sending.'
+      'Please confirm you are sending this message yourself before sending.'
     );
     expect(mockOnSend).not.toHaveBeenCalled();
 
@@ -143,7 +143,7 @@ describe('LetterStep Component', () => {
     ).toBeInTheDocument();
   });
 
-  test('blocks abusive language before sending', () => {
+  test('blocks excessive links before sending', () => {
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
 
     render(<LetterStep {...defaultProps} />);
@@ -154,15 +154,15 @@ describe('LetterStep Component', () => {
     fireEvent.change(screen.getByLabelText(/Your Email:/i), {
       target: { value: 'test@example.com' },
     });
-    fireEvent.click(screen.getByRole('checkbox', { name: /i'm not a robot/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /i confirm i am sending this message myself/i }));
     fireEvent.change(screen.getByDisplayValue(/Dear {{representative_name}}/i), {
-      target: { value: 'This is fuck and should be blocked.' },
+      target: { value: 'Links https://example.com/one https://example.com/two https://example.com/three' },
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Send/i }));
 
     expect(alertSpy).toHaveBeenCalledWith(
-      'Please remove abusive or spam-like content before sending your message.'
+      'Please remove excessive links before sending your message.'
     );
     expect(mockOnSend).not.toHaveBeenCalled();
 
@@ -188,7 +188,7 @@ describe('LetterStep Component', () => {
     
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
-    const robotCheckbox = screen.getByRole('checkbox', { name: /i'm not a robot/i });
+    const robotCheckbox = screen.getByRole('checkbox', { name: /i confirm i am sending this message myself/i });
     const letterTextarea = screen.getByDisplayValue(/Dear {{representative_name}}/i);
     
     expect(nameInput).toBeDisabled();
@@ -202,7 +202,7 @@ describe('LetterStep Component', () => {
     
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
-    const robotCheckbox = screen.getByRole('checkbox', { name: /i'm not a robot/i });
+    const robotCheckbox = screen.getByRole('checkbox', { name: /i confirm i am sending this message myself/i });
     const letterTextarea = screen.getByDisplayValue(/Dear {{representative_name}}/i);
     
     expect(nameInput).toBeDisabled();
