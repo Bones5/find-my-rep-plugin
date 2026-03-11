@@ -1,7 +1,10 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import type { SelectableRepresentative } from "../types";
+import { useSessionStorage } from "../hooks/useSessionStorage";
 
 interface LetterStepProps {
+  blockId: string;
+  storageKey: string;
   selectedReps: SelectableRepresentative[];
   letterTemplate: string;
   onSend: (
@@ -16,16 +19,36 @@ interface LetterStepProps {
 }
 
 export const LetterStep: React.FC<LetterStepProps> = ({
+  storageKey,
   letterTemplate,
   onSend,
   onBack,
   loading,
   success,
 }) => {
-  const [senderName, setSenderName] = useState("");
-  const [senderEmail, setSenderEmail] = useState("");
-  const [letterContent, setLetterContent] = useState(letterTemplate);
+  const [senderName, setSenderName, clearName] = useSessionStorage<string>(
+    `${storageKey}-name`,
+    "",
+  );
+  const [senderEmail, setSenderEmail, clearEmail] = useSessionStorage<string>(
+    `${storageKey}-email`,
+    "",
+  );
+  const [letterContent, setLetterContent, clearContent] =
+    useSessionStorage<string>(`${storageKey}-content`, letterTemplate);
   const honeypotRef = useRef<HTMLInputElement>(null);
+
+  // Once the success message is shown, the user's progress is complete —
+  // clear persisted letter fields so a future visit starts fresh.
+  useEffect(() => {
+    if (success) {
+      clearName();
+      clearEmail();
+      clearContent();
+    }
+    // Intentionally omitting clear* from deps — they are stable refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [success]);
 
   const isValidEmail = (email: string): boolean => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

@@ -4,6 +4,7 @@
  * Future enhancement: Replace with inline error messages or toast notifications.
  */
 import React, { useState } from "react";
+import { useSessionStorage } from "../hooks/useSessionStorage";
 import type {
   SelectableRepresentative,
   WPAjaxResponse,
@@ -16,31 +17,62 @@ import { apiResponseToSelectableReps } from "../types";
 import { PostcodeStep } from "./PostcodeStep";
 import { SelectStep } from "./SelectStep";
 import { LetterStep } from "./LetterStep";
+import { SuccessStep } from "./SuccessStep";
 import { LoadingSpinner } from "./LoadingSpinner";
 
 type Step = "postcode" | "select" | "letter";
 
 interface FindMyRepAppProps {
   blockId: string;
+  storageKey: string;
   perBlockTemplate: string;
 }
 
 export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   blockId,
+  storageKey,
   perBlockTemplate,
 }) => {
-  const [currentStep, setCurrentStep] = useState<Step>("postcode");
-  const [representatives, setRepresentatives] = useState<
-    SelectableRepresentative[]
-  >([]);
-  const [selectedReps, setSelectedReps] = useState<SelectableRepresentative[]>(
-    [],
+  const [currentStep, setCurrentStep, clearStep] = useSessionStorage<Step>(
+    `${storageKey}-step`,
+    "postcode",
   );
-  const [postcode, setPostcode] = useState("");
-  const [areaInfo, setAreaInfo] = useState<AreaInfo | null>(null);
+  const [representatives, setRepresentatives, clearReps] = useSessionStorage<
+    SelectableRepresentative[]
+  >(`${storageKey}-reps`, []);
+  const [selectedReps, setSelectedReps, clearSelected] = useSessionStorage<
+    SelectableRepresentative[]
+  >(`${storageKey}-selected`, []);
+  const [postcode, setPostcode, clearPostcode] = useSessionStorage<string>(
+    `${storageKey}-postcode`,
+    "",
+  );
+  const [areaInfo, setAreaInfo, clearAreaInfo] =
+    useSessionStorage<AreaInfo | null>(`${storageKey}-area`, null);
   const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
+  const [successInfo, setSuccessInfo] = useState<{
+    message: string;
+    reps: SelectableRepresentative[];
+    senderEmail: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
+
+  /** Remove all persisted progress for this block. Called after a successful send. */
+  const clearAllProgress = () => {
+    clearStep();
+    clearReps();
+    clearSelected();
+    clearPostcode();
+    clearAreaInfo();
+    // Also clear LetterStep-owned keys
+    try {
+      sessionStorage.removeItem(`${storageKey}-name`);
+      sessionStorage.removeItem(`${storageKey}-email`);
+      sessionStorage.removeItem(`${storageKey}-content`);
+    } catch {
+      // ignore
+    }
+  };
 
   const { ajaxUrl, nonce, letterTemplate } = window.findMyRepData;
 
@@ -168,9 +200,14 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
         const successData = data.data as SuccessData;
         let message = successData.message;
         if (successData.errors && successData.errors.length > 0) {
-          message += "\n\nErrors:\n" + successData.errors.join("\n");
+          message +=
+            "\n\nSome letters could not be delivered:\n" +
+            successData.errors.join("\n");
         }
-        setSuccess(message);
+        // Capture before clearing so SuccessStep can show recipients
+        const sentReps = [...selectedReps];
+        clearAllProgress();
+        setSuccessInfo({ message, reps: sentReps, senderEmail });
       } else {
         const errorData = data.data as ErrorData;
         // eslint-disable-next-line no-alert
@@ -188,30 +225,43 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
 
   return (
     <div className="find-my-rep-container" id={blockId}>
-      {currentStep === "postcode" && (
-        <PostcodeStep
-          onFindReps={handleFindReps}
-          error={error}
-          loading={loading}
+      {successInfo ? (
+        <SuccessStep
+          message={successInfo.message}
+          reps={successInfo.reps}
+          senderEmail={successInfo.senderEmail}
+          onStartOver={() => setSuccessInfo(null)}
         />
-      )}
-      {currentStep === "select" && (
-        <SelectStep
-          representatives={representatives}
-          areaInfo={areaInfo}
-          onContinue={handleContinue}
-          onBack={handleBackToPostcode}
-        />
-      )}
-      {currentStep === "letter" && (
-        <LetterStep
-          selectedReps={selectedReps}
-          letterTemplate={effectiveTemplate}
-          onSend={handleSend}
-          onBack={handleBackToSelect}
-          loading={loading}
-          success={success}
-        />
+      ) : (
+        <>
+          {currentStep === "postcode" && (
+            <PostcodeStep
+              onFindReps={handleFindReps}
+              error={error}
+              loading={loading}
+            />
+          )}
+          {currentStep === "select" && (
+            <SelectStep
+              representatives={representatives}
+              areaInfo={areaInfo}
+              initialSelectedReps={selectedReps}
+              onContinue={handleContinue}
+              onBack={handleBackToPostcode}
+            />
+          )}
+          {currentStep === "letter" && (
+            <LetterStep
+              blockId={blockId}
+              storageKey={storageKey}
+              selectedReps={selectedReps}
+              letterTemplate={effectiveTemplate}
+              onSend={handleSend}
+              onBack={handleBackToSelect}
+              loading={loading}
+            />
+          )}
+        </>
       )}
       <LoadingSpinner visible={loading} />
     </div>

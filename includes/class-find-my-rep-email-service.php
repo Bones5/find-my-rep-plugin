@@ -101,6 +101,8 @@ class Find_My_Rep_Email_Service {
                 'message' => __('Resend API key not configured.', 'find-my-rep')
             );
         }
+
+        $from_email = get_option('find_my_rep_from_email', 'letters@findmyrep.bones.dev');
         
         $response = wp_remote_post('https://api.resend.com/emails', array(
             'headers' => array(
@@ -108,7 +110,7 @@ class Find_My_Rep_Email_Service {
                 'Content-Type' => 'application/json',
             ),
             'body' => json_encode(array(
-                'from' => $sender_email,
+                'from' => 'Find My Rep <' . $from_email . '>',
                 'to' => $recipient_email,
                 'subject' => $subject,
                 'text' => $content,
@@ -161,9 +163,10 @@ class Find_My_Rep_Email_Service {
         if (!$has_reply_to) {
             $headers[] = 'Reply-To: ' . $sender_email;
         }
-        
-        // Add from header
-        $headers[] = 'From: ' . $sender_email;
+
+        // Use the configured from address, not the sender's address
+        $from_email = get_option('find_my_rep_from_email', 'letters@findmyrep.bones.dev');
+        $headers[] = 'From: Find My Rep <' . $from_email . '>';
         
         $result = wp_mail($recipient_email, $subject, $content, $headers);
         

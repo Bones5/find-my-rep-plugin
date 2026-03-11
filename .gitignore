@@ -25,3 +25,5 @@ playwright/.cache/
 
 # PHPUnit
 .phpunit.result.cache
+
+.env

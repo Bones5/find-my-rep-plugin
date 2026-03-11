@@ -175,6 +175,9 @@ class Find_My_Rep_Plugin {
     public function register_settings() {
         register_setting('find_my_rep_settings', 'find_my_rep_letter_template');
         register_setting('find_my_rep_settings', 'find_my_rep_resend_api_key');
+        register_setting('find_my_rep_settings', 'find_my_rep_from_email', array(
+            'sanitize_callback' => 'sanitize_email',
+        ));
         register_setting('find_my_rep_settings', 'find_my_rep_api_url', array(
             'sanitize_callback' => array($this, 'sanitize_api_url'),
         ));
@@ -199,6 +202,14 @@ class Find_My_Rep_Plugin {
             'find_my_rep_resend_api_key',
             __('Resend API Key', 'find-my-rep'),
             array($this, 'resend_api_key_field_callback'),
+            'find-my-rep-settings',
+            'find_my_rep_main_section'
+        );
+
+        add_settings_field(
+            'find_my_rep_from_email',
+            __('From Email Address', 'find-my-rep'),
+            array($this, 'from_email_field_callback'),
             'find-my-rep-settings',
             'find_my_rep_main_section'
         );
@@ -251,6 +262,15 @@ class Find_My_Rep_Plugin {
         echo '<p class="description">' . esc_html__('For production, use the deployed API URL (e.g. https://find-my-rep.fly.dev/api/reps).', 'find-my-rep') . '</p>';
     }
     
+    /**
+     * From email address field callback
+     */
+    public function from_email_field_callback() {
+        $value = get_option('find_my_rep_from_email', 'letters@findmyrep.bones.dev');
+        echo '<input type="email" name="find_my_rep_from_email" value="' . esc_attr($value) . '" class="regular-text" placeholder="letters@findmyrep.bones.dev" />';
+        echo '<p class="description">' . esc_html__('The address emails are sent from. Must be a verified domain in Resend. The constituent\'s address is used as Reply-To so replies go directly to them.', 'find-my-rep') . '</p>';
+    }
+
     /**
      * Resend API key field callback
      */

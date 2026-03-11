@@ -58,6 +58,7 @@ jest.mock("../../src/components/LetterStep", () => ({
 
 describe("FindMyRepApp", () => {
   beforeEach(() => {
+    sessionStorage.clear();
     window.findMyRepData = {
       ajaxUrl: "/wp-admin/admin-ajax.php",
       nonce: "test-nonce",
@@ -96,7 +97,13 @@ describe("FindMyRepApp", () => {
   });
 
   test("includes the looked-up postcode when sending letters", async () => {
-    render(<FindMyRepApp blockId="test-block" perBlockTemplate="" />);
+    render(
+      <FindMyRepApp
+        blockId="test-block"
+        storageKey="fmr-/test/-0"
+        perBlockTemplate=""
+      />,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
     await screen.findByRole("button", { name: /Continue/i });

@@ -28,7 +28,7 @@ export interface Councillor {
 export interface PCC {
   id: number;
   name: string;
-  party: string;
+  party?: string;
   force: string;
   area: string;
   email: string;

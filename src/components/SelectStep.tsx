@@ -4,6 +4,7 @@ import type { SelectableRepresentative, AreaInfo } from "../types";
 interface SelectStepProps {
   representatives: SelectableRepresentative[];
   areaInfo: AreaInfo | null;
+  initialSelectedReps?: SelectableRepresentative[];
   onContinue: (selectedReps: SelectableRepresentative[]) => void;
   onBack: () => void;
 }
@@ -173,10 +174,21 @@ function getTypeColorClass(type: string): string {
 export const SelectStep: React.FC<SelectStepProps> = ({
   representatives,
   areaInfo,
+  initialSelectedReps = [],
   onContinue,
   onBack,
 }) => {
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(() => {
+    if (initialSelectedReps.length === 0) return new Set();
+    const ids = new Set<number>();
+    initialSelectedReps.forEach((selected) => {
+      const idx = representatives.findIndex(
+        (r) => r.type === selected.type && r.id === selected.id,
+      );
+      if (idx !== -1) ids.add(idx);
+    });
+    return ids;
+  });
 
   const handleCheckboxChange = (index: number) => {
     const newSelectedIds = new Set(selectedIds);
@@ -189,12 +201,6 @@ export const SelectStep: React.FC<SelectStepProps> = ({
   };
 
   const handleContinue = () => {
-    if (selectedIds.size === 0) {
-      // eslint-disable-next-line no-alert
-      alert("Please select at least one representative.");
-      return;
-    }
-
     const selectedReps = representatives.filter((_, index) =>
       selectedIds.has(index),
     );

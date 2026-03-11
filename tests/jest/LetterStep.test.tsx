@@ -17,15 +17,21 @@ describe("LetterStep Component", () => {
   ];
 
   const mockOnSend = jest.fn();
+  const mockOnBack = jest.fn();
   const defaultProps = {
+    blockId: "test-block",
+    storageKey: "fmr-/test/-0",
     selectedReps: mockSelectedReps,
     letterTemplate: "Dear {{representative_name}},\n\nTest letter content.",
     onSend: mockOnSend,
+    onBack: mockOnBack,
     loading: false,
   };
 
   beforeEach(() => {
     mockOnSend.mockClear();
+    mockOnBack.mockClear();
+    sessionStorage.clear();
   });
 
   test("renders the letter step with initial template", () => {

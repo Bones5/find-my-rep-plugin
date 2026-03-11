@@ -7,11 +7,13 @@ This document describes how to integrate your representatives API with the Find 
 Configure your API endpoint in **WordPress Admin > Settings > Find My Rep**.
 
 The plugin expects the API to be structured as:
+
 ```
 {your-api-url}/{postcode}
 ```
 
 For example, if your API URL is `https://api.example.com/api/reps`, the plugin will make requests to:
+
 ```
 GET https://api.example.com/api/reps/SW1A1AA
 ```
@@ -37,6 +39,7 @@ Your API should return data in the following JSON format:
   "pcc": {
     "id": 1,
     "name": "Sir Mark Rowley",
+    "party": "Independent",
     "force": "Metropolitan Police",
     "area": "Greater London",
     "email": "mopac@london.gov.uk",
@@ -89,6 +92,7 @@ Your API should return data in the following JSON format:
 ```
 
 **Top-Level Fields:**
+
 - `postcode` (required): The postcode that was queried
 - `councillors` (optional): Array of local councillors
 - `pcc` (optional): Police and Crime Commissioner (single object)
@@ -97,6 +101,7 @@ Your API should return data in the following JSON format:
 - `areaInfo` (optional): Geographic information about the area
 
 **Councillor Fields:**
+
 - `id` (required): Unique identifier for the councillor
 - `name` (required): The councillor's full name
 - `party` (required): Political party
@@ -106,14 +111,17 @@ Your API should return data in the following JSON format:
 - `phone` (required): Phone number
 
 **PCC Fields:**
+
 - `id` (required): Unique identifier
 - `name` (required): Full name
+- `party` (optional): Political party
 - `force` (required): Police force name
 - `area` (required): Area covered
 - `email` (required): Email address
-- `website` (required): Website URL
+- `website` (optional): Website URL
 
 **MP Fields:**
+
 - `id` (required): Unique identifier
 - `name` (required): Full name
 - `party` (required): Political party
@@ -123,6 +131,7 @@ Your API should return data in the following JSON format:
 - `website` (required): Website URL
 
 **MS Fields (for Wales):**
+
 - `id` (required): Unique identifier
 - `name` (required): Full name
 - `party` (required): Political party
@@ -132,6 +141,7 @@ Your API should return data in the following JSON format:
 - `website` (required): Website URL
 
 **AreaInfo Fields:**
+
 - `constituency` (optional): Westminster constituency information
   - `id`: Unique identifier
   - `name`: Constituency name
@@ -217,27 +227,27 @@ echo json_encode($representatives);
 ### Node.js Example
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const app = express();
 
-app.get('/representatives', (req, res) => {
-    const postcode = req.query.postcode;
-    
-    if (!postcode) {
-        return res.status(400).json({ error: 'Postcode required' });
-    }
-    
-    // Fetch representatives (implement your logic here)
-    const representatives = [
-        {
-            name: 'Example Representative',
-            email: 'rep@example.com',
-            title: 'Member of Parliament',
-            type: 'MP'
-        }
-    ];
-    
-    res.json(representatives);
+app.get("/representatives", (req, res) => {
+  const postcode = req.query.postcode;
+
+  if (!postcode) {
+    return res.status(400).json({ error: "Postcode required" });
+  }
+
+  // Fetch representatives (implement your logic here)
+  const representatives = [
+    {
+      name: "Example Representative",
+      email: "rep@example.com",
+      title: "Member of Parliament",
+      type: "MP",
+    },
+  ];
+
+  res.json(representatives);
 });
 
 app.listen(3000);
