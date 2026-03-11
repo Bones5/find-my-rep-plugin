@@ -10,6 +10,7 @@ interface LetterStepProps {
     letterContent: string,
     honeypot: string,
   ) => void;
+  onBack: () => void;
   loading: boolean;
   success?: string;
 }
@@ -17,6 +18,7 @@ interface LetterStepProps {
 export const LetterStep: React.FC<LetterStepProps> = ({
   letterTemplate,
   onSend,
+  onBack,
   loading,
   success,
 }) => {
@@ -110,13 +112,23 @@ export const LetterStep: React.FC<LetterStepProps> = ({
         />
       </div>
       {!success && (
-        <button
-          className="button button-primary send-btn send-button"
-          onClick={handleSend}
-          disabled={loading}
-        >
-          {loading ? "Sending..." : "Send"}
-        </button>
+        <div className="step-buttons">
+          <button
+            className="button back-btn"
+            onClick={onBack}
+            type="button"
+            disabled={loading}
+          >
+            ← Back
+          </button>
+          <button
+            className="button button-primary send-btn send-button"
+            onClick={handleSend}
+            disabled={loading}
+          >
+            {loading ? "Sending..." : "Send"}
+          </button>
+        </div>
       )}
       {success && (
         <div className="success-message" style={{ display: "block" }}>

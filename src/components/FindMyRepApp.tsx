@@ -114,6 +114,15 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
     setCurrentStep("letter");
   };
 
+  const handleBackToPostcode = () => {
+    setCurrentStep("postcode");
+    setError("");
+  };
+
+  const handleBackToSelect = () => {
+    setCurrentStep("select");
+  };
+
   const handleSend = async (
     senderName: string,
     senderEmail: string,
@@ -191,6 +200,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
           representatives={representatives}
           areaInfo={areaInfo}
           onContinue={handleContinue}
+          onBack={handleBackToPostcode}
         />
       )}
       {currentStep === "letter" && (
@@ -198,6 +208,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
           selectedReps={selectedReps}
           letterTemplate={effectiveTemplate}
           onSend={handleSend}
+          onBack={handleBackToSelect}
           loading={loading}
           success={success}
         />

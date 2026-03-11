@@ -5,6 +5,7 @@ interface SelectStepProps {
 	representatives: SelectableRepresentative[];
 	areaInfo: AreaInfo | null;
 	onContinue: ( selectedReps: SelectableRepresentative[] ) => void;
+	onBack: () => void;
 }
 
 /**
@@ -173,6 +174,7 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 	representatives,
 	areaInfo,
 	onContinue,
+	onBack,
 } ) => {
 	const [ selectedIds, setSelectedIds ] = useState< Set< number > >(
 		new Set()
@@ -299,12 +301,17 @@ export const SelectStep: React.FC< SelectStepProps > = ( {
 					);
 				} ) }
 			</div>
-			<button
-				className="button button-primary continue-btn"
-				onClick={ handleContinue }
-			>
-				Continue
-			</button>
+			<div className="step-buttons">
+				<button className="button back-btn" onClick={ onBack } type="button">
+					← Back
+				</button>
+				<button
+					className="button button-primary continue-btn"
+					onClick={ handleContinue }
+				>
+					Continue
+				</button>
+			</div>
 		</div>
 	);
 };
