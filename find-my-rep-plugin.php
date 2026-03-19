@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: Find My Rep
  * Plugin URI: https://github.com/Bones5/find-my-rep-plugin
@@ -26,27 +27,29 @@ require_once FIND_MY_REP_PLUGIN_DIR . 'includes/class-find-my-rep-email-service.
 /**
  * Main plugin class
  */
-class Find_My_Rep_Plugin {
+class Find_My_Rep_Plugin
+{
     /**
      * Maximum number of letter submissions allowed within the rate limit window.
      */
     const RATE_LIMIT_MAX_ATTEMPTS = 3;
-    
+
     /**
      * Postcode lookup cache window in seconds (5 minutes).
      */
     const POSTCODE_CACHE_WINDOW = 300;
-    
+
     /**
      * Rate limit window in seconds (10 minutes).
      */
     const RATE_LIMIT_WINDOW = 600;
-    
-    
+
+
     /**
      * Constructor
      */
-    public function __construct() {
+    public function __construct()
+    {
         add_action('init', array($this, 'register_block'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'register_settings'));
@@ -55,33 +58,35 @@ class Find_My_Rep_Plugin {
         add_action('wp_ajax_find_my_rep_send_letter', array($this, 'ajax_send_letter'));
         add_action('wp_ajax_nopriv_find_my_rep_send_letter', array($this, 'ajax_send_letter'));
     }
-    
+
     /**
      * Get email service instance
      *
      * @return Find_My_Rep_Email_Service
      */
-    private function get_email_service() {
+    private function get_email_service()
+    {
         // Get transport from option, default to 'resend'
         $transport = get_option('find_my_rep_email_transport', 'resend');
-        
+
         // Allow filtering for development/testing purposes
         $transport = apply_filters('find_my_rep_email_transport', $transport);
-        
+
         return new Find_My_Rep_Email_Service($transport);
     }
-    
+
     /**
      * Register the Gutenberg block
      */
-    public function register_block() {
+    public function register_block()
+    {
         // Load asset file for dependencies and version
         $asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/index.asset.php';
         if (!file_exists($asset_file_path)) {
             return;
         }
         $asset_file = include($asset_file_path);
-        
+
         // Register block script
         wp_register_script(
             'find-my-rep-block-editor',
@@ -89,7 +94,7 @@ class Find_My_Rep_Plugin {
             $asset_file['dependencies'],
             $asset_file['version']
         );
-        
+
         // Register block styles (fallback to src/style.css during dev)
         $built_style_path = FIND_MY_REP_PLUGIN_DIR . 'build/style.css';
         $style_url = file_exists($built_style_path)
@@ -101,7 +106,7 @@ class Find_My_Rep_Plugin {
             array(),
             FIND_MY_REP_VERSION
         );
-        
+
         // Register the block
         register_block_type('find-my-rep/contact-block', array(
             'editor_script' => 'find-my-rep-block-editor',
@@ -119,19 +124,20 @@ class Find_My_Rep_Plugin {
             )
         ));
     }
-    
+
     /**
      * Render the block on the frontend
      */
-    public function render_block($attributes) {
+    public function render_block($attributes)
+    {
         $block_id = !empty($attributes['blockId']) ? $attributes['blockId'] : 'block-' . uniqid();
         $letter_template = get_option('find_my_rep_letter_template', '');
         $per_block_template = !empty($attributes['letterTemplate']) ? $attributes['letterTemplate'] : '';
-        
+
         // Load asset file for dependencies and version
         $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.asset.php';
         $frontend_asset_file = file_exists($frontend_asset_file_path) ? include($frontend_asset_file_path) : array('dependencies' => array(), 'version' => FIND_MY_REP_VERSION);
-        
+
         // Enqueue frontend script
         wp_enqueue_script(
             'find-my-rep-frontend',
@@ -140,26 +146,27 @@ class Find_My_Rep_Plugin {
             $frontend_asset_file['version'],
             true
         );
-        
+
         // Localize script with AJAX URL and nonce
         wp_localize_script('find-my-rep-frontend', 'findMyRepData', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('find_my_rep_nonce'),
             'letterTemplate' => $letter_template
         ));
-        
+
         // Return the container div - React will render the content
         ob_start();
-        ?>
+?>
         <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>" data-letter-template="<?php echo esc_attr($per_block_template); ?>"></div>
-        <?php
+    <?php
         return ob_get_clean();
     }
-    
+
     /**
      * Add admin menu
      */
-    public function add_admin_menu() {
+    public function add_admin_menu()
+    {
         add_options_page(
             __('Find My Rep Settings', 'find-my-rep'),
             __('Find My Rep', 'find-my-rep'),
@@ -168,11 +175,12 @@ class Find_My_Rep_Plugin {
             array($this, 'render_admin_page')
         );
     }
-    
+
     /**
      * Register settings
      */
-    public function register_settings() {
+    public function register_settings()
+    {
         register_setting('find_my_rep_settings', 'find_my_rep_letter_template');
         register_setting('find_my_rep_settings', 'find_my_rep_resend_api_key');
         register_setting('find_my_rep_settings', 'find_my_rep_from_email', array(
@@ -182,14 +190,17 @@ class Find_My_Rep_Plugin {
             'sanitize_callback' => array($this, 'sanitize_api_url'),
         ));
         register_setting('find_my_rep_settings', 'find_my_rep_email_transport');
-        
+        register_setting('find_my_rep_settings', 'find_my_rep_cc_email', array(
+            'sanitize_callback' => 'sanitize_email',
+        ));
+
         add_settings_section(
             'find_my_rep_main_section',
             __('Plugin Settings', 'find-my-rep'),
             array($this, 'settings_section_callback'),
             'find-my-rep-settings'
         );
-        
+
         add_settings_field(
             'find_my_rep_api_url',
             __('Representatives API URL', 'find-my-rep'),
@@ -197,7 +208,7 @@ class Find_My_Rep_Plugin {
             'find-my-rep-settings',
             'find_my_rep_main_section'
         );
-        
+
         add_settings_field(
             'find_my_rep_resend_api_key',
             __('Resend API Key', 'find-my-rep'),
@@ -213,7 +224,7 @@ class Find_My_Rep_Plugin {
             'find-my-rep-settings',
             'find_my_rep_main_section'
         );
-        
+
         add_settings_field(
             'find_my_rep_letter_template',
             __('Letter Template', 'find-my-rep'),
@@ -221,7 +232,7 @@ class Find_My_Rep_Plugin {
             'find-my-rep-settings',
             'find_my_rep_main_section'
         );
-        
+
         add_settings_field(
             'find_my_rep_email_transport',
             __('Email Transport', 'find-my-rep'),
@@ -229,15 +240,24 @@ class Find_My_Rep_Plugin {
             'find-my-rep-settings',
             'find_my_rep_main_section'
         );
+
+        add_settings_field(
+            'find_my_rep_cc_email',
+            __('CC Email Address (Usage Tracking)', 'find-my-rep'),
+            array($this, 'cc_email_field_callback'),
+            'find-my-rep-settings',
+            'find_my_rep_main_section'
+        );
     }
-    
+
     /**
      * Sanitize API URL setting - preserve existing value when field is empty
      *
      * @param string $value The submitted value.
      * @return string The sanitized URL or the existing value if empty.
      */
-    public function sanitize_api_url($value) {
+    public function sanitize_api_url($value)
+    {
         if (empty(trim($value))) {
             return get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
         }
@@ -247,25 +267,28 @@ class Find_My_Rep_Plugin {
     /**
      * Settings section callback
      */
-    public function settings_section_callback() {
+    public function settings_section_callback()
+    {
         echo '<p>' . esc_html__('Configure the letter template and API settings for the Find My Rep plugin.', 'find-my-rep') . '</p>';
     }
-    
+
     /**
      * API URL field callback
      */
-    public function api_url_field_callback() {
+    public function api_url_field_callback()
+    {
         $value = get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
         echo '<input type="url" name="find_my_rep_api_url" value="' . esc_attr($value) . '" class="regular-text" placeholder="http://host.docker.internal:3000/api/reps" />';
         echo '<p class="description">' . esc_html__('The Find My Rep API endpoint used to look up representatives by postcode.', 'find-my-rep') . '</p>';
         echo '<p class="description">' . esc_html__('For local development with Docker, use http://host.docker.internal:3000/api/reps (the default).', 'find-my-rep') . '</p>';
         echo '<p class="description">' . esc_html__('For production, use the deployed API URL (e.g. https://find-my-rep.fly.dev/api/reps).', 'find-my-rep') . '</p>';
     }
-    
+
     /**
      * From email address field callback
      */
-    public function from_email_field_callback() {
+    public function from_email_field_callback()
+    {
         $value = get_option('find_my_rep_from_email', 'letters@findmyrep.bones.dev');
         echo '<input type="email" name="find_my_rep_from_email" value="' . esc_attr($value) . '" class="regular-text" placeholder="letters@findmyrep.bones.dev" />';
         echo '<p class="description">' . esc_html__('The address emails are sent from. Must be a verified domain in Resend. The constituent\'s address is used as Reply-To so replies go directly to them.', 'find-my-rep') . '</p>';
@@ -274,44 +297,58 @@ class Find_My_Rep_Plugin {
     /**
      * Resend API key field callback
      */
-    public function resend_api_key_field_callback() {
+    public function resend_api_key_field_callback()
+    {
         $value = get_option('find_my_rep_resend_api_key', '');
         echo '<input type="password" name="find_my_rep_resend_api_key" value="' . esc_attr($value) . '" class="regular-text" />';
         echo '<p class="description">' . esc_html__('Enter your Resend API key for sending emails.', 'find-my-rep') . '</p>';
     }
-    
+
     /**
      * Letter template field callback
      */
-    public function letter_template_field_callback() {
+    public function letter_template_field_callback()
+    {
         $value = get_option('find_my_rep_letter_template', '');
         echo '<textarea name="find_my_rep_letter_template" rows="10" class="large-text">' . esc_textarea($value) . '</textarea>';
         echo '<p class="description">' . esc_html__('Enter the default letter template. Use {{representative_name}} and {{representative_title}} as placeholders.', 'find-my-rep') . '</p>';
     }
-    
+
+    /**
+     * CC email address field callback
+     */
+    public function cc_email_field_callback()
+    {
+        $value = get_option('find_my_rep_cc_email', '');
+        echo '<input type="email" name="find_my_rep_cc_email" value="' . esc_attr($value) . '" class="regular-text" placeholder="tracking@example.com" />';
+        echo '<p class="description">' . esc_html__('Optional. When set, a copy of every letter sent via this plugin will be CC\'d to this address for usage tracking. Leave empty to disable.', 'find-my-rep') . '</p>';
+    }
+
     /**
      * Email transport field callback
      */
-    public function email_transport_field_callback() {
+    public function email_transport_field_callback()
+    {
         $value = get_option('find_my_rep_email_transport', 'resend');
-        ?>
+    ?>
         <select name="find_my_rep_email_transport" class="regular-text">
             <option value="resend" <?php selected($value, 'resend'); ?>><?php esc_html_e('Resend API', 'find-my-rep'); ?></option>
             <option value="smtp" <?php selected($value, 'smtp'); ?>><?php esc_html_e('SMTP (wp_mail)', 'find-my-rep'); ?></option>
             <option value="test" <?php selected($value, 'test'); ?>><?php esc_html_e('Test (Log to File)', 'find-my-rep'); ?></option>
         </select>
         <p class="description"><?php esc_html_e('Select the email transport method. Use "Test" for development to log emails to file.', 'find-my-rep'); ?></p>
-        <?php
+    <?php
     }
-    
+
     /**
      * Render admin page
      */
-    public function render_admin_page() {
+    public function render_admin_page()
+    {
         if (!current_user_can('manage_options')) {
             return;
         }
-        ?>
+    ?>
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
             <form method="post" action="options.php">
@@ -322,15 +359,16 @@ class Find_My_Rep_Plugin {
                 ?>
             </form>
         </div>
-        <?php
+<?php
     }
-    
+
     /**
      * AJAX handler to get representatives
      */
-    public function ajax_get_representatives() {
+    public function ajax_get_representatives()
+    {
         check_ajax_referer('find_my_rep_nonce', 'nonce');
-        
+
         $postcode = sanitize_text_field($_POST['postcode']);
         $result = $this->get_representatives_for_postcode($postcode);
 
@@ -341,13 +379,14 @@ class Find_My_Rep_Plugin {
 
         wp_send_json_success($result['data']);
     }
-    
+
     /**
      * AJAX handler to send letter
      */
-    public function ajax_send_letter() {
+    public function ajax_send_letter()
+    {
         check_ajax_referer('find_my_rep_nonce', 'nonce');
-        
+
         $sender_name = sanitize_text_field($_POST['sender_name']);
         $sender_email = sanitize_email($_POST['sender_email']);
         $letter_content = sanitize_textarea_field($_POST['letter_content']);
@@ -355,19 +394,19 @@ class Find_My_Rep_Plugin {
         $honeypot = isset($_POST['website_url']) ? sanitize_text_field($_POST['website_url']) : '';
         $representatives = json_decode(stripslashes($_POST['representatives']), true);
         $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot);
-        
+
         if ($validation_message) {
             wp_send_json_error(array('message' => $validation_message));
             return;
         }
-        
+
         if ($this->is_rate_limited($sender_email)) {
             wp_send_json_error(array(
                 'message' => __('Please wait a few minutes before sending more messages.', 'find-my-rep')
             ));
             return;
         }
-        
+
         // Validate that representatives were parsed correctly
         if (!is_array($representatives) || empty($representatives)) {
             wp_send_json_error(array('message' => __('Invalid representatives data.', 'find-my-rep')));
@@ -380,26 +419,26 @@ class Find_My_Rep_Plugin {
             return;
         }
         $representatives = $verified_selection['representatives'];
-        
+
         // Get email service instance
         $email_service = $this->get_email_service();
-        
+
         $sent_count = 0;
         $errors = array();
-        
+
         foreach ($representatives as $rep) {
             // Build title based on representative type
             $title = $this->get_representative_title($rep);
-            
+
             // Prepare placeholders for template rendering
             $placeholders = array(
                 '{{representative_name}}' => isset($rep['name']) ? $rep['name'] : '',
                 '{{representative_title}}' => $title,
             );
-            
+
             // Render personalized letter
             $personalized_letter = $email_service->render_template($letter_content, $placeholders);
-            
+
             // Send email
             $result = $email_service->send_letter(
                 $sender_email,
@@ -407,16 +446,16 @@ class Find_My_Rep_Plugin {
                 'Letter from constituent',
                 $personalized_letter
             );
-            
+
             if ($result['success']) {
                 $sent_count++;
             } else {
                 $errors[] = sprintf(__('Failed to send to %s: %s', 'find-my-rep'), $rep['name'], $result['message']);
             }
         }
-        
+
         $total_count = count($representatives);
-        
+
         if ($sent_count === $total_count) {
             // All letters sent successfully
             wp_send_json_success(array(
@@ -437,29 +476,30 @@ class Find_My_Rep_Plugin {
             ));
         }
     }
-    
+
     /**
      * Get a human-readable title for a representative based on their type
      *
      * @param array $rep Representative data with 'type' field
      * @return string Human-readable title
      */
-    private function get_representative_title($rep) {
+    private function get_representative_title($rep)
+    {
         $type = isset($rep['type']) ? $rep['type'] : '';
-        
+
         switch ($type) {
             case 'MP':
                 $constituency = isset($rep['constituency']) ? $rep['constituency'] : '';
                 return $constituency ? 'Member of Parliament for ' . $constituency : 'Member of Parliament';
-            
+
             case 'MS':
                 $constituency = isset($rep['constituency']) ? $rep['constituency'] : '';
                 return $constituency ? 'Member of the Senedd for ' . $constituency : 'Member of the Senedd';
-            
+
             case 'PCC':
                 $force = isset($rep['force']) ? $rep['force'] : '';
                 return $force ? 'Police and Crime Commissioner for ' . $force : 'Police and Crime Commissioner';
-            
+
             case 'Councillor':
                 $ward = isset($rep['ward']) ? $rep['ward'] : '';
                 $council = isset($rep['council']) ? $rep['council'] : '';
@@ -469,12 +509,12 @@ class Find_My_Rep_Plugin {
                     return 'Councillor for ' . $ward;
                 }
                 return 'Councillor';
-            
+
             default:
                 return 'Representative';
         }
     }
-    
+
     /**
      * Validate a letter request before attempting delivery
      *
@@ -483,11 +523,12 @@ class Find_My_Rep_Plugin {
      * @param string $letter_content Letter content
      * @return string Empty string when valid, translated error message when invalid
      */
-    private function validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot = '') {
+    private function validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot = '')
+    {
         if (empty($sender_name) || empty($sender_email) || empty($letter_content)) {
             return __('Please fill in all fields.', 'find-my-rep');
         }
-        
+
         if (!is_email($sender_email)) {
             return __('Please enter a valid email address.', 'find-my-rep');
         }
@@ -495,11 +536,11 @@ class Find_My_Rep_Plugin {
         if (!empty($honeypot)) {
             return __('Spam detected.', 'find-my-rep');
         }
-        
+
         if (strlen($letter_content) > 5000) {
             return __('Please shorten your message before sending.', 'find-my-rep');
         }
-        
+
         if (
             $this->contains_abusive_content($sender_name) ||
             $this->contains_abusive_content($sender_email) ||
@@ -507,11 +548,11 @@ class Find_My_Rep_Plugin {
         ) {
             return __('Please remove abusive or threatening language before sending your message.', 'find-my-rep');
         }
-        
+
         if ($this->contains_excessive_links($letter_content)) {
             return __('Please remove excessive links before sending your message.', 'find-my-rep');
         }
-        
+
         return '';
     }
 
@@ -523,7 +564,8 @@ class Find_My_Rep_Plugin {
      *               - 'data' (array) with the postcode lookup response keys such as 'postcode', 'mp', 'ms', 'pcc', 'councillors', and 'areaInfo'
      *               - 'message' (string) on failure
      */
-    private function get_representatives_for_postcode($postcode) {
+    private function get_representatives_for_postcode($postcode)
+    {
         $postcode = trim((string) $postcode);
 
         if (empty($postcode)) {
@@ -617,7 +659,8 @@ class Find_My_Rep_Plugin {
      * @param string $postcode Postcode used to build the cache key.
      * @return array
      */
-    private function get_cached_postcode_lookup($postcode) {
+    private function get_cached_postcode_lookup($postcode)
+    {
         if (!function_exists('get_transient')) {
             return array();
         }
@@ -633,7 +676,8 @@ class Find_My_Rep_Plugin {
      * @param array  $data Successful postcode lookup response data.
      * @return void
      */
-    private function cache_postcode_lookup($postcode, $data) {
+    private function cache_postcode_lookup($postcode, $data)
+    {
         if (!function_exists('set_transient')) {
             return;
         }
@@ -647,7 +691,8 @@ class Find_My_Rep_Plugin {
      * @param string $postcode Postcode used to build the cache key.
      * @return string
      */
-    private function get_postcode_cache_key($postcode) {
+    private function get_postcode_cache_key($postcode)
+    {
         return 'find_my_rep_postcode_' . md5(strtolower(trim((string) $postcode)));
     }
 
@@ -658,7 +703,8 @@ class Find_My_Rep_Plugin {
      * @param array  $representatives Representatives submitted by the client.
      * @return array Array containing 'success' (bool) and either 'representatives' (array) on success or 'message' (string) on failure.
      */
-    private function get_verified_representatives($postcode, $representatives) {
+    private function get_verified_representatives($postcode, $representatives)
+    {
         $lookup = $this->get_representatives_for_postcode($postcode);
         if (!$lookup['success']) {
             return $lookup;
@@ -716,7 +762,8 @@ class Find_My_Rep_Plugin {
      * @param array $data Raw postcode lookup response containing representative keys such as 'mp', 'ms', 'pcc', and 'councillors'.
      * @return array
      */
-    private function flatten_representatives_response($data) {
+    private function flatten_representatives_response($data)
+    {
         $representatives = array();
 
         if (!empty($data['mp'])) {
@@ -753,73 +800,78 @@ class Find_My_Rep_Plugin {
      * @param array $representative Representative data.
      * @return string Key in the format "type:id".
      */
-    private function get_representative_key($representative) {
+    private function get_representative_key($representative)
+    {
         $type = isset($representative['type']) ? sanitize_text_field($representative['type']) : '';
         $id = isset($representative['id']) ? (int) $representative['id'] : 0;
 
         return $type . ':' . $id;
     }
-    
+
     /**
      * Check whether submitted content contains abusive language
      *
      * @param string $content Content to inspect
      * @return bool
      */
-    private function contains_abusive_content($content) {
+    private function contains_abusive_content($content)
+    {
         $patterns = apply_filters('find_my_rep_blocked_message_patterns', array(
             '/\b(fuck|shit|cunt|bitch|bastard|asshole)\b/i',
             '/\b(kill yourself|kill you|go die|you should die|i will hurt you)\b/i',
         ));
-        
+
         foreach ($patterns as $pattern) {
             if (preg_match($pattern, $content) === 1) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Check whether a message includes excessive links
      *
      * @param string $content Message content
      * @return bool
      */
-    private function contains_excessive_links($content) {
+    private function contains_excessive_links($content)
+    {
         return preg_match_all('/(?:https?:\/\/|www\.)/i', $content) > 2;
     }
-    
+
     /**
      * Apply a simple per-sender rate limit
      *
      * @param string $sender_email Sender email address
      * @return bool
      */
-    private function is_rate_limited($sender_email) {
+    private function is_rate_limited($sender_email)
+    {
         if (!function_exists('get_transient') || !function_exists('set_transient')) {
             return false;
         }
-        
+
         $rate_limit_key = $this->get_rate_limit_key($sender_email);
         $attempts = (int) get_transient($rate_limit_key);
-        
+
         if ($attempts >= self::RATE_LIMIT_MAX_ATTEMPTS) {
             return true;
         }
-        
+
         set_transient($rate_limit_key, $attempts + 1, self::RATE_LIMIT_WINDOW);
         return false;
     }
-    
+
     /**
      * Build the transient key used for rate limiting using sender email only
      *
      * @param string $sender_email Sender email address
      * @return string
      */
-    private function get_rate_limit_key($sender_email) {
+    private function get_rate_limit_key($sender_email)
+    {
         return 'find_my_rep_rate_' . md5(strtolower(trim((string) $sender_email)));
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Email Service for Find My Rep Plugin
  * 
@@ -15,24 +16,26 @@ if (!defined('ABSPATH')) {
 /**
  * Find My Rep Email Service
  */
-class Find_My_Rep_Email_Service {
-    
+class Find_My_Rep_Email_Service
+{
+
     /**
      * Transport mode (resend|smtp|test)
      *
      * @var string
      */
     private $transport;
-    
+
     /**
      * Constructor
      *
      * @param string $transport Transport mode (resend|smtp|test). Default 'resend'.
      */
-    public function __construct($transport = 'resend') {
+    public function __construct($transport = 'resend')
+    {
         $this->transport = $transport;
     }
-    
+
     /**
      * Render email template with placeholders replaced
      *
@@ -40,20 +43,21 @@ class Find_My_Rep_Email_Service {
      * @param array  $placeholders  Associative array of placeholder => value pairs
      * @return string Rendered template
      */
-    public function render_template($template, $placeholders) {
+    public function render_template($template, $placeholders)
+    {
         // Ensure all expected placeholders exist, default to empty string if missing
         $defaults = array(
             '{{representative_name}}' => '',
             '{{representative_title}}' => '',
         );
-        
+
         // Merge with provided placeholders, provided values take precedence
         $placeholders = array_merge($defaults, $placeholders);
-        
+
         // Use strtr for efficient placeholder replacement
         return strtr($template, $placeholders);
     }
-    
+
     /**
      * Send letter to a representative
      *
@@ -64,17 +68,18 @@ class Find_My_Rep_Email_Service {
      * @param array  $headers           Optional. Email headers. Default empty array.
      * @return array Array with 'success' (bool) and 'message' (string) keys
      */
-    public function send_letter($sender_email, $recipient_email, $subject, $content, $headers = array()) {
+    public function send_letter($sender_email, $recipient_email, $subject, $content, $headers = array())
+    {
         switch ($this->transport) {
             case 'resend':
                 return $this->send_via_resend($sender_email, $recipient_email, $subject, $content);
-            
+
             case 'smtp':
                 return $this->send_via_smtp($sender_email, $recipient_email, $subject, $content, $headers);
-            
+
             case 'test':
                 return $this->send_via_test($sender_email, $recipient_email, $subject, $content);
-            
+
             default:
                 return array(
                     'success' => false,
@@ -82,7 +87,7 @@ class Find_My_Rep_Email_Service {
                 );
         }
     }
-    
+
     /**
      * Send email via Resend API
      *
@@ -92,9 +97,10 @@ class Find_My_Rep_Email_Service {
      * @param string $content           Email content
      * @return array Array with 'success' (bool) and 'message' (string) keys
      */
-    private function send_via_resend($sender_email, $recipient_email, $subject, $content) {
+    private function send_via_resend($sender_email, $recipient_email, $subject, $content)
+    {
         $resend_api_key = get_option('find_my_rep_resend_api_key', '');
-        
+
         if (empty($resend_api_key)) {
             return array(
                 'success' => false,
@@ -103,28 +109,35 @@ class Find_My_Rep_Email_Service {
         }
 
         $from_email = get_option('find_my_rep_from_email', 'letters@findmyrep.bones.dev');
-        
+
+        $payload = array(
+            'from'     => 'Find My Rep <' . $from_email . '>',
+            'to'       => $recipient_email,
+            'subject'  => $subject,
+            'text'     => $content,
+            'reply_to' => $sender_email,
+        );
+
+        $cc_email = get_option('find_my_rep_cc_email', '');
+        if (!empty($cc_email)) {
+            $payload['cc'] = array($cc_email);
+        }
+
         $response = wp_remote_post('https://api.resend.com/emails', array(
             'headers' => array(
                 'Authorization' => 'Bearer ' . $resend_api_key,
                 'Content-Type' => 'application/json',
             ),
-            'body' => json_encode(array(
-                'from' => 'Find My Rep <' . $from_email . '>',
-                'to' => $recipient_email,
-                'subject' => $subject,
-                'text' => $content,
-                'reply_to' => $sender_email,
-            )),
+            'body' => json_encode($payload),
         ));
-        
+
         if (is_wp_error($response)) {
             return array(
                 'success' => false,
                 'message' => $response->get_error_message()
             );
         }
-        
+
         $response_code = wp_remote_retrieve_response_code($response);
         if ($response_code === 200) {
             return array(
@@ -139,7 +152,7 @@ class Find_My_Rep_Email_Service {
             );
         }
     }
-    
+
     /**
      * Send email via SMTP (using WordPress wp_mail)
      *
@@ -150,7 +163,8 @@ class Find_My_Rep_Email_Service {
      * @param array  $headers           Email headers
      * @return array Array with 'success' (bool) and 'message' (string) keys
      */
-    private function send_via_smtp($sender_email, $recipient_email, $subject, $content, $headers = array()) {
+    private function send_via_smtp($sender_email, $recipient_email, $subject, $content, $headers = array())
+    {
         // Add reply-to header if not already present
         $has_reply_to = false;
         foreach ($headers as $header) {
@@ -159,7 +173,7 @@ class Find_My_Rep_Email_Service {
                 break;
             }
         }
-        
+
         if (!$has_reply_to) {
             $headers[] = 'Reply-To: ' . $sender_email;
         }
@@ -167,9 +181,14 @@ class Find_My_Rep_Email_Service {
         // Use the configured from address, not the sender's address
         $from_email = get_option('find_my_rep_from_email', 'letters@findmyrep.bones.dev');
         $headers[] = 'From: Find My Rep <' . $from_email . '>';
-        
+
+        $cc_email = get_option('find_my_rep_cc_email', '');
+        if (!empty($cc_email)) {
+            $headers[] = 'Cc: ' . $cc_email;
+        }
+
         $result = wp_mail($recipient_email, $subject, $content, $headers);
-        
+
         if ($result) {
             return array(
                 'success' => true,
@@ -182,7 +201,7 @@ class Find_My_Rep_Email_Service {
             );
         }
     }
-    
+
     /**
      * Send email via test transport (logs to file instead of sending)
      *
@@ -192,10 +211,11 @@ class Find_My_Rep_Email_Service {
      * @param string $content           Email content
      * @return array Array with 'success' (bool) and 'message' (string) keys
      */
-    private function send_via_test($sender_email, $recipient_email, $subject, $content) {
+    private function send_via_test($sender_email, $recipient_email, $subject, $content)
+    {
         $upload_dir = wp_upload_dir();
         $log_file = $upload_dir['basedir'] . '/find-my-rep-test-mails.log';
-        
+
         // Ensure uploads directory exists and is writable
         if (!file_exists($upload_dir['basedir'])) {
             return array(
@@ -203,29 +223,32 @@ class Find_My_Rep_Email_Service {
                 'message' => __('Uploads directory does not exist.', 'find-my-rep')
             );
         }
-        
+
         if (!is_writable($upload_dir['basedir'])) {
             return array(
                 'success' => false,
                 'message' => __('Uploads directory is not writable.', 'find-my-rep')
             );
         }
-        
+
         // Format email data
         $timestamp = current_time('mysql');
+        $cc_email  = get_option('find_my_rep_cc_email', '');
+        $cc_line   = !empty($cc_email) ? "\nCc: " . $cc_email : '';
         $log_entry = sprintf(
-            "[%s]\nFrom: %s\nTo: %s\nSubject: %s\n\n%s\n\n%s\n\n",
+            "[%s]\nFrom: %s\nTo: %s%s\nSubject: %s\n\n%s\n\n%s\n\n",
             $timestamp,
             $sender_email,
             $recipient_email,
+            $cc_line,
             $subject,
             $content,
             str_repeat('-', 80)
         );
-        
+
         // Append to log file
         $result = file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
-        
+
         if ($result !== false) {
             return array(
                 'success' => true,
@@ -238,13 +261,14 @@ class Find_My_Rep_Email_Service {
             );
         }
     }
-    
+
     /**
      * Get current transport mode
      *
      * @return string
      */
-    public function get_transport() {
+    public function get_transport()
+    {
         return $this->transport;
     }
 }

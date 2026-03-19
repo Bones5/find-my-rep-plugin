@@ -8,10 +8,19 @@
   margin: 0 auto;
   padding: 1.25rem;
   font-family: inherit;
+  /* Establish explicit color context so plugin is readable on any theme */
+  color: var(--fmr-text, var(--wp--preset--color--contrast, #1a1a1a));
+  --fmr-text: var(--wp--preset--color--contrast, #1a1a1a);
+  --fmr-bg: var(--wp--preset--color--base, #ffffff);
+  --fmr-primary: var(--wp--preset--color--primary, #005ea2);
+  --fmr-border: var(--wp--preset--color--contrast, #767676);
+  --fmr-badge-bg: var(--wp--preset--color--contrast, #333333);
+  --fmr-badge-text: var(--wp--preset--color--base, #ffffff);
 }
 
 .find-my-rep-step {
-  background: var(--wp--preset--color--base, #fff);
+  background: var(--fmr-bg, #ffffff);
+  color: var(--fmr-text, #1a1a1a);
   padding: clamp(1.5rem, 4vw, 2rem);
   border-radius: var(--wp--custom--spacing--small, 0.5rem);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -21,7 +30,7 @@
 .find-my-rep-step h3 {
   margin-top: 0;
   margin-bottom: 1.25rem;
-  color: inherit;
+  color: var(--fmr-text, #1a1a1a);
   font-size: clamp(1.25rem, 3vw, 1.5rem);
   font-weight: inherit;
 }
@@ -30,12 +39,13 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: inherit;
+  color: var(--fmr-text, #1a1a1a);
 }
 
 .letter-guidance {
   margin: 0.75rem 0 1rem;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--fmr-text, #1a1a1a);
+  opacity: 0.8;
   font-size: 0.95rem;
 }
 
@@ -52,30 +62,28 @@
   width: 100%;
   max-width: 25rem;
   padding: 0.625rem 1rem;
-  border: 1px solid var(--wp--preset--color--contrast, currentColor);
+  border: 1px solid var(--fmr-border, #767676);
   border-radius: var(--wp--custom--spacing--small, 0.25rem);
   font-size: inherit;
   font-family: inherit;
   margin-bottom: 1rem;
   box-sizing: border-box;
-  background-color: var(--wp--preset--color--base, #fff);
-  color: inherit;
-  opacity: 0.9;
+  background-color: var(--fmr-bg, #ffffff);
+  color: var(--fmr-text, #1a1a1a);
 }
 
 .postcode-input:focus,
 .sender-name:focus,
 .sender-email:focus,
 .letter-content:focus {
-  outline: 2px solid var(--wp--preset--color--primary, currentColor);
+  outline: 2px solid var(--fmr-primary, #005ea2);
   outline-offset: 2px;
-  border-color: var(--wp--preset--color--primary, currentColor);
-  opacity: 1;
+  border-color: var(--fmr-primary, #005ea2);
 }
 
 .button {
   padding: 0.75rem 1.5rem;
-  border: 2px solid var(--wp--preset--color--primary, currentColor);
+  border: 2px solid var(--fmr-primary, #005ea2);
   border-radius: var(--wp--custom--spacing--small, 0.25rem);
   font-size: inherit;
   font-family: inherit;
@@ -87,16 +95,16 @@
 }
 
 .button-primary {
-  background: var(--wp--preset--color--primary, #000);
-  color: var(--wp--preset--color--base, #fff);
-  border-color: var(--wp--preset--color--primary, #000);
+  background: var(--fmr-primary, #005ea2);
+  color: #ffffff;
+  border-color: var(--fmr-primary, #005ea2);
 }
 
 .button-primary:hover,
 .button-primary:focus {
-  background: var(--wp--preset--color--contrast, #000);
-  border-color: var(--wp--preset--color--contrast, #000);
-  opacity: 0.9;
+  background: var(--fmr-text, #1a1a1a);
+  border-color: var(--fmr-text, #1a1a1a);
+  color: #ffffff;
 }
 
 .button-primary:active {
@@ -114,8 +122,8 @@
 
 .back-btn {
   background: transparent;
-  color: var(--wp--preset--color--primary, #333);
-  border-color: currentColor;
+  color: var(--fmr-primary, #005ea2);
+  border-color: var(--fmr-primary, #005ea2);
 }
 
 .back-btn:hover,
@@ -159,10 +167,11 @@
   display: flex;
   align-items: flex-start;
   padding: 1rem;
-  border: 2px solid var(--wp--preset--color--contrast, #ddd);
+  border: 2px solid var(--fmr-border, #767676);
   border-radius: var(--wp--custom--spacing--small, 0.5rem);
   transition: all 0.2s ease;
-  background-color: var(--wp--preset--color--base, #fff);
+  background-color: var(--fmr-bg, #ffffff);
+  color: var(--fmr-text, #1a1a1a);
   border-left-width: 4px;
 }
 
@@ -258,8 +267,8 @@
 
 .rep-context {
   font-size: 0.875rem;
-  color: inherit;
-  opacity: 0.7;
+  color: var(--fmr-text, #1a1a1a);
+  opacity: 0.75;
   margin-bottom: 0.5rem;
 }
 
@@ -269,15 +278,15 @@
   gap: 0.5rem;
   margin-bottom: 1.25rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--wp--preset--color--contrast, currentColor);
-  opacity: 0.8;
+  border-bottom: 1px solid var(--fmr-border, #767676);
+  color: var(--fmr-text, #1a1a1a);
 }
 
 .area-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  background: var(--wp--preset--color--contrast, currentColor);
-  color: var(--wp--preset--color--base, #fff);
+  background: var(--fmr-badge-bg, #333333);
+  color: var(--fmr-badge-text, #ffffff);
   border-radius: 1rem;
   font-size: 0.8125rem;
   font-weight: 500;
@@ -288,7 +297,7 @@
 }
 
 .rep-details strong {
-  color: inherit;
+  color: var(--fmr-text, #1a1a1a);
   font-size: 1.0625rem;
   display: inline;
   margin-right: 0.5rem;
@@ -298,12 +307,12 @@
 .rep-party {
   display: inline-block;
   padding: 0.125rem 0.5rem;
-  background: var(--wp--preset--color--contrast, currentColor);
-  color: var(--wp--preset--color--base, #fff);
+  background: var(--fmr-badge-bg, #333333);
+  color: var(--fmr-badge-text, #ffffff);
   border-radius: 0.25rem;
   font-size: 0.75rem;
   font-weight: 500;
-  opacity: 0.8;
+  opacity: 0.85;
   vertical-align: middle;
 }
 
@@ -316,15 +325,14 @@
 }
 
 .rep-email {
-  color: inherit;
-  opacity: 0.7;
+  color: var(--fmr-text, #1a1a1a);
+  opacity: 0.8;
 }
 
 .rep-phone a,
 .rep-website a {
-  color: var(--wp--preset--color--primary, inherit);
+  color: var(--fmr-primary, #005ea2);
   text-decoration: none;
-  opacity: 0.8;
 }
 
 .rep-phone a:hover,
@@ -405,10 +413,10 @@
 }
 
 .success-next-steps {
-  border-top: 1px solid var(--wp--preset--color--contrast, currentColor);
-  opacity: 0.85;
+  border-top: 1px solid var(--fmr-border, #767676);
   padding-top: 1.25rem;
   margin-bottom: 1.5rem;
+  color: var(--fmr-text, #1a1a1a);
 }
 
 .success-next-steps ol {
@@ -441,7 +449,7 @@
 .letter-content {
   width: 100%;
   padding: 1rem;
-  border: 1px solid var(--wp--preset--color--contrast, currentColor);
+  border: 1px solid var(--fmr-border, #767676);
   border-radius: var(--wp--custom--spacing--small, 0.25rem);
   font-size: inherit;
   font-family: inherit;
@@ -449,9 +457,8 @@
   margin-bottom: 1rem;
   resize: vertical;
   box-sizing: border-box;
-  background-color: var(--wp--preset--color--base, #fff);
-  color: inherit;
-  opacity: 0.9;
+  background-color: var(--fmr-bg, #ffffff);
+  color: var(--fmr-text, #1a1a1a);
 }
 
 .loading-spinner {
@@ -471,10 +478,9 @@
   width: 1.25rem;
   height: 1.25rem;
   margin: 0;
-  border: 3px solid var(--wp--preset--color--contrast, currentColor);
-  border-top: 3px solid var(--wp--preset--color--primary, currentColor);
+  border: 3px solid var(--fmr-border, #767676);
+  border-top: 3px solid var(--fmr-primary, #005ea2);
   border-radius: 50%;
-  opacity: 0.3;
 }
 
 .spinner.is-active {
