@@ -561,7 +561,7 @@ class Find_My_Rep_Plugin
      *
      * @param string $postcode Postcode to lookup.
      * @return array Array containing 'success' (bool) and either:
-     *               - 'data' (array) with the postcode lookup response keys such as 'postcode', 'mp', 'ms', 'pcc', 'councillors', and 'areaInfo'
+     *               - 'data' (array) with the postcode lookup response keys such as 'postcode', 'mp', 'mss', 'pcc', 'councillors', and 'areaInfo'
      *               - 'message' (string) on failure
      */
     private function get_representatives_for_postcode($postcode)
@@ -637,7 +637,7 @@ class Find_My_Rep_Plugin
             );
         }
 
-        $has_reps = !empty($data['mp']) || !empty($data['ms']) || !empty($data['pcc']) || !empty($data['councillors']);
+        $has_reps = !empty($data['mp']) || !empty($data['mss']) || !empty($data['pcc']) || !empty($data['councillors']);
         if (!$has_reps) {
             return array(
                 'success' => false,
@@ -759,7 +759,7 @@ class Find_My_Rep_Plugin
     /**
      * Flatten the API response into the selectable representative structure used by the frontend.
      *
-     * @param array $data Raw postcode lookup response containing representative keys such as 'mp', 'ms', 'pcc', and 'councillors'.
+     * @param array $data Raw postcode lookup response containing representative keys such as 'mp', 'mss', 'pcc', and 'councillors'.
      * @return array
      */
     private function flatten_representatives_response($data)
@@ -771,9 +771,14 @@ class Find_My_Rep_Plugin
             $representatives[] = $data['mp'];
         }
 
-        if (!empty($data['ms'])) {
-            $data['ms']['type'] = 'MS';
-            $representatives[] = $data['ms'];
+        if (!empty($data['mss']) && is_array($data['mss'])) {
+            foreach ($data['mss'] as $ms) {
+                if (!is_array($ms)) {
+                    continue;
+                }
+                $ms['type'] = 'MS';
+                $representatives[] = $ms;
+            }
         }
 
         if (!empty($data['pcc'])) {

@@ -75,7 +75,7 @@ export interface RepresentativesApiResponse {
   councillors?: Councillor[];
   pcc?: PCC | null;
   mp?: MP | null;
-  ms?: MS | null;
+  mss?: MS[];
   areaInfo?: AreaInfo | null;
 }
 
@@ -169,8 +169,10 @@ export function apiResponseToSelectableReps(
     reps.push(mpToSelectable(data.mp));
   }
 
-  if (data.ms) {
-    reps.push(msToSelectable(data.ms));
+  if (data.mss) {
+    for (const ms of data.mss) {
+      reps.push(msToSelectable(ms));
+    }
   }
 
   if (data.pcc) {
