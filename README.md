@@ -28,6 +28,7 @@ A WordPress plugin that creates a Gutenberg block for contacting local represent
 Navigate to **Settings > Find My Rep** to configure:
 
 1. **Representatives API URL**: Enter the API endpoint that returns representative data based on postcode
+
    - The API should accept a `postcode` query parameter
    - Should return JSON with representative details including: `name`, `email`, `title` or `type`
 
@@ -109,6 +110,7 @@ npm start
 The plugin follows a modern React/TypeScript architecture:
 
 **Source Files (`src/`):**
+
 - `index.tsx` - Gutenberg block registration (editor view)
 - `frontend.tsx` - Frontend React app initialization
 - `types.ts` - TypeScript type definitions
@@ -120,6 +122,7 @@ The plugin follows a modern React/TypeScript architecture:
   - `LoadingSpinner.tsx` - Loading indicator component
 
 **Build Output (`build/`):**
+
 - `index.tsx.js` - Compiled block editor script
 - `frontend.tsx.js` - Compiled frontend React app
 - `*.asset.php` - WordPress asset files with dependencies
@@ -165,6 +168,7 @@ npm run test:phpunit
 ```
 
 Tests include:
+
 - Template rendering and placeholder replacement
 - Email transport behavior (resend, smtp, test)
 - Error handling and edge cases
@@ -178,6 +182,7 @@ npm run test:jest
 ```
 
 Tests include:
+
 - LetterStep component validation
 - User interaction flows
 - Button states and loading indicators
@@ -189,11 +194,13 @@ Run end-to-end tests using wp-env and Playwright.
 #### Setup
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Install Playwright browsers:
+
 ```bash
 npx playwright install
 ```
@@ -201,26 +208,31 @@ npx playwright install
 #### Running Tests
 
 1. Start the WordPress environment:
+
 ```bash
 npm run env:start
 ```
 
 2. Run the tests:
+
 ```bash
 npm run test:e2e
 ```
 
 3. Run tests in headed mode (see browser):
+
 ```bash
 npm run test:e2e:headed
 ```
 
 4. Debug tests:
+
 ```bash
 npm run test:e2e:debug
 ```
 
 5. Stop the WordPress environment when done:
+
 ```bash
 npm run env:stop
 ```
@@ -245,8 +257,7 @@ The Representatives API should return data in the following format:
       "party": "Conservative",
       "ward": "St James's",
       "council": "Westminster City Council",
-      "email": "john.smith@westminster.gov.uk",
-      "phone": "020 7641 6000"
+      "email": "john.smith@westminster.gov.uk"
     }
   ],
   "pcc": {
@@ -254,27 +265,24 @@ The Representatives API should return data in the following format:
     "name": "Sir Mark Rowley",
     "force": "Metropolitan Police",
     "area": "Greater London",
-    "email": "mopac@london.gov.uk",
-    "website": "https://www.london.gov.uk/mopac"
+    "email": "mopac@london.gov.uk"
   },
   "mp": {
     "id": 1,
     "name": "Nickie Aiken",
     "party": "Conservative",
     "constituency": "Cities of London and Westminster",
-    "email": "nickie.aiken.mp@parliament.uk",
-    "phone": "020 7219 3000",
-    "website": "https://www.nickieaiken.org.uk"
+    "email": "nickie.aiken.mp@parliament.uk"
   },
-  "ms": {
-    "id": 1,
-    "name": "Joel James",
-    "party": "Conservative",
-    "constituency": "Cardiff Central",
-    "email": "joel.james@senedd.wales",
-    "phone": "0300 200 5555",
-    "website": "https://www.senedd.wales"
-  },
+  "mss": [
+    {
+      "id": 1,
+      "name": "Joel James",
+      "party": "Conservative",
+      "constituency": "Cardiff Central",
+      "email": "joel.james@senedd.wales"
+    }
+  ],
   "areaInfo": {
     "constituency": {
       "id": 65659,

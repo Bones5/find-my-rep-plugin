@@ -329,18 +329,6 @@
   opacity: 0.8;
 }
 
-.rep-phone a,
-.rep-website a {
-  color: var(--fmr-primary, #005ea2);
-  text-decoration: none;
-}
-
-.rep-phone a:hover,
-.rep-website a:hover {
-  opacity: 1;
-  text-decoration: underline;
-}
-
 /* Success step */
 
 .step-success .success-header {

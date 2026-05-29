@@ -32,8 +32,7 @@ Your API should return data in the following JSON format:
       "party": "Conservative",
       "ward": "St James's",
       "council": "Westminster City Council",
-      "email": "john.smith@westminster.gov.uk",
-      "phone": "020 7641 6000"
+      "email": "john.smith@westminster.gov.uk"
     }
   ],
   "pcc": {
@@ -42,27 +41,24 @@ Your API should return data in the following JSON format:
     "party": "Independent",
     "force": "Metropolitan Police",
     "area": "Greater London",
-    "email": "mopac@london.gov.uk",
-    "website": "https://www.london.gov.uk/mopac"
+    "email": "mopac@london.gov.uk"
   },
   "mp": {
     "id": 1,
     "name": "Nickie Aiken",
     "party": "Conservative",
     "constituency": "Cities of London and Westminster",
-    "email": "nickie.aiken.mp@parliament.uk",
-    "phone": "020 7219 3000",
-    "website": "https://www.nickieaiken.org.uk"
+    "email": "nickie.aiken.mp@parliament.uk"
   },
-  "ms": {
-    "id": 1,
-    "name": "Joel James",
-    "party": "Conservative",
-    "constituency": "Cardiff Central",
-    "email": "joel.james@senedd.wales",
-    "phone": "0300 200 5555",
-    "website": "https://www.senedd.wales"
-  },
+  "mss": [
+    {
+      "id": 1,
+      "name": "Joel James",
+      "party": "Conservative",
+      "constituency": "Cardiff Central",
+      "email": "joel.james@senedd.wales"
+    }
+  ],
   "areaInfo": {
     "constituency": {
       "id": 65659,
@@ -97,7 +93,7 @@ Your API should return data in the following JSON format:
 - `councillors` (optional): Array of local councillors
 - `pcc` (optional): Police and Crime Commissioner (single object)
 - `mp` (optional): Member of Parliament (single object)
-- `ms` (optional): Member of the Senedd for Wales (single object)
+- `mss` (optional): Members of the Senedd for Wales (array)
 - `areaInfo` (optional): Geographic information about the area
 
 **Councillor Fields:**
@@ -108,7 +104,6 @@ Your API should return data in the following JSON format:
 - `ward` (required): Electoral ward
 - `council` (required): Council name
 - `email` (required): Email address
-- `phone` (required): Phone number
 
 **PCC Fields:**
 
@@ -118,7 +113,6 @@ Your API should return data in the following JSON format:
 - `force` (required): Police force name
 - `area` (required): Area covered
 - `email` (required): Email address
-- `website` (optional): Website URL
 
 **MP Fields:**
 
@@ -127,8 +121,6 @@ Your API should return data in the following JSON format:
 - `party` (required): Political party
 - `constituency` (required): Parliamentary constituency
 - `email` (required): Email address
-- `phone` (required): Phone number
-- `website` (required): Website URL
 
 **MS Fields (for Wales):**
 
@@ -137,8 +129,6 @@ Your API should return data in the following JSON format:
 - `party` (required): Political party
 - `constituency` (required): Senedd constituency
 - `email` (required): Email address
-- `phone` (required): Phone number
-- `website` (required): Website URL
 
 **AreaInfo Fields:**
 
@@ -174,9 +164,7 @@ At minimum, your API should return the postcode and at least one representative:
     "name": "Representative Name",
     "party": "Party Name",
     "constituency": "Constituency Name",
-    "email": "email@example.com",
-    "phone": "020 1234 5678",
-    "website": "https://example.com"
+    "email": "email@example.com"
   }
 }
 ```

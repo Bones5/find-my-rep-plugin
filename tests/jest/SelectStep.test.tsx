@@ -16,8 +16,6 @@ describe("SelectStep Component", () => {
       email: "john@parliament.uk",
       party: "Labour",
       constituency: "Test Constituency",
-      phone: "020 1234 5678",
-      website: "https://johnsmith.mp",
     },
     {
       type: "Councillor",
@@ -219,36 +217,6 @@ describe("SelectStep Component", () => {
       mockRepresentatives[0],
       mockRepresentatives[2],
     ]);
-  });
-
-  test("renders phone links when available", () => {
-    render(
-      <SelectStep
-        representatives={mockRepresentatives}
-        areaInfo={null}
-        onContinue={mockOnContinue}
-        onBack={mockOnBack}
-      />,
-    );
-
-    const phoneLink = screen.getByRole("link", { name: "020 1234 5678" });
-    expect(phoneLink).toHaveAttribute("href", "tel:020 1234 5678");
-  });
-
-  test("renders website links when available", () => {
-    render(
-      <SelectStep
-        representatives={mockRepresentatives}
-        areaInfo={null}
-        onContinue={mockOnContinue}
-        onBack={mockOnBack}
-      />,
-    );
-
-    const websiteLink = screen.getByRole("link", { name: "Website" });
-    expect(websiteLink).toHaveAttribute("href", "https://johnsmith.mp");
-    expect(websiteLink).toHaveAttribute("target", "_blank");
-    expect(websiteLink).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   test("handles MS representative type", () => {

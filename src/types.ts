@@ -22,7 +22,6 @@ export interface Councillor {
   ward: string;
   council: string;
   email: string;
-  phone?: string;
 }
 
 export interface PCC {
@@ -32,7 +31,6 @@ export interface PCC {
   force: string;
   area: string;
   email: string;
-  website?: string;
 }
 
 export interface MP {
@@ -41,8 +39,6 @@ export interface MP {
   party: string;
   constituency: string;
   email: string;
-  phone?: string;
-  website?: string;
 }
 
 export interface MS {
@@ -51,8 +47,6 @@ export interface MS {
   party: string;
   constituency: string;
   email: string;
-  phone?: string;
-  website?: string;
 }
 
 export interface AreaInfoDetail {
@@ -98,8 +92,6 @@ export interface SelectableRepresentative {
   council?: string; // Councillor
   force?: string; // PCC
   area?: string; // PCC
-  phone?: string;
-  website?: string;
 }
 
 // Helper function type to convert API types to selectable format
@@ -111,8 +103,6 @@ export function mpToSelectable(mp: MP): SelectableRepresentative {
     email: mp.email,
     party: mp.party,
     constituency: mp.constituency,
-    phone: mp.phone,
-    website: mp.website,
   };
 }
 
@@ -124,8 +114,6 @@ export function msToSelectable(ms: MS): SelectableRepresentative {
     email: ms.email,
     party: ms.party,
     constituency: ms.constituency,
-    phone: ms.phone,
-    website: ms.website,
   };
 }
 
@@ -138,7 +126,6 @@ export function pccToSelectable(pcc: PCC): SelectableRepresentative {
     party: pcc.party,
     force: pcc.force,
     area: pcc.area,
-    website: pcc.website,
   };
 }
 
@@ -153,7 +140,6 @@ export function councillorToSelectable(
     party: councillor.party,
     ward: councillor.ward,
     council: councillor.council,
-    phone: councillor.phone,
   };
 }
 

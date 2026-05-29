@@ -55,7 +55,7 @@ export const SuccessStep: React.FC<SuccessStepProps> = ({
           </li>
           <li>
             If you don&apos;t hear back, you can follow up or contact your{" "}
-            {repWord} directly through their official website.
+            {repWord} directly through their official contact channels.
           </li>
         </ol>
       </div>

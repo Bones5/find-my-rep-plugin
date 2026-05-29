@@ -257,22 +257,6 @@ export const SelectStep: React.FC<SelectStepProps> = ({
                   {rep.party && <span className="rep-party">{rep.party}</span>}
                   <div className="rep-contact-info">
                     <span className="rep-email">{rep.email}</span>
-                    {rep.phone && (
-                      <span className="rep-phone">
-                        <a href={`tel:${rep.phone}`}>{rep.phone}</a>
-                      </span>
-                    )}
-                    {rep.website && (
-                      <span className="rep-website">
-                        <a
-                          href={rep.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Website
-                        </a>
-                      </span>
-                    )}
                   </div>
                 </div>
               </label>
