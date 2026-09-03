@@ -1,0 +1,149 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Find My Rep 1.0.0\n"
+"PO-Revision-Date: 2026-09-03 15:00+0000\n"
+"Last-Translator: Bones5\n"
+"Language-Team: Welsh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: cy\n"
+"Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : (n == 2) ? 1 : (n != 8 && n != 11) ? 2 : 3;\n"
+"X-Domain: find-my-rep\n"
+
+#: build/frontend.js
+msgid "Failed to fetch representatives."
+msgstr "Methwyd nôl cynrychiolwyr."
+
+#: build/frontend.js
+msgid "An error occurred. Please try again."
+msgstr "Digwyddodd gwall. Rhowch gynnig arall arni."
+
+#: build/frontend.js
+msgid "Some letters could not be delivered:"
+msgstr "Ni ellid dosbarthu rhai llythyrau:"
+
+#: build/frontend.js
+msgid "Failed to send letters."
+msgstr "Methwyd anfon llythyrau."
+
+#: build/frontend.js
+msgid "Please fill in all fields."
+msgstr "Llenwch bob maes."
+
+#: build/frontend.js
+msgid "Please enter a valid email address."
+msgstr "Rhowch gyfeiriad e-bost dilys."
+
+#: build/frontend.js
+msgid "Please remove excessive links before sending your message."
+msgstr "Rhaid cael gwared ar ddolenni gormodol cyn anfon eich neges."
+
+#: build/frontend.js
+msgid "Review and Edit Your Letter"
+msgstr "Adolygwch a Golygwch Eich Llythyr"
+
+#: build/frontend.js
+msgid "Your Name:"
+msgstr "Eich Enw:"
+
+#: build/frontend.js
+msgid "Your Email:"
+msgstr "Eich Ebost:"
+
+#: build/frontend.js
+msgid "Please keep your message respectful. Abusive, threatening, or spam-like content will be blocked."
+msgstr "Cadwch eich neges yn barchus. Bydd cynnwys sarhaus, bygythiol, neu debyg i sbam yn cael ei rwystro."
+
+#: build/frontend.js
+msgid "Website"
+msgstr "Gwefan"
+
+#: build/frontend.js
+msgid "Back"
+msgstr "Yn ôl"
+
+#: build/frontend.js
+msgid "Sending..."
+msgstr "Yn danfon…"
+
+#: build/frontend.js
+msgid "Send"
+msgstr "Danfon"
+
+#: build/frontend.js
+msgid "Find Your Representatives"
+msgstr "Dewch o Hyd i'ch Cynrychiolwyr"
+
+#: build/frontend.js
+msgid "Enter your postcode:"
+msgstr "Cyflwynwch eich cod post:"
+
+#: build/frontend.js
+msgid "e.g. CF10 1EP"
+msgstr "e.e. CF10 1EP"
+
+#: build/frontend.js
+msgid "Find Representatives"
+msgstr "Dod o Hyd i Gynrychiolwyr"
+
+#: build/frontend.js
+msgid "Member of Parliament"
+msgstr "Aelod o Senedd y DU"
+
+#: build/frontend.js
+msgid "Member of the Senedd"
+msgstr "Aelod o Senedd Cymru"
+
+#: build/frontend.js
+msgid "Police and Crime Commissioner"
+msgstr "Comisiynydd yr Heddlu a Throsedd"
+
+#: build/frontend.js
+msgid "Local Councillor"
+msgstr "Cynghorydd Lleol"
+
+#: build/frontend.js
+msgid "Select Representatives to Contact"
+msgstr "Dewiswch Gynrychiolwyr i Gysylltu â Nhw"
+
+#: build/frontend.js
+msgid "Continue"
+msgstr "Parhau"
+
+#: build/frontend.js
+msgid "Your letter has been sent!"
+msgstr "Mae eich llythyr wedi cael ei anfon!"
+
+#: build/frontend.js
+msgid "Sent to:"
+msgstr "Anfonwyd at:"
+
+#: build/frontend.js
+msgid "What happens next?"
+msgstr "Beth sy'n digwydd nesaf?"
+
+#: build/frontend.js
+msgid "Your representative will receive your letter directly by email."
+msgid_plural "Your representatives will receive your letter directly by email."
+msgstr[0] "Bydd eich cynrychiolydd yn derbyn eich llythyr yn uniongyrchol drwy e-bost."
+msgstr[1] "Bydd eich cynrychiolwyr yn derbyn eich llythyr yn uniongyrchol drwy e-bost."
+msgstr[2] "Bydd eich cynrychiolwyr yn derbyn eich llythyr yn uniongyrchol drwy e-bost."
+msgstr[3] "Bydd eich cynrychiolwyr yn derbyn eich llythyr yn uniongyrchol drwy e-bost."
+
+#: build/frontend.js
+#, php-format
+msgid "Any reply will go straight to %s — keep an eye on your inbox, including your spam folder."
+msgstr "Bydd unrhyw ateb yn mynd yn syth i %s — cadwch lygad ar eich mewnflwch, gan gynnwys eich ffolder sbam."
+
+#: build/frontend.js
+msgid "Response times vary. Most representatives aim to reply within two to four weeks, though it can take longer during busy parliamentary periods."
+msgstr "Mae amseroedd ymateb yn amrywio. Mae'r rhan fwyaf o gynrychiolwyr yn anelu at ymateb o fewn pythefnos i bedair wythnos, er y gall gymryd mwy o amser yn ystod cyfnodau seneddol prysur."
+
+#: build/frontend.js
+msgid "If you don't hear back, you can follow up or contact your representative directly through their official contact channels."
+msgstr "Os na chewch chi ateb, gallwch chi gysylltu â'ch cynrychiolydd yn uniongyrchol drwy eu sianeli cyswllt swyddogol."
+
+#: build/frontend.js
+msgid "Start over"
+msgstr "Dechrau o’r newydd"

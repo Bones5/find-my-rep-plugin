@@ -1,8 +1,9 @@
 {
-  "core": "WordPress/WordPress#6.4",
+  "core": "WordPress/WordPress#6.5",
   "phpVersion": "8.0",
   "plugins": [
-    "."
+    ".",
+    "https://downloads.wordpress.org/plugin/polylang.latest-stable.zip"
   ],
   "port": 8888,
   "testsPort": 8889,
@@ -14,6 +15,6 @@
     "wp-content/plugins/find-my-rep-plugin": "."
   },
   "lifecycleScripts": {
-    "afterStart": "npx wp-env run cli -- wp post create --post_type=page --post_title='Find My Representative' --post_content='<!-- wp:find-my-rep/contact-block /-->' --post_status=publish --porcelain | xargs -I {} npx wp-env run cli -- wp option update page_on_front {} && npx wp-env run cli -- wp option update show_on_front page"
+    "afterStart": "sh scripts/setup-wp-env.sh"
   }
 }

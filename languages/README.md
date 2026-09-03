@@ -8,9 +8,8 @@ forms, and notes for placeholders.
 
 1. Open `find-my-rep.pot` in Poedit or another gettext editor.
 2. Create a Welsh (`cy`) translation.
-3. Save the catalogs as `find-my-rep-cy.po` and `find-my-rep-cy.mo` in this
-   directory.
-4. Generate the JavaScript catalogs with `npm run i18n:json`.
+3. Save the catalog as `find-my-rep-cy.po` in this directory.
+4. Run `npm run i18n:json` to compile the MO and JavaScript catalogs.
 5. Set the WordPress site language to Cymraeg and verify the block editor,
    public form, validation errors, success screen, and email status messages.
 
