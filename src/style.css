@@ -75,6 +75,7 @@
 .postcode-input:focus,
 .sender-name:focus,
 .sender-email:focus,
+.question-response:focus,
 .letter-content:focus {
   outline: 2px solid var(--fmr-primary, #005ea2);
   outline-offset: 2px;
@@ -434,6 +435,7 @@
   margin-top: 0;
 }
 
+.question-response,
 .letter-content {
   width: 100%;
   padding: 1rem;

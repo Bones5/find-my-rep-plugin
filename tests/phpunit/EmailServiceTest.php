@@ -67,6 +67,24 @@ class EmailServiceTest extends TestCase {
         
         $this->assertEquals('Dear John Smith, You are the Member of Parliament.', $result);
     }
+
+    public function test_render_template_replaces_question_response_at_configured_position() {
+        $template = 'Dear {{representative_name}}, {{question_response}} Thank you.';
+        $placeholders = array(
+            '{{representative_name}}' => 'John Smith',
+            '{{question_response}}' => 'Reliable buses would help.',
+        );
+
+        $result = $this->service->render_template($template, $placeholders);
+
+        $this->assertEquals('Dear John Smith, Reliable buses would help. Thank you.', $result);
+    }
+
+    public function test_render_template_uses_empty_string_for_missing_question_response() {
+        $result = $this->service->render_template('Before{{question_response}}After', array());
+
+        $this->assertEquals('BeforeAfter', $result);
+    }
     
     /**
      * Test render_template handles multiple occurrences of same placeholder

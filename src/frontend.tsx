@@ -18,12 +18,17 @@ const initializeApp = () => {
     const storageKey = `fmr-${pagePath}-${index}`;
     const perBlockTemplate =
       container.getAttribute("data-letter-template") || "";
+    const includeQuestion =
+      container.getAttribute("data-include-question") === "true";
+    const questionText = container.getAttribute("data-question-text") || "";
     const root = createRoot(container);
     root.render(
       <FindMyRepApp
         blockId={blockId}
         storageKey={storageKey}
         perBlockTemplate={perBlockTemplate}
+        includeQuestion={includeQuestion}
+        questionText={questionText}
       />,
     );
   });

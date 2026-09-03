@@ -121,6 +121,41 @@ class AbusePreventionTest extends TestCase {
 
         $this->assertSame('', $result);
     }
+
+    public function test_validate_letter_request_allows_empty_question_response() {
+        $method = $this->reflection->getMethod('validate_letter_request');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            'Test User',
+            'test@example.com',
+            'Please support this issue.',
+            '',
+            ''
+        );
+
+        $this->assertSame('', $result);
+    }
+
+    public function test_validate_letter_request_rejects_abusive_question_response() {
+        $method = $this->reflection->getMethod('validate_letter_request');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            'Test User',
+            'test@example.com',
+            'Please support this issue.',
+            '',
+            'You should go die.'
+        );
+
+        $this->assertSame(
+            'Please remove abusive or threatening language before sending your message.',
+            $result
+        );
+    }
     
     public function test_is_rate_limited_blocks_after_three_attempts() {
         $method = $this->reflection->getMethod('is_rate_limited');

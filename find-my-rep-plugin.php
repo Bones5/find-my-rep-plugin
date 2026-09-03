@@ -139,6 +139,14 @@ class Find_My_Rep_Plugin
                 'letterTemplate' => array(
                     'type' => 'string',
                     'default' => ''
+                ),
+                'includeQuestion' => array(
+                    'type' => 'boolean',
+                    'default' => false
+                ),
+                'questionText' => array(
+                    'type' => 'string',
+                    'default' => ''
                 )
             )
         ));
@@ -152,6 +160,10 @@ class Find_My_Rep_Plugin
         $block_id = !empty($attributes['blockId']) ? $attributes['blockId'] : 'block-' . uniqid();
         $letter_template = get_option('find_my_rep_letter_template', '');
         $per_block_template = !empty($attributes['letterTemplate']) ? $attributes['letterTemplate'] : '';
+        $include_question = !empty($attributes['includeQuestion']);
+        $question_text = $include_question && !empty($attributes['questionText'])
+            ? sanitize_text_field($attributes['questionText'])
+            : '';
 
         // Load asset file for dependencies and version
         $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.asset.php';
@@ -181,7 +193,7 @@ class Find_My_Rep_Plugin
         // Return the container div - React will render the content
         ob_start();
 ?>
-        <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>" data-letter-template="<?php echo esc_attr($per_block_template); ?>"></div>
+        <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>" data-letter-template="<?php echo esc_attr($per_block_template); ?>" data-include-question="<?php echo $include_question ? 'true' : 'false'; ?>" data-question-text="<?php echo esc_attr($question_text); ?>"></div>
     <?php
         return ob_get_clean();
     }
@@ -335,7 +347,7 @@ class Find_My_Rep_Plugin
     {
         $value = get_option('find_my_rep_letter_template', '');
         echo '<textarea name="find_my_rep_letter_template" rows="10" class="large-text">' . esc_textarea($value) . '</textarea>';
-        echo '<p class="description">' . esc_html__('Enter the default letter template. Use {{representative_name}} and {{representative_title}} as placeholders.', 'find-my-rep') . '</p>';
+        echo '<p class="description">' . esc_html__('Enter the default letter template. Available placeholders: {{representative_name}}, {{representative_title}}, and {{question_response}}.', 'find-my-rep') . '</p>';
     }
 
     /**
@@ -414,10 +426,11 @@ class Find_My_Rep_Plugin
         $sender_name = sanitize_text_field($_POST['sender_name']);
         $sender_email = sanitize_email($_POST['sender_email']);
         $letter_content = sanitize_textarea_field($_POST['letter_content']);
+        $question_response = isset($_POST['question_response']) ? sanitize_textarea_field($_POST['question_response']) : '';
         $postcode = isset($_POST['postcode']) ? sanitize_text_field($_POST['postcode']) : '';
         $honeypot = isset($_POST['website_url']) ? sanitize_text_field($_POST['website_url']) : '';
         $representatives = json_decode(stripslashes($_POST['representatives']), true);
-        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot);
+        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot, $question_response);
 
         if ($validation_message) {
             wp_send_json_error(array('message' => $validation_message));
@@ -458,6 +471,7 @@ class Find_My_Rep_Plugin
             $placeholders = array(
                 '{{representative_name}}' => isset($rep['name']) ? $rep['name'] : '',
                 '{{representative_title}}' => $title,
+                '{{question_response}}' => $question_response,
             );
 
             // Render personalized letter
@@ -592,9 +606,11 @@ class Find_My_Rep_Plugin
      * @param string $sender_name Sender name
      * @param string $sender_email Sender email
      * @param string $letter_content Letter content
-     * @return string Empty string when valid, translated error message when invalid
+    * @param string $honeypot Hidden anti-spam field
+    * @param string $question_response Optional response to the configured question
+    * @return string Empty string when valid, translated error message when invalid
      */
-    private function validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot = '')
+    private function validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot = '', $question_response = '')
     {
         if (empty($sender_name) || empty($sender_email) || empty($letter_content)) {
             return __('Please fill in all fields.', 'find-my-rep');
@@ -612,15 +628,20 @@ class Find_My_Rep_Plugin
             return __('Please shorten your message before sending.', 'find-my-rep');
         }
 
+        if (strlen($question_response) > 1000) {
+            return __('Please shorten your question response before sending.', 'find-my-rep');
+        }
+
         if (
             $this->contains_abusive_content($sender_name) ||
             $this->contains_abusive_content($sender_email) ||
-            $this->contains_abusive_content($letter_content)
+            $this->contains_abusive_content($letter_content) ||
+            $this->contains_abusive_content($question_response)
         ) {
             return __('Please remove abusive or threatening language before sending your message.', 'find-my-rep');
         }
 
-        if ($this->contains_excessive_links($letter_content)) {
+        if ($this->contains_excessive_links($letter_content) || $this->contains_excessive_links($question_response)) {
             return __('Please remove excessive links before sending your message.', 'find-my-rep');
         }
 

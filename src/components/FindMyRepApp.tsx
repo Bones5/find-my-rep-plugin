@@ -17,23 +17,29 @@ import type {
 import { apiResponseToSelectableReps } from "../types";
 import { PostcodeStep } from "./PostcodeStep";
 import { SelectStep } from "./SelectStep";
+import { QuestionStep } from "./QuestionStep";
 import { LetterStep } from "./LetterStep";
 import { SuccessStep } from "./SuccessStep";
 import { LoadingSpinner } from "./LoadingSpinner";
 
-type Step = "postcode" | "select" | "letter";
+type Step = "postcode" | "select" | "question" | "letter";
 
 interface FindMyRepAppProps {
   blockId: string;
   storageKey: string;
   perBlockTemplate: string;
+  includeQuestion?: boolean;
+  questionText?: string;
 }
 
 export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   blockId,
   storageKey,
   perBlockTemplate,
+  includeQuestion = false,
+  questionText = "",
 }) => {
+  const hasQuestion = includeQuestion && !!questionText.trim();
   const [currentStep, setCurrentStep, clearStep] = useSessionStorage<Step>(
     `${storageKey}-step`,
     "postcode",
@@ -50,6 +56,8 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   );
   const [areaInfo, setAreaInfo, clearAreaInfo] =
     useSessionStorage<AreaInfo | null>(`${storageKey}-area`, null);
+  const [questionResponse, setQuestionResponse, clearQuestionResponse] =
+    useSessionStorage<string>(`${storageKey}-question-response`, "");
   const [error, setError] = useState<string>("");
   const [successInfo, setSuccessInfo] = useState<{
     message: string;
@@ -65,6 +73,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
     clearSelected();
     clearPostcode();
     clearAreaInfo();
+    clearQuestionResponse();
     // Also clear LetterStep-owned keys
     try {
       sessionStorage.removeItem(`${storageKey}-name`);
@@ -150,7 +159,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
 
   const handleContinue = (reps: SelectableRepresentative[]) => {
     setSelectedReps(reps);
-    setCurrentStep("letter");
+    setCurrentStep(hasQuestion ? "question" : "letter");
   };
 
   const handleBackToPostcode = () => {
@@ -160,6 +169,10 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
 
   const handleBackToSelect = () => {
     setCurrentStep("select");
+  };
+
+  const handleBackFromLetter = () => {
+    setCurrentStep(hasQuestion ? "question" : "select");
   };
 
   const handleSend = async (
@@ -183,6 +196,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
           sender_email: senderEmail,
           letter_content: letterContent,
           postcode,
+          question_response: questionResponse,
           website_url: honeypot,
           representatives: JSON.stringify(selectedReps),
         }),
@@ -261,15 +275,25 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
               onBack={handleBackToPostcode}
             />
           )}
-          {currentStep === "letter" && (
+          {(currentStep === "letter" ||
+            (currentStep === "question" && !hasQuestion)) && (
             <LetterStep
               blockId={blockId}
               storageKey={storageKey}
               selectedReps={selectedReps}
               letterTemplate={effectiveTemplate}
               onSend={handleSend}
-              onBack={handleBackToSelect}
+              onBack={handleBackFromLetter}
               loading={loading}
+            />
+          )}
+          {currentStep === "question" && hasQuestion && (
+            <QuestionStep
+              question={questionText}
+              response={questionResponse}
+              onChange={setQuestionResponse}
+              onContinue={() => setCurrentStep("letter")}
+              onBack={handleBackToSelect}
             />
           )}
         </>

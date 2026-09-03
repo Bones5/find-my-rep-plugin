@@ -49,6 +49,7 @@ class Find_My_Rep_Email_Service
         $defaults = array(
             '{{representative_name}}' => '',
             '{{representative_title}}' => '',
+            '{{question_response}}' => '',
         );
 
         // Merge with provided placeholders, provided values take precedence
