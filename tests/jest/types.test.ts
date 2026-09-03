@@ -140,7 +140,7 @@ describe("Type Utility Functions", () => {
   describe("apiResponseToSelectableReps", () => {
     it("converts a full API response with all representative types", () => {
       const apiResponse: RepresentativesApiResponse = {
-        postcode: "SW1A 1AA",
+        postcode: "CF10 1EP",
         mp: {
           id: 1,
           name: "MP Name",
@@ -215,7 +215,7 @@ describe("Type Utility Functions", () => {
 
     it("handles response with null values", () => {
       const apiResponse: RepresentativesApiResponse = {
-        postcode: "SW1A 1AA",
+        postcode: "CF10 1EP",
         mp: null,
         mss: [],
         pcc: null,
@@ -229,7 +229,7 @@ describe("Type Utility Functions", () => {
 
     it("handles response with empty councillors array", () => {
       const apiResponse: RepresentativesApiResponse = {
-        postcode: "SW1A 1AA",
+        postcode: "CF10 1EP",
         mp: {
           id: 1,
           name: "MP Name",
@@ -247,7 +247,7 @@ describe("Type Utility Functions", () => {
 
     it("handles response with undefined fields", () => {
       const apiResponse: RepresentativesApiResponse = {
-        postcode: "SW1A 1AA",
+        postcode: "CF10 1EP",
       };
 
       const result = apiResponseToSelectableReps(apiResponse);

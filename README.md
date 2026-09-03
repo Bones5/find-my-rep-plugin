@@ -249,7 +249,7 @@ The Representatives API should return data in the following format:
 
 ```json
 {
-  "postcode": "SW1A 1AA",
+  "postcode": "CF10 1EP",
   "councillors": [
     {
       "id": 1,

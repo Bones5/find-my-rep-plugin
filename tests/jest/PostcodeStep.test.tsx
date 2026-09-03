@@ -31,7 +31,7 @@ describe('PostcodeStep Component', () => {
 			/>
 		);
 
-		const input = screen.getByPlaceholderText('e.g. SW1A 1AA');
+		const input = screen.getByPlaceholderText('e.g. CF10 1EP');
 		expect(input).toBeInTheDocument();
 	});
 
@@ -75,12 +75,12 @@ describe('PostcodeStep Component', () => {
 		);
 
 		const input = screen.getByLabelText(/Enter your postcode/i);
-		fireEvent.change(input, { target: { value: '  SW1A 1AA  ' } });
+		fireEvent.change(input, { target: { value: '  CF10 1EP  ' } });
 
 		const button = screen.getByRole('button', { name: /Find Representatives/i });
 		fireEvent.click(button);
 
-		expect(mockOnFindReps).toHaveBeenCalledWith('SW1A 1AA');
+		expect(mockOnFindReps).toHaveBeenCalledWith('CF10 1EP');
 	});
 
 	test('calls onFindReps on Enter key press', () => {

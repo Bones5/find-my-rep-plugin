@@ -38,7 +38,7 @@ export const PostcodeStep: React.FC< PostcodeStepProps > = ( {
 				type="text"
 				id="postcode-input"
 				className="postcode-input"
-				placeholder={ __( 'e.g. SW1A 1AA', 'find-my-rep' ) }
+				placeholder={ __( 'e.g. CF10 1EP', 'find-my-rep' ) }
 				value={ postcode }
 				onChange={ ( e ) => setPostcode( e.target.value ) }
 				onKeyPress={ handleKeyPress }

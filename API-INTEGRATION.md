@@ -15,7 +15,7 @@ The plugin expects the API to be structured as:
 For example, if your API URL is `https://api.example.com/api/reps`, the plugin will make requests to:
 
 ```
-GET https://api.example.com/api/reps/SW1A1AA
+GET https://api.example.com/api/reps/CF101EP
 ```
 
 ## API Response Format
@@ -24,7 +24,7 @@ Your API should return data in the following JSON format:
 
 ```json
 {
-  "postcode": "SW1A 1AA",
+  "postcode": "CF10 1EP",
   "councillors": [
     {
       "id": 1,
@@ -158,7 +158,7 @@ At minimum, your API should return the postcode and at least one representative:
 
 ```json
 {
-  "postcode": "SW1A 1AA",
+  "postcode": "CF10 1EP",
   "mp": {
     "id": 1,
     "name": "Representative Name",
