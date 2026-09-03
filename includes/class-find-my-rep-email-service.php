@@ -83,6 +83,7 @@ class Find_My_Rep_Email_Service
             default:
                 return array(
                     'success' => false,
+                    /* translators: %s: configured email transport identifier. */
                     'message' => sprintf(__('Unknown transport mode: %s', 'find-my-rep'), $this->transport)
                 );
         }
@@ -148,7 +149,8 @@ class Find_My_Rep_Email_Service
             $body = wp_remote_retrieve_body($response);
             return array(
                 'success' => false,
-                'message' => sprintf(__('Resend API error (HTTP %d): %s', 'find-my-rep'), $response_code, $body)
+                /* translators: 1: HTTP response status code, 2: Resend API response body. */
+                'message' => sprintf(__('Resend API error (HTTP %1$d): %2$s', 'find-my-rep'), $response_code, $body)
             );
         }
     }
@@ -252,6 +254,7 @@ class Find_My_Rep_Email_Service
         if ($result !== false) {
             return array(
                 'success' => true,
+                /* translators: %s: path to the email test log file. */
                 'message' => sprintf(__('Email logged to test file: %s', 'find-my-rep'), $log_file)
             );
         } else {

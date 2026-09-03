@@ -9,6 +9,7 @@
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: find-my-rep
+ * Domain Path: /languages
  */
 
 // Exit if accessed directly
@@ -50,6 +51,7 @@ class Find_My_Rep_Plugin
      */
     public function __construct()
     {
+        add_action('init', array($this, 'load_textdomain'));
         add_action('init', array($this, 'register_block'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'register_settings'));
@@ -57,6 +59,18 @@ class Find_My_Rep_Plugin
         add_action('wp_ajax_nopriv_find_my_rep_get_representatives', array($this, 'ajax_get_representatives'));
         add_action('wp_ajax_find_my_rep_send_letter', array($this, 'ajax_send_letter'));
         add_action('wp_ajax_nopriv_find_my_rep_send_letter', array($this, 'ajax_send_letter'));
+    }
+
+    /**
+     * Load the plugin translations.
+     */
+    public function load_textdomain()
+    {
+        load_plugin_textdomain(
+            'find-my-rep',
+            false,
+            dirname(plugin_basename(__FILE__)) . '/languages'
+        );
     }
 
     /**
@@ -93,6 +107,11 @@ class Find_My_Rep_Plugin
             FIND_MY_REP_PLUGIN_URL . 'build/index.js',
             $asset_file['dependencies'],
             $asset_file['version']
+        );
+        wp_set_script_translations(
+            'find-my-rep-block-editor',
+            'find-my-rep',
+            FIND_MY_REP_PLUGIN_DIR . 'languages'
         );
 
         // Register block styles (fallback to src/style.css during dev)
@@ -145,6 +164,11 @@ class Find_My_Rep_Plugin
             $frontend_asset_file['dependencies'],
             $frontend_asset_file['version'],
             true
+        );
+        wp_set_script_translations(
+            'find-my-rep-frontend',
+            'find-my-rep',
+            FIND_MY_REP_PLUGIN_DIR . 'languages'
         );
 
         // Localize script with AJAX URL and nonce
@@ -443,14 +467,15 @@ class Find_My_Rep_Plugin
             $result = $email_service->send_letter(
                 $sender_email,
                 $rep['email'],
-                'Letter from constituent',
+                __('Letter from constituent', 'find-my-rep'),
                 $personalized_letter
             );
 
             if ($result['success']) {
                 $sent_count++;
             } else {
-                $errors[] = sprintf(__('Failed to send to %s: %s', 'find-my-rep'), $rep['name'], $result['message']);
+                /* translators: 1: representative name, 2: delivery error message. */
+                $errors[] = sprintf(__('Failed to send to %1$s: %2$s', 'find-my-rep'), $rep['name'], $result['message']);
             }
         }
 
@@ -459,12 +484,31 @@ class Find_My_Rep_Plugin
         if ($sent_count === $total_count) {
             // All letters sent successfully
             wp_send_json_success(array(
-                'message' => sprintf(__('Successfully sent %d letter(s).', 'find-my-rep'), $sent_count)
+                'message' => sprintf(
+                    /* translators: %d: number of letters sent. */
+                    _n(
+                        'Successfully sent %d letter.',
+                        'Successfully sent %d letters.',
+                        $sent_count,
+                        'find-my-rep'
+                    ),
+                    $sent_count
+                )
             ));
         } elseif ($sent_count > 0) {
             // Partial success - some sent, some failed
             wp_send_json_success(array(
-                'message' => sprintf(__('Successfully sent %d of %d letter(s).', 'find-my-rep'), $sent_count, $total_count),
+                'message' => sprintf(
+                    /* translators: 1: number of letters sent, 2: total number of letters attempted. */
+                    _n(
+                        'Successfully sent %1$d of %2$d letter.',
+                        'Successfully sent %1$d of %2$d letters.',
+                        $total_count,
+                        'find-my-rep'
+                    ),
+                    $sent_count,
+                    $total_count
+                ),
                 'errors' => $errors,
                 'partial' => true
             ));
@@ -490,28 +534,55 @@ class Find_My_Rep_Plugin
         switch ($type) {
             case 'MP':
                 $constituency = isset($rep['constituency']) ? $rep['constituency'] : '';
-                return $constituency ? 'Member of Parliament for ' . $constituency : 'Member of Parliament';
+                return $constituency
+                    ? sprintf(
+                        /* translators: %s: constituency name. */
+                        __('Member of Parliament for %s', 'find-my-rep'),
+                        $constituency
+                    )
+                    : __('Member of Parliament', 'find-my-rep');
 
             case 'MS':
                 $constituency = isset($rep['constituency']) ? $rep['constituency'] : '';
-                return $constituency ? 'Member of the Senedd for ' . $constituency : 'Member of the Senedd';
+                return $constituency
+                    ? sprintf(
+                        /* translators: %s: Senedd constituency name. */
+                        __('Member of the Senedd for %s', 'find-my-rep'),
+                        $constituency
+                    )
+                    : __('Member of the Senedd', 'find-my-rep');
 
             case 'PCC':
                 $force = isset($rep['force']) ? $rep['force'] : '';
-                return $force ? 'Police and Crime Commissioner for ' . $force : 'Police and Crime Commissioner';
+                return $force
+                    ? sprintf(
+                        /* translators: %s: police force area. */
+                        __('Police and Crime Commissioner for %s', 'find-my-rep'),
+                        $force
+                    )
+                    : __('Police and Crime Commissioner', 'find-my-rep');
 
             case 'Councillor':
                 $ward = isset($rep['ward']) ? $rep['ward'] : '';
                 $council = isset($rep['council']) ? $rep['council'] : '';
                 if ($ward && $council) {
-                    return 'Councillor for ' . $ward . ', ' . $council;
+                    return sprintf(
+                        /* translators: 1: ward name, 2: council name. */
+                        __('Councillor for %1$s, %2$s', 'find-my-rep'),
+                        $ward,
+                        $council
+                    );
                 } elseif ($ward) {
-                    return 'Councillor for ' . $ward;
+                    return sprintf(
+                        /* translators: %s: ward name. */
+                        __('Councillor for %s', 'find-my-rep'),
+                        $ward
+                    );
                 }
-                return 'Councillor';
+                return __('Councillor', 'find-my-rep');
 
             default:
-                return 'Representative';
+                return __('Representative', 'find-my-rep');
         }
     }
 
@@ -616,6 +687,7 @@ class Find_My_Rep_Plugin
         if ($response_code < 200 || $response_code >= 300) {
             return array(
                 'success' => false,
+                /* translators: %d: HTTP response status code. */
                 'message' => sprintf(__('API request failed (HTTP %d). Please check the API URL in settings.', 'find-my-rep'), $response_code),
             );
         }

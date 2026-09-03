@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { __ } from "@wordpress/i18n";
 import type { SelectableRepresentative, AreaInfo } from "../types";
 
 interface SelectStepProps {
@@ -15,13 +16,13 @@ interface SelectStepProps {
 function getRepresentativeTypeLabel(type: string): string {
   switch (type) {
     case "MP":
-      return "Member of Parliament";
+      return __( "Member of Parliament", "find-my-rep" );
     case "MS":
-      return "Member of the Senedd";
+      return __( "Member of the Senedd", "find-my-rep" );
     case "PCC":
-      return "Police and Crime Commissioner";
+      return __( "Police and Crime Commissioner", "find-my-rep" );
     case "Councillor":
-      return "Local Councillor";
+      return __( "Local Councillor", "find-my-rep" );
     default:
       return type;
   }
@@ -209,7 +210,7 @@ export const SelectStep: React.FC<SelectStepProps> = ({
 
   return (
     <div className="find-my-rep-step step-select">
-      <h3>Select Representatives to Contact</h3>
+      <h3>{__("Select Representatives to Contact", "find-my-rep")}</h3>
 
       {/* Area information header */}
       {areaInfo && (
@@ -266,14 +267,15 @@ export const SelectStep: React.FC<SelectStepProps> = ({
       </div>
       <div className="step-buttons">
         <button className="button back-btn" onClick={onBack} type="button">
-          ← Back
+          <span aria-hidden="true">←</span>{" "}
+          {__("Back", "find-my-rep")}
         </button>
         <button
           className="button button-primary continue-btn"
           onClick={handleContinue}
           disabled={selectedIds.size === 0}
         >
-          Continue
+          {__("Continue", "find-my-rep")}
         </button>
       </div>
     </div>

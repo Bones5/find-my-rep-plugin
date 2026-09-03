@@ -1,4 +1,5 @@
 import React from "react";
+import { __, _n, sprintf } from "@wordpress/i18n";
 import type { SelectableRepresentative } from "../types";
 
 interface SuccessStepProps {
@@ -14,20 +15,18 @@ export const SuccessStep: React.FC<SuccessStepProps> = ({
   senderEmail,
   onStartOver,
 }) => {
-  const repWord = reps.length !== 1 ? "representatives" : "representative";
-
   return (
     <div className="find-my-rep-step step-success">
       <div className="success-header">
         <span className="success-check-icon" aria-hidden="true" />
-        <h3>Your letter has been sent!</h3>
+        <h3>{__("Your letter has been sent!", "find-my-rep")}</h3>
       </div>
 
       <p className="success-summary">{message}</p>
 
       {reps.length > 0 && (
         <div className="success-recipients">
-          <h4>Sent to:</h4>
+          <h4>{__("Sent to:", "find-my-rep")}</h4>
           <ul>
             {reps.map((rep) => (
               <li key={`${rep.type}-${rep.id}`}>
@@ -42,20 +41,39 @@ export const SuccessStep: React.FC<SuccessStepProps> = ({
       )}
 
       <div className="success-next-steps">
-        <h4>What happens next?</h4>
+        <h4>{__("What happens next?", "find-my-rep")}</h4>
         <ol>
-          <li>Your {repWord} will receive your letter directly by email.</li>
           <li>
-            Any reply will go straight to <strong>{senderEmail}</strong> — keep
-            an eye on your inbox, including your spam folder.
+            {_n(
+              "Your representative will receive your letter directly by email.",
+              "Your representatives will receive your letter directly by email.",
+              reps.length,
+              "find-my-rep",
+            )}
           </li>
           <li>
-            Response times vary. Most {repWord} aim to reply within two to four
-            weeks, though it can take longer during busy parliamentary periods.
+            {sprintf(
+              /* translators: %s: sender email address. */
+              __(
+                "Any reply will go straight to %s — keep an eye on your inbox, including your spam folder.",
+                "find-my-rep",
+              ),
+              senderEmail,
+            )}
           </li>
           <li>
-            If you don&apos;t hear back, you can follow up or contact your{" "}
-            {repWord} directly through their official contact channels.
+            {__(
+              "Response times vary. Most representatives aim to reply within two to four weeks, though it can take longer during busy parliamentary periods.",
+              "find-my-rep",
+            )}
+          </li>
+          <li>
+            {_n(
+              "If you don't hear back, you can follow up or contact your representative directly through their official contact channels.",
+              "If you don't hear back, you can follow up or contact your representatives directly through their official contact channels.",
+              reps.length,
+              "find-my-rep",
+            )}
           </li>
         </ol>
       </div>
@@ -66,7 +84,7 @@ export const SuccessStep: React.FC<SuccessStepProps> = ({
           onClick={onStartOver}
           type="button"
         >
-          Start over
+          {__("Start over", "find-my-rep")}
         </button>
       </div>
     </div>

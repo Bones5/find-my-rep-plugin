@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { __ } from '@wordpress/i18n';
 
 interface PostcodeStepProps {
 	onFindReps: ( postcode: string ) => void;
@@ -29,13 +30,15 @@ export const PostcodeStep: React.FC< PostcodeStepProps > = ( {
 
 	return (
 		<div className="find-my-rep-step step-postcode">
-			<h3>Find Your Representatives</h3>
-			<label htmlFor="postcode-input">Enter your postcode:</label>
+			<h3>{ __( 'Find Your Representatives', 'find-my-rep' ) }</h3>
+			<label htmlFor="postcode-input">
+				{ __( 'Enter your postcode:', 'find-my-rep' ) }
+			</label>
 			<input
 				type="text"
 				id="postcode-input"
 				className="postcode-input"
-				placeholder="e.g. SW1A 1AA"
+				placeholder={ __( 'e.g. SW1A 1AA', 'find-my-rep' ) }
 				value={ postcode }
 				onChange={ ( e ) => setPostcode( e.target.value ) }
 				onKeyPress={ handleKeyPress }
@@ -46,7 +49,7 @@ export const PostcodeStep: React.FC< PostcodeStepProps > = ( {
 				onClick={ handleSubmit }
 				disabled={ loading }
 			>
-				Find Representatives
+				{ __( 'Find Representatives', 'find-my-rep' ) }
 			</button>
 			{ error && (
 				<div className="error-message" style={ { display: 'block' } }>

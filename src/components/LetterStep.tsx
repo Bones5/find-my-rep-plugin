@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { __ } from "@wordpress/i18n";
 import type { SelectableRepresentative } from "../types";
 import { useSessionStorage } from "../hooks/useSessionStorage";
 
@@ -62,19 +63,24 @@ export const LetterStep: React.FC<LetterStepProps> = ({
   const handleSend = () => {
     if (!senderName.trim() || !senderEmail.trim() || !letterContent.trim()) {
       // eslint-disable-next-line no-alert
-      alert("Please fill in all fields.");
+      alert(__("Please fill in all fields.", "find-my-rep"));
       return;
     }
 
     if (!isValidEmail(senderEmail)) {
       // eslint-disable-next-line no-alert
-      alert("Please enter a valid email address.");
+      alert(__("Please enter a valid email address.", "find-my-rep"));
       return;
     }
 
     if (containsTooManyLinks(letterContent)) {
       // eslint-disable-next-line no-alert
-      alert("Please remove excessive links before sending your message.");
+      alert(
+        __(
+          "Please remove excessive links before sending your message.",
+          "find-my-rep",
+        ),
+      );
       return;
     }
 
@@ -84,9 +90,11 @@ export const LetterStep: React.FC<LetterStepProps> = ({
 
   return (
     <div className="find-my-rep-step step-letter">
-      <h3>Review and Edit Your Letter</h3>
+      <h3>{__("Review and Edit Your Letter", "find-my-rep")}</h3>
       <div className="letter-fields">
-        <label htmlFor="sender-name">Your Name:</label>
+        <label htmlFor="sender-name">
+          {__("Your Name:", "find-my-rep")}
+        </label>
         <input
           type="text"
           id="sender-name"
@@ -97,7 +105,9 @@ export const LetterStep: React.FC<LetterStepProps> = ({
           disabled={loading || !!success}
         />
 
-        <label htmlFor="sender-email">Your Email:</label>
+        <label htmlFor="sender-email">
+          {__("Your Email:", "find-my-rep")}
+        </label>
         <input
           type="email"
           id="sender-email"
@@ -116,15 +126,17 @@ export const LetterStep: React.FC<LetterStepProps> = ({
         disabled={loading || !!success}
       />
       <p className="letter-guidance">
-        Please keep your message respectful. Abusive, threatening, or spam-like
-        content will be blocked.
+        {__(
+          "Please keep your message respectful. Abusive, threatening, or spam-like content will be blocked.",
+          "find-my-rep",
+        )}
       </p>
       {/* Honeypot field — hidden from real users, attracts bots */}
       <div
         aria-hidden="true"
         style={{ position: "absolute", left: "-9999px", top: "-9999px" }}
       >
-        <label htmlFor="website-url">Website</label>
+        <label htmlFor="website-url">{__("Website", "find-my-rep")}</label>
         <input
           type="text"
           id="website-url"
@@ -142,14 +154,17 @@ export const LetterStep: React.FC<LetterStepProps> = ({
             type="button"
             disabled={loading}
           >
-            ← Back
+            <span aria-hidden="true">←</span>{" "}
+            {__("Back", "find-my-rep")}
           </button>
           <button
             className="button button-primary send-btn send-button"
             onClick={handleSend}
             disabled={loading}
           >
-            {loading ? "Sending..." : "Send"}
+            {loading
+              ? __("Sending...", "find-my-rep")
+              : __("Send", "find-my-rep")}
           </button>
         </div>
       )}

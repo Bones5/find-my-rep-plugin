@@ -15,6 +15,12 @@ if (!function_exists('__')) {
     }
 }
 
+if (!function_exists('_n')) {
+    function _n($single, $plural, $number, $domain = 'default') {
+        return (int) $number === 1 ? $single : $plural;
+    }
+}
+
 if (!function_exists('add_action')) {
     function add_action($hook, $callback, $priority = 10, $accepted_args = 1) {
         return true;

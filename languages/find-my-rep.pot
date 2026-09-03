@@ -1,0 +1,311 @@
+# Copyright (C) 2026 Bones5
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Find My Rep 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/find-my-rep-plugin\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-03T09:31:20+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: find-my-rep\n"
+
+#. Plugin Name of the plugin
+#: find-my-rep-plugin.php
+#: find-my-rep-plugin.php:196
+msgid "Find My Rep"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: find-my-rep-plugin.php
+msgid "https://github.com/Bones5/find-my-rep-plugin"
+msgstr ""
+
+#. Description of the plugin
+#: find-my-rep-plugin.php
+msgid "A WordPress plugin that creates a Gutenberg block for contacting local representatives via templated letters sent through Resend."
+msgstr ""
+
+#. Author of the plugin
+#: find-my-rep-plugin.php
+msgid "Bones5"
+msgstr ""
+
+#: find-my-rep-plugin.php:195
+msgid "Find My Rep Settings"
+msgstr ""
+
+#: find-my-rep-plugin.php:223
+msgid "Plugin Settings"
+msgstr ""
+
+#: find-my-rep-plugin.php:230
+msgid "Representatives API URL"
+msgstr ""
+
+#: find-my-rep-plugin.php:238
+msgid "Resend API Key"
+msgstr ""
+
+#: find-my-rep-plugin.php:246
+msgid "From Email Address"
+msgstr ""
+
+#: find-my-rep-plugin.php:254
+msgid "Letter Template"
+msgstr ""
+
+#: find-my-rep-plugin.php:262
+msgid "Email Transport"
+msgstr ""
+
+#: find-my-rep-plugin.php:270
+msgid "CC Email Address (Usage Tracking)"
+msgstr ""
+
+#: find-my-rep-plugin.php:296
+msgid "Configure the letter template and API settings for the Find My Rep plugin."
+msgstr ""
+
+#: find-my-rep-plugin.php:306
+msgid "The Find My Rep API endpoint used to look up representatives by postcode."
+msgstr ""
+
+#: find-my-rep-plugin.php:307
+msgid "For local development with Docker, use http://host.docker.internal:3000/api/reps (the default)."
+msgstr ""
+
+#: find-my-rep-plugin.php:308
+msgid "For production, use the deployed API URL (e.g. https://find-my-rep.fly.dev/api/reps)."
+msgstr ""
+
+#: find-my-rep-plugin.php:318
+msgid "The address emails are sent from. Must be a verified domain in Resend. The constituent's address is used as Reply-To so replies go directly to them."
+msgstr ""
+
+#: find-my-rep-plugin.php:328
+msgid "Enter your Resend API key for sending emails."
+msgstr ""
+
+#: find-my-rep-plugin.php:338
+msgid "Enter the default letter template. Use {{representative_name}} and {{representative_title}} as placeholders."
+msgstr ""
+
+#: find-my-rep-plugin.php:348
+msgid "Optional. When set, a copy of every letter sent via this plugin will be CC'd to this address for usage tracking. Leave empty to disable."
+msgstr ""
+
+#: find-my-rep-plugin.php:359
+msgid "Resend API"
+msgstr ""
+
+#: find-my-rep-plugin.php:360
+msgid "SMTP (wp_mail)"
+msgstr ""
+
+#: find-my-rep-plugin.php:361
+msgid "Test (Log to File)"
+msgstr ""
+
+#: find-my-rep-plugin.php:363
+msgid "Select the email transport method. Use \"Test\" for development to log emails to file."
+msgstr ""
+
+#: find-my-rep-plugin.php:429
+msgid "Please wait a few minutes before sending more messages."
+msgstr ""
+
+#: find-my-rep-plugin.php:436
+msgid "Invalid representatives data."
+msgstr ""
+
+#: find-my-rep-plugin.php:470
+msgid "Letter from constituent"
+msgstr ""
+
+#. translators: 1: representative name, 2: delivery error message.
+#: find-my-rep-plugin.php:478
+#, php-format
+msgid "Failed to send to %1$s: %2$s"
+msgstr ""
+
+#. translators: %d: number of letters sent.
+#: find-my-rep-plugin.php:489
+#, php-format
+msgid "Successfully sent %d letter."
+msgid_plural "Successfully sent %d letters."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: number of letters sent, 2: total number of letters attempted.
+#: find-my-rep-plugin.php:503
+#, php-format
+msgid "Successfully sent %1$d of %2$d letter."
+msgid_plural "Successfully sent %1$d of %2$d letters."
+msgstr[0] ""
+msgstr[1] ""
+
+#: find-my-rep-plugin.php:518
+msgid "Failed to send any letters."
+msgstr ""
+
+#. translators: %s: constituency name.
+#: find-my-rep-plugin.php:540
+#, php-format
+msgid "Member of Parliament for %s"
+msgstr ""
+
+#: find-my-rep-plugin.php:543
+msgid "Member of Parliament"
+msgstr ""
+
+#. translators: %s: Senedd constituency name.
+#: find-my-rep-plugin.php:550
+#, php-format
+msgid "Member of the Senedd for %s"
+msgstr ""
+
+#: find-my-rep-plugin.php:553
+msgid "Member of the Senedd"
+msgstr ""
+
+#. translators: %s: police force area.
+#: find-my-rep-plugin.php:560
+#, php-format
+msgid "Police and Crime Commissioner for %s"
+msgstr ""
+
+#: find-my-rep-plugin.php:563
+msgid "Police and Crime Commissioner"
+msgstr ""
+
+#. translators: 1: ward name, 2: council name.
+#: find-my-rep-plugin.php:571
+#, php-format
+msgid "Councillor for %1$s, %2$s"
+msgstr ""
+
+#. translators: %s: ward name.
+#: find-my-rep-plugin.php:578
+#, php-format
+msgid "Councillor for %s"
+msgstr ""
+
+#: find-my-rep-plugin.php:582
+msgid "Councillor"
+msgstr ""
+
+#: find-my-rep-plugin.php:585
+msgid "Representative"
+msgstr ""
+
+#: find-my-rep-plugin.php:600
+msgid "Please fill in all fields."
+msgstr ""
+
+#: find-my-rep-plugin.php:604
+msgid "Please enter a valid email address."
+msgstr ""
+
+#: find-my-rep-plugin.php:608
+msgid "Spam detected."
+msgstr ""
+
+#: find-my-rep-plugin.php:612
+msgid "Please shorten your message before sending."
+msgstr ""
+
+#: find-my-rep-plugin.php:620
+msgid "Please remove abusive or threatening language before sending your message."
+msgstr ""
+
+#: find-my-rep-plugin.php:624
+msgid "Please remove excessive links before sending your message."
+msgstr ""
+
+#: find-my-rep-plugin.php:645
+msgid "Please search for your postcode again before sending."
+msgstr ""
+
+#: find-my-rep-plugin.php:668
+msgid "Failed to fetch representatives."
+msgstr ""
+
+#: find-my-rep-plugin.php:676
+msgid "Invalid postcode format. Please enter a valid UK postcode."
+msgstr ""
+
+#: find-my-rep-plugin.php:683
+msgid "This postcode is not in our coverage area."
+msgstr ""
+
+#. translators: %d: HTTP response status code.
+#: find-my-rep-plugin.php:691
+#, php-format
+msgid "API request failed (HTTP %d). Please check the API URL in settings."
+msgstr ""
+
+#: find-my-rep-plugin.php:701
+msgid "Invalid response from API."
+msgstr ""
+
+#: find-my-rep-plugin.php:708
+#: find-my-rep-plugin.php:716
+msgid "No representatives found for this postcode."
+msgstr ""
+
+#: find-my-rep-plugin.php:798
+#: find-my-rep-plugin.php:810
+#: find-my-rep-plugin.php:821
+msgid "Selected representatives could not be verified. Please search by postcode again and try again."
+msgstr ""
+
+#. translators: %s: configured email transport identifier.
+#: includes/class-find-my-rep-email-service.php:87
+#, php-format
+msgid "Unknown transport mode: %s"
+msgstr ""
+
+#: includes/class-find-my-rep-email-service.php:108
+msgid "Resend API key not configured."
+msgstr ""
+
+#: includes/class-find-my-rep-email-service.php:146
+msgid "Email sent successfully via Resend."
+msgstr ""
+
+#. translators: 1: HTTP response status code, 2: Resend API response body.
+#: includes/class-find-my-rep-email-service.php:153
+#, php-format
+msgid "Resend API error (HTTP %1$d): %2$s"
+msgstr ""
+
+#: includes/class-find-my-rep-email-service.php:197
+msgid "Email sent successfully via SMTP."
+msgstr ""
+
+#: includes/class-find-my-rep-email-service.php:202
+msgid "Failed to send email via SMTP."
+msgstr ""
+
+#: includes/class-find-my-rep-email-service.php:225
+msgid "Uploads directory does not exist."
+msgstr ""
+
+#: includes/class-find-my-rep-email-service.php:232
+msgid "Uploads directory is not writable."
+msgstr ""
+
+#. translators: %s: path to the email test log file.
+#: includes/class-find-my-rep-email-service.php:258
+#, php-format
+msgid "Email logged to test file: %s"
+msgstr ""
+
+#: includes/class-find-my-rep-email-service.php:263
+msgid "Failed to write to test log file."
+msgstr ""

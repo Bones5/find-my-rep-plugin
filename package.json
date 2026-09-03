@@ -12,7 +12,10 @@
     "test": "jest && vendor/bin/phpunit",
     "test:jest": "jest",
     "test:phpunit": "vendor/bin/phpunit",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "i18n:pot": "wp i18n make-pot . languages/find-my-rep.pot --domain=find-my-rep --exclude=build,node_modules,vendor,tests",
+    "i18n:json": "wp i18n make-json languages --no-purge",
+    "i18n": "npm run i18n:pot && npm run i18n:json"
   },
   "keywords": [
     "wordpress",

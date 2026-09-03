@@ -4,6 +4,7 @@
  * Future enhancement: Replace with inline error messages or toast notifications.
  */
 import React, { useState } from "react";
+import { __ } from "@wordpress/i18n";
 import { useSessionStorage } from "../hooks/useSessionStorage";
 import type {
   SelectableRepresentative,
@@ -126,14 +127,20 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
           setCurrentStep("select");
         } else {
           const errorData = data.data as ErrorData;
-          setError(errorData?.message || "Failed to fetch representatives.");
+          setError(
+            errorData?.message ||
+              __("Failed to fetch representatives.", "find-my-rep"),
+          );
         }
       } else {
         const errorData = data.data as ErrorData;
-        setError(errorData?.message || "Failed to fetch representatives.");
+        setError(
+          errorData?.message ||
+            __("Failed to fetch representatives.", "find-my-rep"),
+        );
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError(__("An error occurred. Please try again.", "find-my-rep"));
       // eslint-disable-next-line no-console
       console.error("Error:", err);
     } finally {
@@ -201,7 +208,9 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
         let message = successData.message;
         if (successData.errors && successData.errors.length > 0) {
           message +=
-            "\n\nSome letters could not be delivered:\n" +
+            "\n\n" +
+            __("Some letters could not be delivered:", "find-my-rep") +
+            "\n" +
             successData.errors.join("\n");
         }
         // Capture before clearing so SuccessStep can show recipients
@@ -211,11 +220,13 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
       } else {
         const errorData = data.data as ErrorData;
         // eslint-disable-next-line no-alert
-        alert(errorData?.message || "Failed to send letters.");
+        alert(
+          errorData?.message || __("Failed to send letters.", "find-my-rep"),
+        );
       }
     } catch (err) {
       // eslint-disable-next-line no-alert
-      alert("An error occurred. Please try again.");
+      alert(__("An error occurred. Please try again.", "find-my-rep"));
       // eslint-disable-next-line no-console
       console.error("Error:", err);
     } finally {
