@@ -18,13 +18,20 @@ jest.mock("../../src/components/LetterStep", () => ({
     onSend: (
       senderName: string,
       senderEmail: string,
+      senderAddress: string,
       letterContent: string,
       honeypot: string,
     ) => void;
   }) => (
     <button
       onClick={() =>
-        onSend("Test User", "test@example.com", "Updated letter content", "")
+        onSend(
+          "Test User",
+          "test@example.com",
+          "10 Test Street\nCardiff\nCF10 1AA",
+          "Updated letter content",
+          "",
+        )
       }
     >
       Send letter
@@ -84,7 +91,24 @@ describe("FindMyRepApp", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
-    await screen.findByRole("button", { name: /Send letter/i });
+    const sendButton = await screen.findByRole("button", {
+      name: /Send letter/i,
+    });
+    const summary = screen
+      .getByRole("heading", { name: "Message recipients" })
+      .closest("section");
+    expect(
+      screen.getByText(
+        "For postcode CF10 1AA, we will send your message to the following 1 representative:",
+      ),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText("Jane Representative")).toBeInTheDocument();
+    expect(summary).not.toBeNull();
+    expect(
+      summary!.compareDocumentPosition(sendButton) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Send letter/i }));
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
@@ -96,6 +120,9 @@ describe("FindMyRepApp", () => {
     expect(sendRequest.body.get("postcode")).toBe("CF10 1AA");
     expect(sendRequest.body.get("block_id")).toBe("test-block");
     expect(sendRequest.body.get("question_response")).toBe("");
+    expect(sendRequest.body.get("sender_address")).toBe(
+      "10 Test Street\nCardiff\nCF10 1AA",
+    );
     expect(sendRequest.body.get("website_url")).toBe("");
     expect(sendRequest.body.get("representative_types")).toBe('["MP"]');
     expect(sendRequest.body.get("representative_types_signature")).toBe(
@@ -120,9 +147,26 @@ describe("FindMyRepApp", () => {
     fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
     expect(
       await screen.findByRole("heading", {
-        name: "What change would help your community?",
+        name: "A question before you continue",
       }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Answer the optional question below, then continue to review your message.",
+      ),
+    ).toBeInTheDocument();
+    const questionField = await screen.findByLabelText(
+      "What change would help your community?",
+    );
+    const summary = screen
+      .getByRole("heading", { name: "Message recipients" })
+      .closest("section");
+
+    expect(summary).not.toBeNull();
+    expect(
+      summary!.compareDocumentPosition(questionField) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
     fireEvent.click(
@@ -151,7 +195,7 @@ describe("FindMyRepApp", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
     fireEvent.change(
-      await screen.findByLabelText(/Your response \(optional\)/i),
+      await screen.findByLabelText("What change would help your community?"),
       { target: { value: "More frequent bus services." } },
     );
     fireEvent.click(screen.getByRole("button", { name: /Continue/i }));

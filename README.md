@@ -39,6 +39,12 @@ Navigate to **Settings > Find My Rep** to configure:
    - Use `{{representative_title}}` as a placeholder for the representative's title
   - Use `{{question_response}}` wherever the optional visitor response should appear
 
+4. **Test Postcode**: Configure a postcode handled entirely by the plugin without calling the representatives API
+  - Set the postcode to use for testing, such as `ZZ999ZZ`
+  - Enter separate email addresses for the generated test MP, MS, PCC, and councillor
+  - Each populated email creates one representative of that type with the required fields filled with test information
+  - Leave a representative email blank to omit that type from the test results
+
 ### Example Letter Template
 
 ```

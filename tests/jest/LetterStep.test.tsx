@@ -23,6 +23,7 @@ describe("LetterStep Component", () => {
     storageKey: "fmr-/test/-0",
     selectedReps: mockSelectedReps,
     letterTemplate: "Dear {{representative_name}},\n\nTest letter content.",
+    questionResponse: "",
     onSend: mockOnSend,
     onBack: mockOnBack,
     loading: false,
@@ -37,13 +38,24 @@ describe("LetterStep Component", () => {
   test("renders the letter step with initial template", () => {
     render(<LetterStep {...defaultProps} />);
 
+    expect(
+      screen.getByRole("heading", { name: "Message preview" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Review and edit your message below. Bracketed representative details are personalized for each recipient, and your name and address are added as the sign-off.",
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/Your Name:/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Your Email:/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Your Address:/i)).toBeInTheDocument();
     expect(
       screen.getByRole("textbox", { name: /Your Name:/i }),
     ).toBeInTheDocument();
 
-    const textarea = screen.getByDisplayValue(/Dear {{representative_name}}/i);
+    const textarea = screen.getByDisplayValue(
+      /Dear \[representative's name\]/i,
+    );
     expect(textarea).toBeInTheDocument();
   });
 
@@ -85,9 +97,13 @@ describe("LetterStep Component", () => {
 
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
+    const addressInput = screen.getByLabelText(/Your Address:/i);
 
     fireEvent.change(nameInput, { target: { value: "Test User" } });
     fireEvent.change(emailInput, { target: { value: "invalid-email" } });
+    fireEvent.change(addressInput, {
+      target: { value: "10 Test Street\nCardiff\nCF10 1AA" },
+    });
 
     const sendButton = screen.getByRole("button", { name: /Send/i });
     fireEvent.click(sendButton);
@@ -105,12 +121,16 @@ describe("LetterStep Component", () => {
 
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
+    const addressInput = screen.getByLabelText(/Your Address:/i);
     const letterTextarea = screen.getByDisplayValue(
-      /Dear {{representative_name}}/i,
+      /Dear \[representative's name\]/i,
     );
 
     fireEvent.change(nameInput, { target: { value: "Test User" } });
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(addressInput, {
+      target: { value: "10 Test Street\nCardiff\nCF10 1AA" },
+    });
     fireEvent.change(letterTextarea, {
       target: { value: "Updated letter content" },
     });
@@ -121,9 +141,27 @@ describe("LetterStep Component", () => {
     expect(mockOnSend).toHaveBeenCalledWith(
       "Test User",
       "test@example.com",
+      "10 Test Street\nCardiff\nCF10 1AA",
       "Updated letter content",
       "",
     );
+  });
+
+  test("populates the preview sign-off from the sender fields", () => {
+    render(<LetterStep {...defaultProps} />);
+
+    fireEvent.change(screen.getByLabelText(/Your Name:/i), {
+      target: { value: "Test User" },
+    });
+    fireEvent.change(screen.getByLabelText(/Your Address:/i), {
+      target: { value: "10 Test Street\nCardiff\nCF10 1AA" },
+    });
+
+    const signoff = screen.getByText("Yours sincerely,").closest("footer");
+    expect(signoff).toHaveTextContent("Test User");
+    expect(signoff).toHaveTextContent("10 Test Street Cardiff CF10 1AA");
+    expect(signoff).not.toHaveTextContent("Your name");
+    expect(signoff).not.toHaveTextContent("Your address");
   });
 
   test("includes honeypot field value in onSend call (empty by default)", () => {
@@ -135,12 +173,16 @@ describe("LetterStep Component", () => {
     fireEvent.change(screen.getByLabelText(/Your Email:/i), {
       target: { value: "test@example.com" },
     });
+    fireEvent.change(screen.getByLabelText(/Your Address:/i), {
+      target: { value: "10 Test Street\nCardiff\nCF10 1AA" },
+    });
 
     fireEvent.click(screen.getByRole("button", { name: /Send/i }));
 
     expect(mockOnSend).toHaveBeenCalledWith(
       "Test User",
       "test@example.com",
+      "10 Test Street\nCardiff\nCF10 1AA",
       expect.any(String),
       "",
     );
@@ -167,8 +209,11 @@ describe("LetterStep Component", () => {
     fireEvent.change(screen.getByLabelText(/Your Email:/i), {
       target: { value: "test@example.com" },
     });
+    fireEvent.change(screen.getByLabelText(/Your Address:/i), {
+      target: { value: "10 Test Street\nCardiff\nCF10 1AA" },
+    });
     fireEvent.change(
-      screen.getByDisplayValue(/Dear {{representative_name}}/i),
+      screen.getByDisplayValue(/Dear \[representative's name\]/i),
       {
         target: { value: "Visit https://a.com https://b.com https://c.com" },
       },
@@ -207,12 +252,14 @@ describe("LetterStep Component", () => {
 
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
+    const addressInput = screen.getByLabelText(/Your Address:/i);
     const letterTextarea = screen.getByDisplayValue(
-      /Dear {{representative_name}}/i,
+      /Dear \[representative's name\]/i,
     );
 
     expect(nameInput).toBeDisabled();
     expect(emailInput).toBeDisabled();
+    expect(addressInput).toBeDisabled();
     expect(letterTextarea).toBeDisabled();
   });
 
@@ -221,12 +268,14 @@ describe("LetterStep Component", () => {
 
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
+    const addressInput = screen.getByLabelText(/Your Address:/i);
     const letterTextarea = screen.getByDisplayValue(
-      /Dear {{representative_name}}/i,
+      /Dear \[representative's name\]/i,
     );
 
     expect(nameInput).toBeDisabled();
     expect(emailInput).toBeDisabled();
+    expect(addressInput).toBeDisabled();
     expect(letterTextarea).toBeDisabled();
   });
 
@@ -241,12 +290,65 @@ describe("LetterStep Component", () => {
     render(<LetterStep {...defaultProps} />);
 
     const letterTextarea = screen.getByDisplayValue(
-      /Dear {{representative_name}}/i,
+      /Dear \[representative's name\]/i,
     );
     const newContent = "Completely new letter";
 
     fireEvent.change(letterTextarea, { target: { value: newContent } });
 
     expect(screen.getByDisplayValue(newContent)).toBeInTheDocument();
+  });
+
+  test("populates the question response in the letter preview", () => {
+    render(
+      <LetterStep
+        {...defaultProps}
+        letterTemplate={
+          "Dear {{representative_name}},\n\n{{question_response}}"
+        }
+        questionResponse="More frequent bus services."
+      />,
+    );
+
+    expect(
+      screen.getByDisplayValue(/More frequent bus services/),
+    ).toHaveValue(
+      "Dear [representative's name],\n\nMore frequent bus services.",
+    );
+    expect(screen.queryByDisplayValue(/{{question_response}}/)).toBeNull();
+  });
+
+  test("restores representative name and title tokens when sending", () => {
+    render(
+      <LetterStep
+        {...defaultProps}
+        letterTemplate={
+          "Dear {{representative_name}},\n\nAs {{representative_title}}, please help."
+        }
+      />,
+    );
+
+    expect(screen.getByLabelText("Message content")).toHaveValue(
+      "Dear [representative's name],\n\nAs [representative's title], please help.",
+    );
+
+    fireEvent.change(screen.getByLabelText(/Your Name:/i), {
+      target: { value: "Test User" },
+    });
+    fireEvent.change(screen.getByLabelText(/Your Email:/i), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Your Address:/i), {
+      target: { value: "10 Test Street\nCardiff\nCF10 1AA" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Send/i }));
+
+    expect(mockOnSend).toHaveBeenCalledWith(
+      "Test User",
+      "test@example.com",
+      "10 Test Street\nCardiff\nCF10 1AA",
+      "Dear {{representative_name}},\n\nAs {{representative_title}}, please help.",
+      "",
+    );
   });
 });

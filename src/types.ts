@@ -11,6 +11,10 @@ export interface FindMyRepData {
   letterTemplate: string;
 }
 
+export interface FindMyRepEditorData {
+  letterTemplate: string;
+}
+
 // =============================================================================
 // API Response Types (from find-my-rep-api)
 // =============================================================================
@@ -210,5 +214,6 @@ export interface BlockAttributes {
 declare global {
   interface Window {
     findMyRepData: FindMyRepData;
+    findMyRepEditorData: FindMyRepEditorData;
   }
 }

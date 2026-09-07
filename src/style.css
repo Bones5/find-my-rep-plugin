@@ -49,6 +49,17 @@
   font-size: 0.95rem;
 }
 
+.step-question h3 {
+  margin-block-end: 0.5rem;
+}
+
+.question-intro {
+  margin-block: 0 1rem;
+  color: var(--fmr-text, #1a1a1a);
+  opacity: 0.8;
+  font-size: 0.95rem;
+}
+
 .robot-check {
   display: flex;
   align-items: center;
@@ -58,7 +69,8 @@
 
 .postcode-input,
 .sender-name,
-.sender-email {
+.sender-email,
+.sender-address {
   width: 100%;
   max-width: 25rem;
   padding: 0.625rem 1rem;
@@ -75,6 +87,7 @@
 .postcode-input:focus,
 .sender-name:focus,
 .sender-email:focus,
+.sender-address:focus,
 .question-response:focus,
 .letter-content:focus {
   outline: 2px solid var(--fmr-primary, #005ea2);
@@ -159,14 +172,51 @@
 
 .representatives-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+.recipient-summary .representatives-list {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0.625rem;
+  margin-block-end: 0;
+}
+
+.recipient-summary {
+  padding: 1.25rem;
+}
+
+.recipient-summary h3 {
+  margin-block-end: 0.5rem;
+}
+
+.recipient-summary-intro {
+  margin-block: 0 0.75rem;
+}
+
+.recipient-summary .representative-item {
+  display: block;
+  padding: 0.75rem 1rem;
+}
+
+.recipient-summary .rep-type-title {
+  cursor: pointer;
+}
+
+.recipient-names {
+  margin-block: 0.625rem 0;
+  padding-inline-start: 1.25rem;
+}
+
+.recipient-names li + li {
+  margin-block-start: 0.25rem;
 }
 
 .representative-item {
   display: flex;
   align-items: flex-start;
+  min-inline-size: 0;
   padding: 1rem;
   border: 2px solid var(--fmr-border, #767676);
   border-radius: var(--wp--custom--spacing--small, 0.5rem);
@@ -294,6 +344,8 @@
 }
 
 .rep-details {
+  inline-size: 100%;
+  min-inline-size: 0;
   font-size: 0.9375rem;
 }
 
@@ -328,6 +380,7 @@
 .rep-email {
   color: var(--fmr-text, #1a1a1a);
   opacity: 0.8;
+  overflow-wrap: anywhere;
 }
 
 /* Success step */
@@ -435,7 +488,59 @@
   margin-top: 0;
 }
 
+.letter-preview h4 {
+  margin-block: 0 0.5rem;
+}
+
+.letter-preview-intro {
+  margin-block: 0 1rem;
+  max-inline-size: 60ch;
+  opacity: 0.8;
+}
+
+.letter-document {
+  margin-block-end: 1rem;
+  border: 1px solid var(--fmr-border, #767676);
+  border-radius: var(--wp--custom--spacing--small, 0.25rem);
+  overflow: clip;
+  background-color: var(--fmr-bg, #ffffff);
+}
+
+.letter-document:focus-within {
+  outline: 2px solid var(--fmr-primary, #005ea2);
+  outline-offset: 2px;
+  border-color: var(--fmr-primary, #005ea2);
+}
+
+.letter-document .letter-content {
+  display: block;
+  margin: 0;
+  border: 0;
+  border-block-end: 1px solid var(--fmr-border, #767676);
+  border-radius: 0;
+}
+
+.letter-document .letter-content:focus {
+  outline: 0;
+  border-color: var(--fmr-border, #767676);
+}
+
+.letter-signoff {
+  padding: 1rem;
+  white-space: pre-line;
+}
+
+.letter-signoff p {
+  margin-block: 0 0.5rem;
+}
+
+.letter-signoff-placeholder {
+  opacity: 0.6;
+  font-style: italic;
+}
+
 .question-response,
+.sender-address,
 .letter-content {
   width: 100%;
   padding: 1rem;
@@ -488,13 +593,19 @@
 }
 
 /* Responsive styles */
-@media (max-width: 768px) {
+@media (width <= 48rem) {
   .find-my-rep-container {
-    padding: 1rem;
+    padding-block: 1rem;
+    padding-inline: 0.5rem;
   }
 
   .find-my-rep-step {
-    padding: 1.25rem;
+    padding-block: 1.25rem;
+    padding-inline: 0.75rem;
+  }
+
+  .recipient-summary .representative-item {
+    padding-inline: 0.75rem;
   }
 
   .postcode-input,

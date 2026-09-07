@@ -8,9 +8,11 @@ interface LetterStepProps {
   storageKey: string;
   selectedReps: SelectableRepresentative[];
   letterTemplate: string;
+  questionResponse: string;
   onSend: (
     senderName: string,
     senderEmail: string,
+    senderAddress: string,
     letterContent: string,
     honeypot: string,
   ) => void;
@@ -22,6 +24,7 @@ interface LetterStepProps {
 export const LetterStep: React.FC<LetterStepProps> = ({
   storageKey,
   letterTemplate,
+  questionResponse,
   onSend,
   onBack,
   loading,
@@ -35,9 +38,46 @@ export const LetterStep: React.FC<LetterStepProps> = ({
     `${storageKey}-email`,
     "",
   );
+  const [senderAddress, setSenderAddress, clearAddress] =
+    useSessionStorage<string>(`${storageKey}-address`, "");
+  const representativeNamePlaceholder = __(
+    "[representative's name]",
+    "find-my-rep",
+  );
+  const representativeTitlePlaceholder = __(
+    "[representative's title]",
+    "find-my-rep",
+  );
+  const populatedTemplate = letterTemplate
+    .split("{{question_response}}")
+    .join(questionResponse)
+    .split("{{representative_name}}")
+    .join(representativeNamePlaceholder)
+    .split("{{representative_title}}")
+    .join(representativeTitlePlaceholder);
   const [letterContent, setLetterContent, clearContent] =
-    useSessionStorage<string>(`${storageKey}-content`, letterTemplate);
+    useSessionStorage<string>(`${storageKey}-content`, populatedTemplate);
   const honeypotRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const readableContent = letterContent
+      .split("{{question_response}}")
+      .join(questionResponse)
+      .split("{{representative_name}}")
+      .join(representativeNamePlaceholder)
+      .split("{{representative_title}}")
+      .join(representativeTitlePlaceholder);
+
+    if (readableContent !== letterContent) {
+      setLetterContent(readableContent);
+    }
+  }, [
+    letterContent,
+    questionResponse,
+    representativeNamePlaceholder,
+    representativeTitlePlaceholder,
+    setLetterContent,
+  ]);
 
   // Once the success message is shown, the user's progress is complete —
   // clear persisted letter fields so a future visit starts fresh.
@@ -45,6 +85,7 @@ export const LetterStep: React.FC<LetterStepProps> = ({
     if (success) {
       clearName();
       clearEmail();
+      clearAddress();
       clearContent();
     }
     // Intentionally omitting clear* from deps — they are stable refs.
@@ -61,7 +102,12 @@ export const LetterStep: React.FC<LetterStepProps> = ({
   };
 
   const handleSend = () => {
-    if (!senderName.trim() || !senderEmail.trim() || !letterContent.trim()) {
+    if (
+      !senderName.trim() ||
+      !senderEmail.trim() ||
+      !senderAddress.trim() ||
+      !letterContent.trim()
+    ) {
       // eslint-disable-next-line no-alert
       alert(__("Please fill in all fields.", "find-my-rep"));
       return;
@@ -85,12 +131,23 @@ export const LetterStep: React.FC<LetterStepProps> = ({
     }
 
     const honeypotValue = honeypotRef.current?.value || "";
-    onSend(senderName, senderEmail, letterContent, honeypotValue);
+    const personalizedContent = letterContent
+      .split(representativeNamePlaceholder)
+      .join("{{representative_name}}")
+      .split(representativeTitlePlaceholder)
+      .join("{{representative_title}}");
+    onSend(
+      senderName,
+      senderEmail,
+      senderAddress,
+      personalizedContent,
+      honeypotValue,
+    );
   };
 
   return (
     <div className="find-my-rep-step step-letter">
-      <h3>{__("Review and Edit Your Letter", "find-my-rep")}</h3>
+      <h3>{__("Review and send your message", "find-my-rep")}</h3>
       <div className="letter-fields">
         <label htmlFor="sender-name">
           {__("Your Name:", "find-my-rep")}
@@ -117,14 +174,63 @@ export const LetterStep: React.FC<LetterStepProps> = ({
           required
           disabled={loading || !!success}
         />
+
+        <label htmlFor="sender-address">
+          {__("Your Address:", "find-my-rep")}
+        </label>
+        <textarea
+          id="sender-address"
+          className="sender-address"
+          rows={3}
+          maxLength={500}
+          value={senderAddress}
+          onChange={(e) => setSenderAddress(e.target.value)}
+          required
+          disabled={loading || !!success}
+        />
       </div>
-      <textarea
-        className="letter-content"
-        rows={15}
-        value={letterContent}
-        onChange={(e) => setLetterContent(e.target.value)}
-        disabled={loading || !!success}
-      />
+      <section
+        className="letter-preview"
+        aria-labelledby="letter-preview-heading"
+      >
+        <h4 id="letter-preview-heading">
+          {__("Message preview", "find-my-rep")}
+        </h4>
+        <p className="letter-preview-intro">
+          {__(
+            "Review and edit your message below. Bracketed representative details are personalized for each recipient, and your name and address are added as the sign-off.",
+            "find-my-rep",
+          )}
+        </p>
+        <label className="screen-reader-text" htmlFor="letter-content">
+          {__("Message content", "find-my-rep")}
+        </label>
+        <div className="letter-document">
+          <textarea
+            id="letter-content"
+            className="letter-content"
+            rows={15}
+            value={letterContent}
+            onChange={(e) => setLetterContent(e.target.value)}
+            disabled={loading || !!success}
+          />
+          <footer className="letter-signoff" aria-live="polite">
+            <p>{__("Yours sincerely,", "find-my-rep")}</p>
+            <p
+              className={!senderName.trim() ? "letter-signoff-placeholder" : ""}
+            >
+              {senderName.trim() || __("Your name", "find-my-rep")}
+            </p>
+            <p
+              className={
+                !senderAddress.trim() ? "letter-signoff-placeholder" : ""
+              }
+            >
+              {senderAddress.trim() || __("Your address", "find-my-rep")}
+            </p>
+          </footer>
+        </div>
+      </section>
       <p className="letter-guidance">
         {__(
           "Please keep your message respectful. Abusive, threatening, or spam-like content will be blocked.",

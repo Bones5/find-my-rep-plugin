@@ -113,6 +113,9 @@ class Find_My_Rep_Plugin
             'find-my-rep',
             FIND_MY_REP_PLUGIN_DIR . 'languages'
         );
+        wp_localize_script('find-my-rep-block-editor', 'findMyRepEditorData', array(
+            'letterTemplate' => get_option('find_my_rep_letter_template', '')
+        ));
 
         // Register block styles (fallback to src/style.css during dev)
         $built_style_path = FIND_MY_REP_PLUGIN_DIR . 'build/style.css';
@@ -128,6 +131,7 @@ class Find_My_Rep_Plugin
 
         // Register the block
         register_block_type('find-my-rep/contact-block', array(
+            'api_version' => 3,
             'editor_script' => 'find-my-rep-block-editor',
             'style' => 'find-my-rep-block-style',
             'render_callback' => array($this, 'render_block'),
@@ -238,6 +242,13 @@ class Find_My_Rep_Plugin
         register_setting('find_my_rep_settings', 'find_my_rep_cc_email', array(
             'sanitize_callback' => 'sanitize_email',
         ));
+        register_setting('find_my_rep_settings', 'find_my_rep_test_postcode', array(
+            'sanitize_callback' => array($this, 'sanitize_test_postcode'),
+        ));
+        register_setting('find_my_rep_settings', 'find_my_rep_test_mp_email', array('sanitize_callback' => 'sanitize_email'));
+        register_setting('find_my_rep_settings', 'find_my_rep_test_ms_email', array('sanitize_callback' => 'sanitize_email'));
+        register_setting('find_my_rep_settings', 'find_my_rep_test_pcc_email', array('sanitize_callback' => 'sanitize_email'));
+        register_setting('find_my_rep_settings', 'find_my_rep_test_councillor_email', array('sanitize_callback' => 'sanitize_email'));
 
         add_settings_section(
             'find_my_rep_main_section',
@@ -293,6 +304,14 @@ class Find_My_Rep_Plugin
             'find-my-rep-settings',
             'find_my_rep_main_section'
         );
+
+        add_settings_field(
+            'find_my_rep_test_postcode',
+            __('Test Postcode', 'find-my-rep'),
+            array($this, 'test_postcode_fields_callback'),
+            'find-my-rep-settings',
+            'find_my_rep_main_section'
+        );
     }
 
     /**
@@ -307,6 +326,17 @@ class Find_My_Rep_Plugin
             return get_option('find_my_rep_api_url', 'http://host.docker.internal:3000/api/reps');
         }
         return esc_url_raw($value);
+    }
+
+    /**
+     * Sanitize the configured test postcode.
+     *
+     * @param string $value Submitted postcode.
+     * @return string Normalized postcode.
+     */
+    public function sanitize_test_postcode($value)
+    {
+        return strtoupper(preg_replace('/\s+/', '', sanitize_text_field($value)));
     }
 
     /**
@@ -367,6 +397,30 @@ class Find_My_Rep_Plugin
         $value = get_option('find_my_rep_cc_email', '');
         echo '<input type="email" name="find_my_rep_cc_email" value="' . esc_attr($value) . '" class="regular-text" placeholder="tracking@example.com" />';
         echo '<p class="description">' . esc_html__('Optional. When set, a copy of every letter sent via this plugin will be CC\'d to this address for usage tracking. Leave empty to disable.', 'find-my-rep') . '</p>';
+    }
+
+    /**
+     * Test postcode and representative email fields callback.
+     */
+    public function test_postcode_fields_callback()
+    {
+        $postcode = get_option('find_my_rep_test_postcode', 'ZZ999ZZ');
+        echo '<fieldset>';
+        echo '<label>' . esc_html__('Postcode', 'find-my-rep') . '<br><input type="text" name="find_my_rep_test_postcode" value="' . esc_attr($postcode) . '" class="regular-text" placeholder="ZZ999ZZ" /></label><br><br>';
+
+        $email_fields = array(
+            'find_my_rep_test_mp_email' => __('MP email', 'find-my-rep'),
+            'find_my_rep_test_ms_email' => __('MS email', 'find-my-rep'),
+            'find_my_rep_test_pcc_email' => __('PCC email', 'find-my-rep'),
+            'find_my_rep_test_councillor_email' => __('Councillor email', 'find-my-rep'),
+        );
+        foreach ($email_fields as $option_name => $label) {
+            $email = get_option($option_name, '');
+            echo '<label>' . esc_html($label) . '<br><input type="email" name="' . esc_attr($option_name) . '" value="' . esc_attr($email) . '" class="regular-text" /></label><br><br>';
+        }
+
+        echo '<p class="description">' . esc_html__('The plugin handles this postcode without calling the representatives API. Each populated email creates one representative of that type with generated test information; leave an email blank to omit that type.', 'find-my-rep') . '</p>';
+        echo '</fieldset>';
     }
 
     /**
@@ -445,12 +499,13 @@ class Find_My_Rep_Plugin
 
         $sender_name = sanitize_text_field($_POST['sender_name']);
         $sender_email = sanitize_email($_POST['sender_email']);
+        $sender_address = isset($_POST['sender_address']) ? sanitize_textarea_field($_POST['sender_address']) : '';
         $letter_content = sanitize_textarea_field($_POST['letter_content']);
         $question_response = isset($_POST['question_response']) ? sanitize_textarea_field($_POST['question_response']) : '';
         $postcode = isset($_POST['postcode']) ? sanitize_text_field($_POST['postcode']) : '';
         $honeypot = isset($_POST['website_url']) ? sanitize_text_field($_POST['website_url']) : '';
         $representative_types = $this->get_submitted_representative_types();
-        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot, $question_response);
+        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot, $question_response, $sender_address);
 
         if ($validation_message) {
             wp_send_json_error(array('message' => $validation_message));
@@ -495,6 +550,7 @@ class Find_My_Rep_Plugin
 
             // Render personalized letter
             $personalized_letter = $email_service->render_template($letter_content, $placeholders);
+            $personalized_letter = $this->append_sender_details($personalized_letter, $sender_name, $sender_address);
 
             // Send email
             $result = $email_service->send_letter(
@@ -552,6 +608,19 @@ class Find_My_Rep_Plugin
                 'errors' => $errors
             ));
         }
+    }
+
+    /**
+     * Append the constituent's identifying details to a rendered letter.
+     *
+     * @param string $letter Rendered letter content.
+     * @param string $sender_name Constituent name.
+     * @param string $sender_address Constituent postal address.
+     * @return string Letter with sender details appended.
+     */
+    private function append_sender_details($letter, $sender_name, $sender_address)
+    {
+        return rtrim($letter) . "\n\n" . __('Yours sincerely,', 'find-my-rep') . "\n" . $sender_name . "\n" . $sender_address;
     }
 
     /**
@@ -627,11 +696,12 @@ class Find_My_Rep_Plugin
      * @param string $letter_content Letter content
     * @param string $honeypot Hidden anti-spam field
     * @param string $question_response Optional response to the configured question
+    * @param string|null $sender_address Sender postal address when supplied
     * @return string Empty string when valid, translated error message when invalid
      */
-    private function validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot = '', $question_response = '')
+    private function validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot = '', $question_response = '', $sender_address = null)
     {
-        if (empty($sender_name) || empty($sender_email) || empty($letter_content)) {
+        if (empty($sender_name) || empty($sender_email) || empty($letter_content) || ($sender_address !== null && empty($sender_address))) {
             return __('Please fill in all fields.', 'find-my-rep');
         }
 
@@ -651,11 +721,16 @@ class Find_My_Rep_Plugin
             return __('Please shorten your question response before sending.', 'find-my-rep');
         }
 
+        if ($sender_address !== null && strlen($sender_address) > 500) {
+            return __('Please shorten your address before sending.', 'find-my-rep');
+        }
+
         if (
             $this->contains_abusive_content($sender_name) ||
             $this->contains_abusive_content($sender_email) ||
             $this->contains_abusive_content($letter_content) ||
-            $this->contains_abusive_content($question_response)
+            $this->contains_abusive_content($question_response) ||
+            ($sender_address !== null && $this->contains_abusive_content($sender_address))
         ) {
             return __('Please remove abusive or threatening language before sending your message.', 'find-my-rep');
         }
@@ -683,6 +758,14 @@ class Find_My_Rep_Plugin
             return array(
                 'success' => false,
                 'message' => __('Please search for your postcode again before sending.', 'find-my-rep'),
+            );
+        }
+
+        $test_postcode_response = $this->get_test_postcode_response($postcode);
+        if (!empty($test_postcode_response)) {
+            return array(
+                'success' => true,
+                'data' => $test_postcode_response,
             );
         }
 
@@ -762,6 +845,66 @@ class Find_My_Rep_Plugin
         return array(
             'success' => true,
             'data' => $data,
+        );
+    }
+
+    /**
+     * Build representative data for the configured test postcode.
+     *
+     * @param string $postcode Postcode used for the lookup.
+     * @return array Empty when this is not the configured test postcode, otherwise representative data.
+     */
+    private function get_test_postcode_response($postcode)
+    {
+        $normalized_postcode = strtoupper(preg_replace('/\s+/', '', (string) $postcode));
+        $test_postcode = get_option('find_my_rep_test_postcode', 'ZZ999ZZ');
+        if (empty($test_postcode) || $normalized_postcode !== $test_postcode) {
+            return array();
+        }
+
+        $mp_email = get_option('find_my_rep_test_mp_email', '');
+        $ms_email = get_option('find_my_rep_test_ms_email', '');
+        $pcc_email = get_option('find_my_rep_test_pcc_email', '');
+        $councillor_email = get_option('find_my_rep_test_councillor_email', '');
+
+        return array(
+            'postcode' => $normalized_postcode,
+            'mp' => $mp_email ? array(
+                'id' => 90001,
+                'name' => __('Test MP', 'find-my-rep'),
+                'party' => __('Test Party', 'find-my-rep'),
+                'constituency' => __('Test Constituency', 'find-my-rep'),
+                'email' => $mp_email,
+            ) : null,
+            'mss' => $ms_email ? array(array(
+                'id' => 90002,
+                'name' => __('Test MS', 'find-my-rep'),
+                'party' => __('Test Party', 'find-my-rep'),
+                'constituency' => __('Test Senedd Constituency', 'find-my-rep'),
+                'email' => $ms_email,
+            )) : array(),
+            'pcc' => $pcc_email ? array(
+                'id' => 90003,
+                'name' => __('Test PCC', 'find-my-rep'),
+                'party' => __('Test Party', 'find-my-rep'),
+                'force' => __('Test Police Force', 'find-my-rep'),
+                'area' => __('Test Area', 'find-my-rep'),
+                'email' => $pcc_email,
+            ) : null,
+            'councillors' => $councillor_email ? array(array(
+                'id' => 90004,
+                'name' => __('Test Councillor', 'find-my-rep'),
+                'party' => __('Test Party', 'find-my-rep'),
+                'ward' => __('Test Ward', 'find-my-rep'),
+                'council' => __('Test Council', 'find-my-rep'),
+                'email' => $councillor_email,
+            )) : array(),
+            'areaInfo' => array(
+                'constituency' => array('id' => 90001, 'name' => __('Test Constituency', 'find-my-rep'), 'code' => 'TEST-CONSTITUENCY'),
+                'localAuthority' => array('id' => 90002, 'name' => __('Test Council', 'find-my-rep'), 'code' => 'TEST-COUNCIL'),
+                'ward' => array('id' => 90003, 'name' => __('Test Ward', 'find-my-rep'), 'code' => 'TEST-WARD'),
+                'region' => array('id' => 90004, 'name' => __('Test Region', 'find-my-rep'), 'code' => 'TEST-REGION'),
+            ),
         );
     }
 

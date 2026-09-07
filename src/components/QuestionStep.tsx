@@ -17,9 +17,15 @@ export const QuestionStep: React.FC<QuestionStepProps> = ({
   onBack,
 }) => (
   <div className="find-my-rep-step step-question">
-    <h3>{question}</h3>
+    <h3>{__("A question before you continue", "find-my-rep")}</h3>
+    <p className="question-intro">
+      {__(
+        "Answer the optional question below, then continue to review your message.",
+        "find-my-rep",
+      )}
+    </p>
     <label htmlFor="question-response">
-      {__("Your response (optional)", "find-my-rep")}
+      {question}
     </label>
     <textarea
       id="question-response"

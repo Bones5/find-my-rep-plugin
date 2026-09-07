@@ -157,6 +157,40 @@ class AbusePreventionTest extends TestCase {
             $result
         );
     }
+
+    public function test_validate_letter_request_requires_sender_address_when_submitted_by_ajax() {
+        $method = $this->reflection->getMethod('validate_letter_request');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            'Test User',
+            'test@example.com',
+            'Please support this issue.',
+            '',
+            '',
+            ''
+        );
+
+        $this->assertSame('Please fill in all fields.', $result);
+    }
+
+    public function test_append_sender_details_adds_name_and_multiline_address_to_letter() {
+        $method = $this->reflection->getMethod('append_sender_details');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            "Dear Representative,\n\nPlease support this issue.\n",
+            'Test User',
+            "10 Test Street\nCardiff\nCF10 1AA"
+        );
+
+        $this->assertSame(
+            "Dear Representative,\n\nPlease support this issue.\n\nYours sincerely,\nTest User\n10 Test Street\nCardiff\nCF10 1AA",
+            $result
+        );
+    }
     
     public function test_is_rate_limited_blocks_after_three_attempts() {
         $method = $this->reflection->getMethod('is_rate_limited');

@@ -20,6 +20,7 @@ import { QuestionStep } from "./QuestionStep";
 import { LetterStep } from "./LetterStep";
 import { SuccessStep } from "./SuccessStep";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { RecipientSummary } from "./RecipientSummary";
 
 type Step = "postcode" | "select" | "question" | "letter";
 
@@ -74,6 +75,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
     try {
       sessionStorage.removeItem(`${storageKey}-name`);
       sessionStorage.removeItem(`${storageKey}-email`);
+      sessionStorage.removeItem(`${storageKey}-address`);
       sessionStorage.removeItem(`${storageKey}-content`);
     } catch {
       // ignore
@@ -167,6 +169,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   const handleSend = async (
     senderName: string,
     senderEmail: string,
+    senderAddress: string,
     letterContent: string,
     honeypot: string,
   ) => {
@@ -184,6 +187,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
           block_id: blockId,
           sender_name: senderName,
           sender_email: senderEmail,
+          sender_address: senderAddress,
           letter_content: letterContent,
           postcode,
           question_response: questionResponse,
@@ -240,7 +244,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   };
 
   return (
-    <div className="find-my-rep-container" id={blockId}>
+    <div className="find-my-rep-app">
       {successInfo ? (
         <SuccessStep
           message={successInfo.message}
@@ -257,6 +261,12 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
               loading={loading}
             />
           )}
+          {(currentStep === "question" || currentStep === "letter") && (
+            <RecipientSummary
+              postcode={postcode}
+              representatives={selectedReps}
+            />
+          )}
           {(currentStep === "letter" ||
             (currentStep === "question" && !hasQuestion)) && (
             <LetterStep
@@ -264,6 +274,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
               storageKey={storageKey}
               selectedReps={selectedReps}
               letterTemplate={effectiveTemplate}
+              questionResponse={questionResponse}
               onSend={handleSend}
               onBack={handleBackFromLetter}
               loading={loading}

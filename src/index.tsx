@@ -1,14 +1,19 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps } from '@wordpress/block-editor';
 import {
+	__experimentalHeading as Heading,
+	__experimentalText as Text,
+	__experimentalVStack as VStack,
 	CheckboxControl,
 	Notice,
+	Panel,
+	PanelBody,
 	TextareaControl,
 	TextControl,
 	ToggleControl,
 } from '@wordpress/components';
 import { dispatch } from '@wordpress/data';
-import { useEffect } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import type { BlockAttributes, RepresentativeType } from './types';
 
@@ -27,6 +32,8 @@ const representativeOptions: Array< {
 
 interface EditProps {
 	attributes: BlockAttributes;
+	clientId: string;
+	isSelected: boolean;
 	setAttributes: ( attributes: Partial< BlockAttributes > ) => void;
 }
 
@@ -35,8 +42,14 @@ interface EditorActions {
 	unlockPostSaving: ( lockName: string ) => void;
 }
 
-function Edit( { attributes, setAttributes }: EditProps ) {
+interface BlockEditorActions {
+	selectBlock: ( clientId: string ) => void;
+}
+
+function Edit( { attributes, clientId, isSelected, setAttributes }: EditProps ) {
 	const blockProps = useBlockProps();
+	const questionToggleRef = useRef< HTMLDivElement >( null );
+	const [ questionIsDirty, setQuestionIsDirty ] = useState( false );
 	const questionIsInvalid =
 		!! attributes.includeQuestion && ! attributes.questionText?.trim();
 	const representativeTypes =
@@ -44,10 +57,13 @@ function Edit( { attributes, setAttributes }: EditProps ) {
 		representativeOptions.map( ( option ) => option.value );
 	const recipientsAreInvalid = representativeTypes.length === 0;
 	const configurationIsInvalid = questionIsInvalid || recipientsAreInvalid;
+	const globalLetterTemplate = window.findMyRepEditorData.letterTemplate;
 
-	if ( ! attributes.blockId ) {
-		setAttributes( { blockId: 'block-' + Date.now() } );
-	}
+	useEffect( () => {
+		if ( ! attributes.blockId ) {
+			setAttributes( { blockId: 'block-' + Date.now() } );
+		}
+	}, [ attributes.blockId, setAttributes ] );
 
 	useEffect( () => {
 		const lockName = `find-my-rep-question-${ attributes.blockId || 'new' }`;
@@ -75,59 +91,76 @@ function Edit( { attributes, setAttributes }: EditProps ) {
 		} );
 	};
 
+	const handleQuestionPointerDown = (
+		event: React.PointerEvent< HTMLDivElement >
+	) => {
+		if ( isSelected || event.button !== 0 ) {
+			return;
+		}
+
+		event.preventDefault();
+		( dispatch( 'core/block-editor' ) as BlockEditorActions ).selectBlock(
+			clientId
+		);
+		setQuestionIsDirty( false );
+		setAttributes( { includeQuestion: ! attributes.includeQuestion } );
+		window.requestAnimationFrame( () => {
+			questionToggleRef.current
+				?.querySelector< HTMLInputElement >( 'input' )
+				?.focus();
+		} );
+	};
+
 	return (
 		<div { ...blockProps }>
-			<div
-				style={ {
-					padding: '20px',
-					border: '2px dashed #ccc',
-					borderRadius: '4px',
-					backgroundColor: '#f9f9f9',
-				} }
-			>
-				<div style={ { textAlign: 'center' } }>
-					<h3>{ __( 'Find My Rep Contact Form', 'find-my-rep' ) }</h3>
-					<p>
-						{ __(
-							'This block will display a form for users to contact their local representatives.',
-							'find-my-rep'
-						) }
-					</p>
-					<p>
-						<strong>
+			<Panel>
+				<PanelBody>
+					<VStack spacing={ 3 }>
+						<Heading level={ 2 }>
+							{ __( 'Representative contact form', 'find-my-rep' ) }
+						</Heading>
+						<Text variant="muted">
 							{ __(
-								'Preview is only available on the frontend.',
+								'Choose which representatives this form includes, customize its letter template, and optionally ask visitors a question.',
 								'find-my-rep'
 							) }
-						</strong>
-					</p>
-				</div>
-				<div
-					style={ {
-						marginTop: '20px',
-						padding: '16px',
-						backgroundColor: '#fff',
-						border: '1px solid #ddd',
-						borderRadius: '4px',
-					} }
+						</Text>
+					</VStack>
+				</PanelBody>
+				<PanelBody
+					title={ __( 'Representatives to contact', 'find-my-rep' ) }
+					initialOpen={ true }
 				>
-					<h4>{ __( 'Representatives to contact', 'find-my-rep' ) }</h4>
-					<p>
-						{ __(
-							'Choose which representative types visitors will contact.',
-							'find-my-rep'
-						) }
-					</p>
-					{ representativeOptions.map( ( option ) => (
-						<CheckboxControl
-							key={ option.value }
-							label={ option.label }
-							checked={ representativeTypes.includes( option.value ) }
-							onChange={ ( isSelected ) =>
-								setRepresentativeType( option.value, isSelected )
-							}
-						/>
-					) ) }
+					<fieldset style={ { border: 0, margin: 0, padding: 0 } }>
+						<legend className="screen-reader-text">
+							{ __( 'Representative types', 'find-my-rep' ) }
+						</legend>
+						<VStack spacing={ 4 }>
+							<Text variant="muted">
+								{ __(
+									'Select every type of representative visitors should be able to contact.',
+									'find-my-rep'
+								) }
+							</Text>
+							<VStack spacing={ 2 }>
+								{ representativeOptions.map( ( option ) => (
+									<CheckboxControl
+										key={ option.value }
+										label={ option.label }
+										checked={ representativeTypes.includes(
+											option.value
+										) }
+										onChange={ ( isSelected ) =>
+											setRepresentativeType(
+												option.value,
+												isSelected
+											)
+										}
+									/>
+								) ) }
+							</VStack>
+						</VStack>
+					</fieldset>
 					{ recipientsAreInvalid && (
 						<Notice status="error" isDismissible={ false }>
 							{ __(
@@ -136,58 +169,95 @@ function Edit( { attributes, setAttributes }: EditProps ) {
 							) }
 						</Notice>
 					) }
-					<ToggleControl
-						label={ __( 'Include a custom question', 'find-my-rep' ) }
-						checked={ !! attributes.includeQuestion }
-						onChange={ ( includeQuestion ) =>
-							setAttributes( { includeQuestion } )
-						}
-					/>
-					{ attributes.includeQuestion && (
-						<TextControl
-							label={ __( 'Question', 'find-my-rep' ) }
-							help={
-								questionIsInvalid
-									? undefined
-									: __(
-										'The visitor may answer this question or leave it blank.',
-										'find-my-rep'
-									)
-							}
-							value={ attributes.questionText || '' }
-							onChange={ ( questionText ) =>
-								setAttributes( { questionText } )
-							}
-							__nextHasNoMarginBottom
-						/>
-					) }
-					{ questionIsInvalid && (
-						<Notice status="error" isDismissible={ false }>
+				</PanelBody>
+				<PanelBody
+					title={ __( 'Question', 'find-my-rep' ) }
+					initialOpen={ true }
+				>
+					<VStack spacing={ 4 }>
+						<Text variant="muted">
 							{ __(
-								'Enter a question before publishing or updating this page.',
+								'Turn this on to ask visitors a question before they review their letter. Add {{question_response}} to the letter template to insert their answer.',
 								'find-my-rep'
 							) }
-						</Notice>
-					) }
-					<TextareaControl
-						label={ __( 'Custom Letter Template', 'find-my-rep' ) }
-						help={ __(
-							'Leave empty to use the global default template. Available placeholders: {{representative_name}}, {{representative_title}}, and {{question_response}}.',
-							'find-my-rep'
+						</Text>
+						<div
+							ref={ questionToggleRef }
+							onPointerDown={ handleQuestionPointerDown }
+						>
+							<ToggleControl
+								label={ __( 'Include a question', 'find-my-rep' ) }
+								checked={ !! attributes.includeQuestion }
+								onChange={ ( includeQuestion ) => {
+									setQuestionIsDirty( false );
+									setAttributes( { includeQuestion } )
+								} }
+							/>
+						</div>
+						{ attributes.includeQuestion && (
+							<TextControl
+								label={ __( 'Question text', 'find-my-rep' ) }
+								hideLabelFromVision
+								help={
+									questionIsInvalid
+										? undefined
+										: __(
+											'Enter the question visitors will see. Answering it is optional.',
+											'find-my-rep'
+										  )
+								}
+								value={ attributes.questionText || '' }
+								onChange={ ( questionText ) => {
+									setQuestionIsDirty( true );
+									setAttributes( { questionText } )
+								} }
+								__nextHasNoMarginBottom
+							/>
 						) }
-						value={ attributes.letterTemplate || '' }
-						onChange={ ( value ) =>
-							setAttributes( { letterTemplate: value } )
-						}
-						rows={ 10 }
-					/>
-				</div>
-			</div>
+						{ questionIsDirty && questionIsInvalid && (
+							<Notice status="error" isDismissible={ false }>
+								{ __(
+									'Enter a question before publishing or updating this page.',
+									'find-my-rep'
+								) }
+							</Notice>
+						) }
+					</VStack>
+				</PanelBody>
+				<PanelBody
+					title={ __( 'Letter Template', 'find-my-rep' ) }
+					initialOpen={ true }
+				>
+					<VStack spacing={ 4 }>
+						<Text variant="muted">
+							{ __(
+								'Enter the letter visitors will send, or leave this blank to use the global default template.',
+								'find-my-rep'
+							) }
+						</Text>
+						<TextareaControl
+							label={ __( 'Template content', 'find-my-rep' ) }
+							hideLabelFromVision
+							help={ __(
+								'Available placeholders: {{representative_name}} and {{representative_title}}.',
+								'find-my-rep'
+							) }
+							placeholder={ globalLetterTemplate }
+							value={ attributes.letterTemplate || '' }
+							onChange={ ( value ) =>
+								setAttributes( { letterTemplate: value } )
+							}
+							rows={ 10 }
+						/>
+					</VStack>
+				</PanelBody>
+			</Panel>
 		</div>
 	);
 }
 
 registerBlockType< BlockAttributes >( 'find-my-rep/contact-block', {
+	apiVersion: 3,
 	title: __( 'Find My Rep Contact Form', 'find-my-rep' ),
 	description: __(
 		'A block for contacting local representatives via templated letters.',
