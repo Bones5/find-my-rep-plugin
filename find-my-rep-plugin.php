@@ -147,6 +147,11 @@ class Find_My_Rep_Plugin
                 'questionText' => array(
                     'type' => 'string',
                     'default' => ''
+                ),
+                'representativeTypes' => array(
+                    'type' => 'array',
+                    'default' => array('MP', 'MS', 'PCC', 'Councillor'),
+                    'items' => array('type' => 'string')
                 )
             )
         ));
@@ -164,6 +169,10 @@ class Find_My_Rep_Plugin
         $question_text = $include_question && !empty($attributes['questionText'])
             ? sanitize_text_field($attributes['questionText'])
             : '';
+        $representative_types = $this->normalize_representative_types(
+            isset($attributes['representativeTypes']) ? $attributes['representativeTypes'] : $this->get_default_representative_types()
+        );
+        $representative_types_signature = $this->sign_representative_types($representative_types, $block_id);
 
         // Load asset file for dependencies and version
         $frontend_asset_file_path = FIND_MY_REP_PLUGIN_DIR . 'build/frontend.asset.php';
@@ -193,7 +202,7 @@ class Find_My_Rep_Plugin
         // Return the container div - React will render the content
         ob_start();
 ?>
-        <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>" data-letter-template="<?php echo esc_attr($per_block_template); ?>" data-include-question="<?php echo $include_question ? 'true' : 'false'; ?>" data-question-text="<?php echo esc_attr($question_text); ?>"></div>
+        <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>" data-letter-template="<?php echo esc_attr($per_block_template); ?>" data-include-question="<?php echo $include_question ? 'true' : 'false'; ?>" data-question-text="<?php echo esc_attr($question_text); ?>" data-representative-types="<?php echo esc_attr(wp_json_encode($representative_types)); ?>" data-representative-types-signature="<?php echo esc_attr($representative_types_signature); ?>"></div>
     <?php
         return ob_get_clean();
     }
@@ -406,6 +415,11 @@ class Find_My_Rep_Plugin
         check_ajax_referer('find_my_rep_nonce', 'nonce');
 
         $postcode = sanitize_text_field($_POST['postcode']);
+        $representative_types = $this->get_submitted_representative_types();
+        if (!$representative_types['success']) {
+            wp_send_json_error(array('message' => $representative_types['message']));
+            return;
+        }
         $result = $this->get_representatives_for_postcode($postcode);
 
         if (!$result['success']) {
@@ -413,7 +427,13 @@ class Find_My_Rep_Plugin
             return;
         }
 
-        wp_send_json_success($result['data']);
+        $filtered_data = $this->filter_representatives_response($result['data'], $representative_types['types']);
+        if (empty($this->flatten_representatives_response($filtered_data))) {
+            wp_send_json_error(array('message' => __('No configured representatives were found for this postcode.', 'find-my-rep')));
+            return;
+        }
+
+        wp_send_json_success($filtered_data);
     }
 
     /**
@@ -429,7 +449,7 @@ class Find_My_Rep_Plugin
         $question_response = isset($_POST['question_response']) ? sanitize_textarea_field($_POST['question_response']) : '';
         $postcode = isset($_POST['postcode']) ? sanitize_text_field($_POST['postcode']) : '';
         $honeypot = isset($_POST['website_url']) ? sanitize_text_field($_POST['website_url']) : '';
-        $representatives = json_decode(stripslashes($_POST['representatives']), true);
+        $representative_types = $this->get_submitted_representative_types();
         $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot, $question_response);
 
         if ($validation_message) {
@@ -444,13 +464,12 @@ class Find_My_Rep_Plugin
             return;
         }
 
-        // Validate that representatives were parsed correctly
-        if (!is_array($representatives) || empty($representatives)) {
-            wp_send_json_error(array('message' => __('Invalid representatives data.', 'find-my-rep')));
+        if (!$representative_types['success']) {
+            wp_send_json_error(array('message' => $representative_types['message']));
             return;
         }
 
-        $verified_selection = $this->get_verified_representatives($postcode, $representatives);
+        $verified_selection = $this->get_configured_representatives($postcode, $representative_types['types']);
         if (!$verified_selection['success']) {
             wp_send_json_error(array('message' => $verified_selection['message']));
             return;
@@ -790,62 +809,136 @@ class Find_My_Rep_Plugin
     }
 
     /**
-     * Verify that submitted representatives match the server-side postcode lookup.
+     * Get all representative types supported by the plugin.
+     *
+     * @return array
+     */
+    private function get_default_representative_types()
+    {
+        return array('MP', 'MS', 'PCC', 'Councillor');
+    }
+
+    /**
+     * Normalize representative types into a stable, supported order.
+     *
+     * @param mixed $types Representative type values.
+     * @return array
+     */
+    private function normalize_representative_types($types)
+    {
+        if (!is_array($types)) {
+            return array();
+        }
+
+        $selected = array();
+        foreach ($types as $type) {
+            if (is_string($type)) {
+                $selected[$type] = true;
+            }
+        }
+
+        return array_values(array_filter(
+            $this->get_default_representative_types(),
+            function ($type) use ($selected) {
+                return isset($selected[$type]);
+            }
+        ));
+    }
+
+    /**
+     * Sign the representative configuration rendered with a block.
+     *
+     * @param array  $types Normalized representative types.
+     * @param string $block_id Rendered block identifier.
+     * @return string
+     */
+    private function sign_representative_types($types, $block_id)
+    {
+        return hash_hmac('sha256', $block_id . ':' . implode('|', $types), wp_salt('auth'));
+    }
+
+    /**
+     * Read and verify the representative configuration submitted by the frontend.
+     *
+     * @return array
+     */
+    private function get_submitted_representative_types()
+    {
+        $submitted_types = isset($_POST['representative_types'])
+            ? json_decode(stripslashes($_POST['representative_types']), true)
+            : array();
+        $types = $this->normalize_representative_types($submitted_types);
+        $signature = isset($_POST['representative_types_signature'])
+            ? sanitize_text_field($_POST['representative_types_signature'])
+            : '';
+        $block_id = isset($_POST['block_id']) ? sanitize_text_field($_POST['block_id']) : '';
+
+        if (empty($types) || empty($block_id) || !hash_equals($this->sign_representative_types($types, $block_id), $signature)) {
+            return array(
+                'success' => false,
+                'message' => __('The configured representatives could not be verified. Please reload the page and try again.', 'find-my-rep'),
+            );
+        }
+
+        return array(
+            'success' => true,
+            'types' => $types,
+        );
+    }
+
+    /**
+     * Restrict an API response to the representative types configured by the editor.
+     *
+     * @param array $data Postcode lookup response.
+     * @param array $types Normalized representative types.
+     * @return array
+     */
+    private function filter_representatives_response($data, $types)
+    {
+        if (!in_array('MP', $types, true)) {
+            unset($data['mp']);
+        }
+        if (!in_array('MS', $types, true)) {
+            unset($data['mss']);
+        }
+        if (!in_array('PCC', $types, true)) {
+            unset($data['pcc']);
+        }
+        if (!in_array('Councillor', $types, true)) {
+            unset($data['councillors']);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Fetch the authoritative postcode result and apply the configured type allowlist.
      *
      * @param string $postcode Postcode used to fetch representatives.
-     * @param array  $representatives Representatives submitted by the client.
-     * @return array Array containing 'success' (bool) and either 'representatives' (array) on success or 'message' (string) on failure.
+     * @param array  $types Normalized representative types.
+     * @return array
      */
-    private function get_verified_representatives($postcode, $representatives)
+    private function get_configured_representatives($postcode, $types)
     {
         $lookup = $this->get_representatives_for_postcode($postcode);
         if (!$lookup['success']) {
             return $lookup;
         }
 
-        $allowed_representatives = $this->flatten_representatives_response($lookup['data']);
-        $allowed_map = array();
-        foreach ($allowed_representatives as $representative) {
-            $allowed_map[$this->get_representative_key($representative)] = $representative;
-        }
+        $representatives = $this->flatten_representatives_response(
+            $this->filter_representatives_response($lookup['data'], $types)
+        );
 
-        $verified = array();
-        $seen = array();
-
-        foreach ($representatives as $representative) {
-            if (!is_array($representative) || !isset($representative['type']) || !isset($representative['id'])) {
-                return array(
-                    'success' => false,
-                    'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
-                );
-            }
-
-            $key = $this->get_representative_key($representative);
-            if (isset($seen[$key])) {
-                continue;
-            }
-
-            if (!isset($allowed_map[$key])) {
-                return array(
-                    'success' => false,
-                    'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
-                );
-            }
-
-            $verified[] = $allowed_map[$key];
-            $seen[$key] = true;
-        }
-
-        if (empty($verified)) {
+        if (empty($representatives)) {
             return array(
                 'success' => false,
-                'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
+                'message' => __('No configured representatives were found for this postcode.', 'find-my-rep'),
             );
         }
 
         return array(
             'success' => true,
-            'representatives' => $verified,
+            'representatives' => $representatives,
         );
     }
 
@@ -890,20 +983,6 @@ class Find_My_Rep_Plugin
         }
 
         return $representatives;
-    }
-
-    /**
-     * Build a stable key for a representative.
-     *
-     * @param array $representative Representative data.
-     * @return string Key in the format "type:id".
-     */
-    private function get_representative_key($representative)
-    {
-        $type = isset($representative['type']) ? sanitize_text_field($representative['type']) : '';
-        $id = isset($representative['id']) ? (int) $representative['id'] : 0;
-
-        return $type . ':' . $id;
     }
 
     /**

@@ -11,30 +11,6 @@ jest.mock("../../src/components/PostcodeStep", () => ({
   }) => <button onClick={() => onFindReps("CF10 1AA")}>Find reps</button>,
 }));
 
-jest.mock("../../src/components/SelectStep", () => ({
-  SelectStep: ({
-    onContinue,
-  }: {
-    onContinue: (reps: Array<Record<string, unknown>>) => void;
-  }) => (
-    <button
-      onClick={() =>
-        onContinue([
-          {
-            type: "MP",
-            id: 1,
-            name: "Jane Representative",
-            email: "jane.official@example.org",
-            constituency: "Cardiff Test",
-          },
-        ])
-      }
-    >
-      Continue
-    </button>
-  ),
-}));
-
 jest.mock("../../src/components/LetterStep", () => ({
   LetterStep: ({
     onSend,
@@ -102,13 +78,12 @@ describe("FindMyRepApp", () => {
         blockId="test-block"
         storageKey="fmr-/test/-0"
         perBlockTemplate=""
+        representativeTypes={["MP"]}
+        representativeTypesSignature="signed-types"
       />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
-    await screen.findByRole("button", { name: /Continue/i });
-
-    fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
     await screen.findByRole("button", { name: /Send letter/i });
     fireEvent.click(screen.getByRole("button", { name: /Send letter/i }));
 
@@ -119,8 +94,14 @@ describe("FindMyRepApp", () => {
     };
 
     expect(sendRequest.body.get("postcode")).toBe("CF10 1AA");
+    expect(sendRequest.body.get("block_id")).toBe("test-block");
     expect(sendRequest.body.get("question_response")).toBe("");
     expect(sendRequest.body.get("website_url")).toBe("");
+    expect(sendRequest.body.get("representative_types")).toBe('["MP"]');
+    expect(sendRequest.body.get("representative_types_signature")).toBe(
+      "signed-types",
+    );
+    expect(sendRequest.body.has("representatives")).toBe(false);
   });
 
   test("shows an enabled question and allows an empty response", async () => {
@@ -131,12 +112,12 @@ describe("FindMyRepApp", () => {
         perBlockTemplate=""
         includeQuestion
         questionText="What change would help your community?"
+        representativeTypes={["MP"]}
+        representativeTypesSignature="signed-types"
       />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
-    fireEvent.click(await screen.findByRole("button", { name: /Continue/i }));
-
     expect(
       await screen.findByRole("heading", {
         name: "What change would help your community?",
@@ -163,11 +144,12 @@ describe("FindMyRepApp", () => {
         perBlockTemplate=""
         includeQuestion
         questionText="What change would help your community?"
+        representativeTypes={["MP"]}
+        representativeTypesSignature="signed-types"
       />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
-    fireEvent.click(await screen.findByRole("button", { name: /Continue/i }));
     fireEvent.change(
       await screen.findByLabelText(/Your response \(optional\)/i),
       { target: { value: "More frequent bus services." } },

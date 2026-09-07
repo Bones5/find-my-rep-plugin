@@ -9,8 +9,8 @@ A WordPress plugin that creates a Gutenberg block for contacting local represent
 - **Gutenberg Block**: Easy-to-use block that can be inserted on any page
 - **Representative Lookup**: Search for local representatives by postcode via API
 - **Multiple Representative Types**: Supports MPs, MSs, local councillors, and PCCs
-- **Customizable Letters**: Admin-defined template letters that users can edit
-- **Multi-recipient**: Users can select multiple representatives to contact at once
+- **Customizable Campaigns**: Per-block recipients, an optional question, and an editable letter template
+- **Multi-recipient**: Editors choose which representative types each block contacts
 - **Email Integration**: Sends letters via Resend API
 - **Abuse Protection**: Blocks abusive language, excessive link spam, and repeated rapid submissions
 - **Sender Confirmation**: Requires users to confirm they are personally sending the message
@@ -37,6 +37,7 @@ Navigate to **Settings > Find My Rep** to configure:
 3. **Letter Template**: Define the default letter template
    - Use `{{representative_name}}` as a placeholder for the representative's name
    - Use `{{representative_title}}` as a placeholder for the representative's title
+  - Use `{{question_response}}` wherever the optional visitor response should appear
 
 ### Example Letter Template
 
@@ -61,14 +62,14 @@ Sincerely,
 2. Click the '+' button to add a new block
 3. Search for "Find My Rep Contact Form"
 4. Insert the block
+5. In the block, choose the representative types to contact, optionally add a required question prompt, and customize the letter template
 
 ### User Experience
 
 1. **Enter Postcode**: Users enter their postcode to find representatives
-2. **Select Representatives**: Choose which representatives to contact (MP, MS, councillor, PCC)
+2. **Answer Question**: Optionally answer the campaign question when the editor has enabled one
 3. **Edit Letter**: Review and customize the letter template
-4. **Confirm Submission**: Tick the confirmation that you are personally sending the message
-5. **Send**: Submit to send letters to all selected representatives
+4. **Send**: Submit to all representative types configured for the block
 
 ## Development
 
@@ -117,7 +118,7 @@ The plugin follows a modern React/TypeScript architecture:
 - `components/` - React components for the frontend UI
   - `FindMyRepApp.tsx` - Main app container with state management
   - `PostcodeStep.tsx` - Postcode input step
-  - `SelectStep.tsx` - Representative selection step
+  - `QuestionStep.tsx` - Optional campaign question step
   - `LetterStep.tsx` - Letter editing and submission step
   - `LoadingSpinner.tsx` - Loading indicator component
 

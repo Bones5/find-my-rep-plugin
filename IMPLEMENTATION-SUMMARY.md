@@ -31,10 +31,10 @@ Located at **Settings > Find My Rep**, includes:
 - Validation and error handling
 - API call to fetch representatives
 
-#### Step 2: Representative Selection
-- Display all representatives returned from API
-- Checkboxes for multi-selection
-- Shows name, title/type, and email for each representative
+#### Step 2: Optional Campaign Question
+- Displays a question configured in the block editor
+- Allows the visitor to answer or continue without a response
+- Makes the response available through `{{question_response}}`
 
 #### Step 3: Letter Editing
 - User name and email input fields
@@ -153,10 +153,10 @@ The plugin uses Resend for email delivery:
 ### For End Users
 
 1. Enter postcode
-2. Select representatives to contact
+2. Optionally answer the configured campaign question
 3. Enter name and email
 4. Edit letter if desired
-5. Click send
+5. Send to the representative types configured by the editor
 
 ## Testing Checklist
 
@@ -213,7 +213,8 @@ The plugin is fully functional and ready for use. All requirements from the prob
 ✅ Admin-defined templates
 ✅ Postcode-based representative lookup
 ✅ Multiple representative types support
-✅ Representative selection interface
+✅ Admin-configured representative types
+✅ Optional campaign question and template response placeholder
 ✅ Editable letters
 ✅ Resend email integration
 

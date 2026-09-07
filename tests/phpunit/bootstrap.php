@@ -50,6 +50,18 @@ if (!function_exists('get_option')) {
     }
 }
 
+if (!function_exists('wp_salt')) {
+    function wp_salt($scheme = 'auth') {
+        return 'find-my-rep-test-salt-' . $scheme;
+    }
+}
+
+if (!function_exists('wp_json_encode')) {
+    function wp_json_encode($value, $flags = 0, $depth = 512) {
+        return json_encode($value, $flags, $depth);
+    }
+}
+
 if (!function_exists('sanitize_text_field')) {
     function sanitize_text_field($text) {
         return trim(preg_replace('/\s+/', ' ', strip_tags((string) $text)));

@@ -273,7 +273,7 @@ class EmailServiceTest extends TestCase {
         // Check headers contain Reply-To and From
         $headers_string = is_array($call['headers']) ? implode("\n", $call['headers']) : $call['headers'];
         $this->assertStringContainsString('Reply-To: sender@example.com', $headers_string);
-        $this->assertStringContainsString('From: sender@example.com', $headers_string);
+        $this->assertStringContainsString('From: Find My Rep <letters@findmyrep.bones.dev>', $headers_string);
     }
     
     /**

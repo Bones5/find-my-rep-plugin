@@ -4,6 +4,7 @@
 
 import { createRoot } from "react-dom/client";
 import { FindMyRepApp } from "./components/FindMyRepApp";
+import type { RepresentativeType } from "./types";
 
 // Wait for DOM to be ready
 const initializeApp = () => {
@@ -21,6 +22,11 @@ const initializeApp = () => {
     const includeQuestion =
       container.getAttribute("data-include-question") === "true";
     const questionText = container.getAttribute("data-question-text") || "";
+    const representativeTypes = JSON.parse(
+      container.getAttribute("data-representative-types") || "[]",
+    ) as RepresentativeType[];
+    const representativeTypesSignature =
+      container.getAttribute("data-representative-types-signature") || "";
     const root = createRoot(container);
     root.render(
       <FindMyRepApp
@@ -29,6 +35,8 @@ const initializeApp = () => {
         perBlockTemplate={perBlockTemplate}
         includeQuestion={includeQuestion}
         questionText={questionText}
+        representativeTypes={representativeTypes}
+        representativeTypesSignature={representativeTypesSignature}
       />,
     );
   });

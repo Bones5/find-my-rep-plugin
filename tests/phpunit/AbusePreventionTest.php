@@ -29,6 +29,7 @@ class AbusePreventionTest extends TestCase {
         $test_transients = array();
         $test_wp_remote_get_response = null;
         $test_wp_remote_get_calls = array();
+        $_POST = array();
         
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $this->plugin = new Find_My_Rep_Plugin();
@@ -212,7 +213,7 @@ class AbusePreventionTest extends TestCase {
         $this->assertCount(1, $test_wp_remote_get_calls);
     }
 
-    public function test_verified_representatives_use_authoritative_server_email() {
+    public function test_configured_representatives_include_only_selected_types() {
         global $test_wp_remote_get_response;
 
         $test_wp_remote_get_response = array(
@@ -220,72 +221,61 @@ class AbusePreventionTest extends TestCase {
                 'postcode' => 'CF10 1AA',
                 'mp' => array(
                     'id' => 1,
-                    'name' => 'Jane Representative',
-                    'email' => 'jane.official@example.org',
-                    'party' => 'Test Party',
-                    'constituency' => 'Cardiff Test',
+                    'name' => 'Jane MP',
+                    'email' => 'mp@example.org',
+                ),
+                'mss' => array(
+                    array(
+                        'id' => 2,
+                        'name' => 'Morgan MS',
+                        'email' => 'ms@example.org',
+                    ),
                 ),
             )),
             'response' => array('code' => 200),
         );
 
-        $method = $this->reflection->getMethod('get_verified_representatives');
+        $method = $this->reflection->getMethod('get_configured_representatives');
         $method->setAccessible(true);
-
-        $result = $method->invoke(
-            $this->plugin,
-            'CF10 1AA',
-            array(
-                array(
-                    'type' => 'MP',
-                    'id' => 1,
-                    'name' => 'Jane Representative',
-                    'email' => 'attacker@example.com',
-                ),
-            )
-        );
+        $result = $method->invoke($this->plugin, 'CF10 1AA', array('MS'));
 
         $this->assertTrue($result['success']);
-        $this->assertSame('jane.official@example.org', $result['representatives'][0]['email']);
+        $this->assertCount(1, $result['representatives']);
+        $this->assertSame('MS', $result['representatives'][0]['type']);
+        $this->assertSame('ms@example.org', $result['representatives'][0]['email']);
     }
 
-    public function test_verified_representatives_reject_tampered_selection() {
-        global $test_wp_remote_get_response;
+    public function test_submitted_representative_types_reject_tampered_configuration() {
+        $_POST['representative_types'] = json_encode(array('MP', 'PCC'));
+        $_POST['representative_types_signature'] = 'invalid-signature';
+        $_POST['block_id'] = 'test-block';
 
-        $test_wp_remote_get_response = array(
-            'body' => json_encode(array(
-                'postcode' => 'CF10 1AA',
-                'mp' => array(
-                    'id' => 1,
-                    'name' => 'Jane Representative',
-                    'email' => 'jane.official@example.org',
-                    'party' => 'Test Party',
-                    'constituency' => 'Cardiff Test',
-                ),
-            )),
-            'response' => array('code' => 200),
-        );
-
-        $method = $this->reflection->getMethod('get_verified_representatives');
+        $method = $this->reflection->getMethod('get_submitted_representative_types');
         $method->setAccessible(true);
-
-        $result = $method->invoke(
-            $this->plugin,
-            'CF10 1AA',
-            array(
-                array(
-                    'type' => 'MP',
-                    'id' => 999,
-                    'name' => 'Injected Recipient',
-                    'email' => 'attacker@example.com',
-                ),
-            )
-        );
+        $result = $method->invoke($this->plugin);
 
         $this->assertFalse($result['success']);
         $this->assertSame(
-            'Selected representatives could not be verified. Please search by postcode again and try again.',
+            'The configured representatives could not be verified. Please reload the page and try again.',
             $result['message']
         );
+    }
+
+    public function test_submitted_representative_types_accept_valid_signature() {
+        $types = array('MP', 'Councillor');
+        $block_id = 'test-block';
+        $sign_method = $this->reflection->getMethod('sign_representative_types');
+        $sign_method->setAccessible(true);
+
+        $_POST['representative_types'] = json_encode($types);
+        $_POST['representative_types_signature'] = $sign_method->invoke($this->plugin, $types, $block_id);
+        $_POST['block_id'] = $block_id;
+
+        $method = $this->reflection->getMethod('get_submitted_representative_types');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->plugin);
+
+        $this->assertTrue($result['success']);
+        $this->assertSame($types, $result['types']);
     }
 }

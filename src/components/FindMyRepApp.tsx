@@ -12,11 +12,10 @@ import type {
   ErrorData,
   SuccessData,
   RepresentativesApiResponse,
-  AreaInfo,
+  RepresentativeType,
 } from "../types";
 import { apiResponseToSelectableReps } from "../types";
 import { PostcodeStep } from "./PostcodeStep";
-import { SelectStep } from "./SelectStep";
 import { QuestionStep } from "./QuestionStep";
 import { LetterStep } from "./LetterStep";
 import { SuccessStep } from "./SuccessStep";
@@ -30,6 +29,8 @@ interface FindMyRepAppProps {
   perBlockTemplate: string;
   includeQuestion?: boolean;
   questionText?: string;
+  representativeTypes?: RepresentativeType[];
+  representativeTypesSignature?: string;
 }
 
 export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
@@ -38,15 +39,14 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   perBlockTemplate,
   includeQuestion = false,
   questionText = "",
+  representativeTypes = ["MP", "MS", "PCC", "Councillor"],
+  representativeTypesSignature = "",
 }) => {
   const hasQuestion = includeQuestion && !!questionText.trim();
   const [currentStep, setCurrentStep, clearStep] = useSessionStorage<Step>(
     `${storageKey}-step`,
     "postcode",
   );
-  const [representatives, setRepresentatives, clearReps] = useSessionStorage<
-    SelectableRepresentative[]
-  >(`${storageKey}-reps`, []);
   const [selectedReps, setSelectedReps, clearSelected] = useSessionStorage<
     SelectableRepresentative[]
   >(`${storageKey}-selected`, []);
@@ -54,8 +54,6 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
     `${storageKey}-postcode`,
     "",
   );
-  const [areaInfo, setAreaInfo, clearAreaInfo] =
-    useSessionStorage<AreaInfo | null>(`${storageKey}-area`, null);
   const [questionResponse, setQuestionResponse, clearQuestionResponse] =
     useSessionStorage<string>(`${storageKey}-question-response`, "");
   const [error, setError] = useState<string>("");
@@ -69,10 +67,8 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   /** Remove all persisted progress for this block. Called after a successful send. */
   const clearAllProgress = () => {
     clearStep();
-    clearReps();
     clearSelected();
     clearPostcode();
-    clearAreaInfo();
     clearQuestionResponse();
     // Also clear LetterStep-owned keys
     try {
@@ -102,7 +98,10 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
         body: new URLSearchParams({
           action: "find_my_rep_get_representatives",
           nonce,
+          block_id: blockId,
           postcode,
+          representative_types: JSON.stringify(representativeTypes),
+          representative_types_signature: representativeTypesSignature,
         }),
       });
 
@@ -130,10 +129,9 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
         ) {
           const apiData = data.data as RepresentativesApiResponse;
           const reps = apiResponseToSelectableReps(apiData);
-          setRepresentatives(reps);
+          setSelectedReps(reps);
           setPostcode(apiData.postcode || "");
-          setAreaInfo(apiData.areaInfo || null);
-          setCurrentStep("select");
+          setCurrentStep(hasQuestion ? "question" : "letter");
         } else {
           const errorData = data.data as ErrorData;
           setError(
@@ -157,22 +155,13 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
     }
   };
 
-  const handleContinue = (reps: SelectableRepresentative[]) => {
-    setSelectedReps(reps);
-    setCurrentStep(hasQuestion ? "question" : "letter");
-  };
-
   const handleBackToPostcode = () => {
     setCurrentStep("postcode");
     setError("");
   };
 
-  const handleBackToSelect = () => {
-    setCurrentStep("select");
-  };
-
   const handleBackFromLetter = () => {
-    setCurrentStep(hasQuestion ? "question" : "select");
+    setCurrentStep(hasQuestion ? "question" : "postcode");
   };
 
   const handleSend = async (
@@ -192,13 +181,15 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
         body: new URLSearchParams({
           action: "find_my_rep_send_letter",
           nonce,
+          block_id: blockId,
           sender_name: senderName,
           sender_email: senderEmail,
           letter_content: letterContent,
           postcode,
           question_response: questionResponse,
           website_url: honeypot,
-          representatives: JSON.stringify(selectedReps),
+          representative_types: JSON.stringify(representativeTypes),
+          representative_types_signature: representativeTypesSignature,
         }),
       });
 
@@ -259,20 +250,11 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
         />
       ) : (
         <>
-          {currentStep === "postcode" && (
+          {(currentStep === "postcode" || currentStep === "select") && (
             <PostcodeStep
               onFindReps={handleFindReps}
               error={error}
               loading={loading}
-            />
-          )}
-          {currentStep === "select" && (
-            <SelectStep
-              representatives={representatives}
-              areaInfo={areaInfo}
-              initialSelectedReps={selectedReps}
-              onContinue={handleContinue}
-              onBack={handleBackToPostcode}
             />
           )}
           {(currentStep === "letter" ||
@@ -293,7 +275,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
               response={questionResponse}
               onChange={setQuestionResponse}
               onContinue={() => setCurrentStep("letter")}
-              onBack={handleBackToSelect}
+              onBack={handleBackToPostcode}
             />
           )}
         </>

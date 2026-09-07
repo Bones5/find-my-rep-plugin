@@ -203,6 +203,7 @@ export interface BlockAttributes {
   letterTemplate?: string;
   includeQuestion?: boolean;
   questionText?: string;
+  representativeTypes?: RepresentativeType[];
 }
 
 // Declare global WordPress data

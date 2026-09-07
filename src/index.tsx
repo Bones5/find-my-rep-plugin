@@ -1,6 +1,8 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps } from '@wordpress/block-editor';
 import {
+	CheckboxControl,
+	Notice,
 	TextareaControl,
 	TextControl,
 	ToggleControl,
@@ -8,7 +10,20 @@ import {
 import { dispatch } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import type { BlockAttributes } from './types';
+import type { BlockAttributes, RepresentativeType } from './types';
+
+const representativeOptions: Array< {
+	value: RepresentativeType;
+	label: string;
+} > = [
+	{ value: 'MP', label: __( 'Member of Parliament', 'find-my-rep' ) },
+	{ value: 'MS', label: __( 'Members of the Senedd', 'find-my-rep' ) },
+	{
+		value: 'PCC',
+		label: __( 'Police and Crime Commissioner', 'find-my-rep' ),
+	},
+	{ value: 'Councillor', label: __( 'Local councillors', 'find-my-rep' ) },
+];
 
 interface EditProps {
 	attributes: BlockAttributes;
@@ -24,6 +39,11 @@ function Edit( { attributes, setAttributes }: EditProps ) {
 	const blockProps = useBlockProps();
 	const questionIsInvalid =
 		!! attributes.includeQuestion && ! attributes.questionText?.trim();
+	const representativeTypes =
+		attributes.representativeTypes ||
+		representativeOptions.map( ( option ) => option.value );
+	const recipientsAreInvalid = representativeTypes.length === 0;
+	const configurationIsInvalid = questionIsInvalid || recipientsAreInvalid;
 
 	if ( ! attributes.blockId ) {
 		setAttributes( { blockId: 'block-' + Date.now() } );
@@ -33,14 +53,27 @@ function Edit( { attributes, setAttributes }: EditProps ) {
 		const lockName = `find-my-rep-question-${ attributes.blockId || 'new' }`;
 		const editor = dispatch( 'core/editor' ) as EditorActions;
 
-		if ( questionIsInvalid ) {
+		if ( configurationIsInvalid ) {
 			editor.lockPostSaving( lockName );
 		} else {
 			editor.unlockPostSaving( lockName );
 		}
 
 		return () => editor.unlockPostSaving( lockName );
-	}, [ attributes.blockId, questionIsInvalid ] );
+	}, [ attributes.blockId, configurationIsInvalid ] );
+
+	const setRepresentativeType = (
+		representativeType: RepresentativeType,
+		isSelected: boolean
+	) => {
+		setAttributes( {
+			representativeTypes: isSelected
+				? [ ...representativeTypes, representativeType ]
+				: representativeTypes.filter(
+						( currentType ) => currentType !== representativeType
+				  ),
+		} );
+	};
 
 	return (
 		<div { ...blockProps }>
@@ -78,18 +111,31 @@ function Edit( { attributes, setAttributes }: EditProps ) {
 						borderRadius: '4px',
 					} }
 				>
-					<TextareaControl
-						label={ __( 'Custom Letter Template', 'find-my-rep' ) }
-						help={ __(
-							'Leave empty to use the global default template. Available placeholders: {{representative_name}}, {{representative_title}}, and {{question_response}}.',
+					<h4>{ __( 'Representatives to contact', 'find-my-rep' ) }</h4>
+					<p>
+						{ __(
+							'Choose which representative types visitors will contact.',
 							'find-my-rep'
 						) }
-						value={ attributes.letterTemplate || '' }
-						onChange={ ( value ) =>
-							setAttributes( { letterTemplate: value } )
-						}
-						rows={ 10 }
-					/>
+					</p>
+					{ representativeOptions.map( ( option ) => (
+						<CheckboxControl
+							key={ option.value }
+							label={ option.label }
+							checked={ representativeTypes.includes( option.value ) }
+							onChange={ ( isSelected ) =>
+								setRepresentativeType( option.value, isSelected )
+							}
+						/>
+					) ) }
+					{ recipientsAreInvalid && (
+						<Notice status="error" isDismissible={ false }>
+							{ __(
+								'Select at least one representative type before publishing or updating this page.',
+								'find-my-rep'
+							) }
+						</Notice>
+					) }
 					<ToggleControl
 						label={ __( 'Include a custom question', 'find-my-rep' ) }
 						checked={ !! attributes.includeQuestion }
@@ -102,10 +148,7 @@ function Edit( { attributes, setAttributes }: EditProps ) {
 							label={ __( 'Question', 'find-my-rep' ) }
 							help={
 								questionIsInvalid
-									? __(
-										'Enter a question before publishing or updating this page.',
-										'find-my-rep'
-									)
+									? undefined
 									: __(
 										'The visitor may answer this question or leave it blank.',
 										'find-my-rep'
@@ -118,6 +161,26 @@ function Edit( { attributes, setAttributes }: EditProps ) {
 							__nextHasNoMarginBottom
 						/>
 					) }
+					{ questionIsInvalid && (
+						<Notice status="error" isDismissible={ false }>
+							{ __(
+								'Enter a question before publishing or updating this page.',
+								'find-my-rep'
+							) }
+						</Notice>
+					) }
+					<TextareaControl
+						label={ __( 'Custom Letter Template', 'find-my-rep' ) }
+						help={ __(
+							'Leave empty to use the global default template. Available placeholders: {{representative_name}}, {{representative_title}}, and {{question_response}}.',
+							'find-my-rep'
+						) }
+						value={ attributes.letterTemplate || '' }
+						onChange={ ( value ) =>
+							setAttributes( { letterTemplate: value } )
+						}
+						rows={ 10 }
+					/>
 				</div>
 			</div>
 		</div>
@@ -151,6 +214,10 @@ registerBlockType< BlockAttributes >( 'find-my-rep/contact-block', {
 		questionText: {
 			type: 'string',
 			default: '',
+		},
+		representativeTypes: {
+			type: 'array',
+			default: [ 'MP', 'MS', 'PCC', 'Councillor' ],
 		},
 	},
 	edit: Edit,
