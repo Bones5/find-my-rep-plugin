@@ -104,6 +104,30 @@ npm run build
 
 This compiles TypeScript/React code to JavaScript bundles in the `build/` directory.
 
+### Creating a Plugin Release
+
+`package.json` is the canonical plugin version. To increment it, synchronize the
+WordPress plugin header and constant, build the assets, and create an installable
+ZIP in one command:
+
+```bash
+npm run release -- patch
+```
+
+Use `minor`, `major`, or an exact version such as `1.2.3` instead of `patch` when
+needed. The command updates `package.json` and `package-lock.json`, then creates
+`dist/find-my-rep-plugin-<version>.zip`. It does not create a Git commit or tag.
+
+To rebuild a ZIP without changing the version:
+
+```bash
+npm run package
+```
+
+Upload the ZIP through **Plugins > Add Plugin > Upload Plugin** in WordPress and
+confirm replacing the existing plugin. Review and commit the version changes,
+then create a matching Git tag after testing the ZIP.
+
 ### Development Mode
 
 For hot-reloading during development:

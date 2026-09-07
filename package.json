@@ -5,8 +5,10 @@
   "main": "build/index.js",
   "scripts": {
     "start": "node scripts/find-port-and-start.js && wp-scripts start",
-    "build": "wp-scripts build && cp src/style.css build/style.css",
-    "package": "npm run build && rm -f find-my-rep-plugin.zip && zip -r find-my-rep-plugin.zip . -x \"node_modules/*\" \"build/*.map\" \"src/*\" \"tests/*\" \".git/*\" \"*.log\" \"wp-env.json\" \"wp-env.override.json\"",
+    "version:sync": "node scripts/sync-version.js",
+    "build": "npm run version:sync && wp-scripts build && cp src/style.css build/style.css",
+    "package": "npm run build && node scripts/package-plugin.js",
+    "release": "node scripts/release.js",
     "watch": "wp-scripts start",
     "stop": "wp-env stop",
     "test": "jest && vendor/bin/phpunit",

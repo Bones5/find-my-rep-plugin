@@ -245,10 +245,10 @@ class Find_My_Rep_Plugin
         register_setting('find_my_rep_settings', 'find_my_rep_test_postcode', array(
             'sanitize_callback' => array($this, 'sanitize_test_postcode'),
         ));
-        register_setting('find_my_rep_settings', 'find_my_rep_test_mp_email', array('sanitize_callback' => 'sanitize_email'));
-        register_setting('find_my_rep_settings', 'find_my_rep_test_ms_email', array('sanitize_callback' => 'sanitize_email'));
-        register_setting('find_my_rep_settings', 'find_my_rep_test_pcc_email', array('sanitize_callback' => 'sanitize_email'));
-        register_setting('find_my_rep_settings', 'find_my_rep_test_councillor_email', array('sanitize_callback' => 'sanitize_email'));
+        register_setting('find_my_rep_settings', 'find_my_rep_test_mp_email', array('sanitize_callback' => array($this, 'sanitize_test_emails')));
+        register_setting('find_my_rep_settings', 'find_my_rep_test_ms_email', array('sanitize_callback' => array($this, 'sanitize_test_emails')));
+        register_setting('find_my_rep_settings', 'find_my_rep_test_pcc_email', array('sanitize_callback' => array($this, 'sanitize_test_emails')));
+        register_setting('find_my_rep_settings', 'find_my_rep_test_councillor_email', array('sanitize_callback' => array($this, 'sanitize_test_emails')));
 
         add_settings_section(
             'find_my_rep_main_section',
@@ -340,6 +340,27 @@ class Find_My_Rep_Plugin
     }
 
     /**
+     * Sanitize a list of test recipient email addresses.
+     *
+     * @param string $value Newline or comma-separated email addresses.
+     * @return string Valid unique email addresses, one per line.
+     */
+    public function sanitize_test_emails($value)
+    {
+        $emails = preg_split('/[\s,;]+/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
+        $valid_emails = array();
+
+        foreach ($emails as $email) {
+            $sanitized_email = sanitize_email($email);
+            if ($sanitized_email && is_email($sanitized_email)) {
+                $valid_emails[$sanitized_email] = $sanitized_email;
+            }
+        }
+
+        return implode("\n", array_values($valid_emails));
+    }
+
+    /**
      * Settings section callback
      */
     public function settings_section_callback()
@@ -405,21 +426,26 @@ class Find_My_Rep_Plugin
     public function test_postcode_fields_callback()
     {
         $postcode = get_option('find_my_rep_test_postcode', 'ZZ999ZZ');
-        echo '<fieldset>';
-        echo '<label>' . esc_html__('Postcode', 'find-my-rep') . '<br><input type="text" name="find_my_rep_test_postcode" value="' . esc_attr($postcode) . '" class="regular-text" placeholder="ZZ999ZZ" /></label><br><br>';
+        echo '<fieldset aria-describedby="find-my-rep-test-postcode-description">';
+        echo '<p id="find-my-rep-test-postcode-description" class="description">' . esc_html__('Create a predictable test lookup without contacting the representatives API. Enter the postcode to intercept, then add the email addresses that should receive test messages for each representative type.', 'find-my-rep') . '</p>';
+        echo '<p><label for="find-my-rep-test-postcode"><strong>' . esc_html__('Postcode', 'find-my-rep') . '</strong></label><br>';
+        echo '<input id="find-my-rep-test-postcode" type="text" name="find_my_rep_test_postcode" value="' . esc_attr($postcode) . '" class="regular-text" placeholder="ZZ999ZZ" /></p>';
+        echo '<p class="description">' . esc_html__('Postcode matching ignores spaces and letter case.', 'find-my-rep') . '</p>';
 
         $email_fields = array(
-            'find_my_rep_test_mp_email' => __('MP email', 'find-my-rep'),
-            'find_my_rep_test_ms_email' => __('MS email', 'find-my-rep'),
-            'find_my_rep_test_pcc_email' => __('PCC email', 'find-my-rep'),
-            'find_my_rep_test_councillor_email' => __('Councillor email', 'find-my-rep'),
+            'find_my_rep_test_mp_email' => __('MP emails', 'find-my-rep'),
+            'find_my_rep_test_ms_email' => __('MS emails', 'find-my-rep'),
+            'find_my_rep_test_pcc_email' => __('PCC emails', 'find-my-rep'),
+            'find_my_rep_test_councillor_email' => __('Councillor emails', 'find-my-rep'),
         );
         foreach ($email_fields as $option_name => $label) {
-            $email = get_option($option_name, '');
-            echo '<label>' . esc_html($label) . '<br><input type="email" name="' . esc_attr($option_name) . '" value="' . esc_attr($email) . '" class="regular-text" /></label><br><br>';
+            $emails = get_option($option_name, '');
+            $field_id = str_replace('_', '-', $option_name);
+            echo '<p><label for="' . esc_attr($field_id) . '"><strong>' . esc_html($label) . '</strong></label><br>';
+            echo '<textarea id="' . esc_attr($field_id) . '" name="' . esc_attr($option_name) . '" rows="3" class="large-text" aria-describedby="' . esc_attr($field_id) . '-description">' . esc_textarea($emails) . '</textarea><br>';
+            echo '<span id="' . esc_attr($field_id) . '-description" class="description">' . esc_html__('Enter one email address per line or separate addresses with commas. Leave blank to omit this type.', 'find-my-rep') . '</span></p>';
         }
 
-        echo '<p class="description">' . esc_html__('The plugin handles this postcode without calling the representatives API. Each populated email creates one representative of that type with generated test information; leave an email blank to omit that type.', 'find-my-rep') . '</p>';
         echo '</fieldset>';
     }
 
@@ -862,43 +888,33 @@ class Find_My_Rep_Plugin
             return array();
         }
 
-        $mp_email = get_option('find_my_rep_test_mp_email', '');
-        $ms_email = get_option('find_my_rep_test_ms_email', '');
-        $pcc_email = get_option('find_my_rep_test_pcc_email', '');
-        $councillor_email = get_option('find_my_rep_test_councillor_email', '');
+        $mp_representatives = $this->build_test_representatives(
+            $this->get_test_emails('find_my_rep_test_mp_email'),
+            'MP',
+            90001
+        );
+        $ms_representatives = $this->build_test_representatives(
+            $this->get_test_emails('find_my_rep_test_ms_email'),
+            'MS',
+            91001
+        );
+        $pcc_representatives = $this->build_test_representatives(
+            $this->get_test_emails('find_my_rep_test_pcc_email'),
+            'PCC',
+            92001
+        );
+        $councillor_representatives = $this->build_test_representatives(
+            $this->get_test_emails('find_my_rep_test_councillor_email'),
+            'Councillor',
+            93001
+        );
 
         return array(
             'postcode' => $normalized_postcode,
-            'mp' => $mp_email ? array(
-                'id' => 90001,
-                'name' => __('Test MP', 'find-my-rep'),
-                'party' => __('Test Party', 'find-my-rep'),
-                'constituency' => __('Test Constituency', 'find-my-rep'),
-                'email' => $mp_email,
-            ) : null,
-            'mss' => $ms_email ? array(array(
-                'id' => 90002,
-                'name' => __('Test MS', 'find-my-rep'),
-                'party' => __('Test Party', 'find-my-rep'),
-                'constituency' => __('Test Senedd Constituency', 'find-my-rep'),
-                'email' => $ms_email,
-            )) : array(),
-            'pcc' => $pcc_email ? array(
-                'id' => 90003,
-                'name' => __('Test PCC', 'find-my-rep'),
-                'party' => __('Test Party', 'find-my-rep'),
-                'force' => __('Test Police Force', 'find-my-rep'),
-                'area' => __('Test Area', 'find-my-rep'),
-                'email' => $pcc_email,
-            ) : null,
-            'councillors' => $councillor_email ? array(array(
-                'id' => 90004,
-                'name' => __('Test Councillor', 'find-my-rep'),
-                'party' => __('Test Party', 'find-my-rep'),
-                'ward' => __('Test Ward', 'find-my-rep'),
-                'council' => __('Test Council', 'find-my-rep'),
-                'email' => $councillor_email,
-            )) : array(),
+            'mp' => count($mp_representatives) > 1 ? $mp_representatives : (isset($mp_representatives[0]) ? $mp_representatives[0] : null),
+            'mss' => $ms_representatives,
+            'pcc' => count($pcc_representatives) > 1 ? $pcc_representatives : (isset($pcc_representatives[0]) ? $pcc_representatives[0] : null),
+            'councillors' => $councillor_representatives,
             'areaInfo' => array(
                 'constituency' => array('id' => 90001, 'name' => __('Test Constituency', 'find-my-rep'), 'code' => 'TEST-CONSTITUENCY'),
                 'localAuthority' => array('id' => 90002, 'name' => __('Test Council', 'find-my-rep'), 'code' => 'TEST-COUNCIL'),
@@ -906,6 +922,59 @@ class Find_My_Rep_Plugin
                 'region' => array('id' => 90004, 'name' => __('Test Region', 'find-my-rep'), 'code' => 'TEST-REGION'),
             ),
         );
+    }
+
+    /**
+     * Get configured test emails as a sanitized list.
+     *
+     * @param string $option_name Test email option name.
+     * @return array
+     */
+    private function get_test_emails($option_name)
+    {
+        $emails = $this->sanitize_test_emails(get_option($option_name, ''));
+        return $emails === '' ? array() : explode("\n", $emails);
+    }
+
+    /**
+     * Build generated representatives for a test email list.
+     *
+     * @param array  $emails Recipient email addresses.
+     * @param string $type Representative type.
+     * @param int    $first_id First generated representative ID.
+     * @return array
+     */
+    private function build_test_representatives($emails, $type, $first_id)
+    {
+        $representatives = array();
+
+        foreach ($emails as $index => $email) {
+            $name = count($emails) > 1
+                ? sprintf(__('Test %1$s %2$d', 'find-my-rep'), $type, $index + 1)
+                : sprintf(__('Test %s', 'find-my-rep'), $type);
+            $representative = array(
+                'id' => $first_id + $index,
+                'name' => $name,
+                'party' => __('Test Party', 'find-my-rep'),
+                'email' => $email,
+            );
+
+            if ($type === 'MP') {
+                $representative['constituency'] = __('Test Constituency', 'find-my-rep');
+            } elseif ($type === 'MS') {
+                $representative['constituency'] = __('Test Senedd Constituency', 'find-my-rep');
+            } elseif ($type === 'PCC') {
+                $representative['force'] = __('Test Police Force', 'find-my-rep');
+                $representative['area'] = __('Test Area', 'find-my-rep');
+            } elseif ($type === 'Councillor') {
+                $representative['ward'] = __('Test Ward', 'find-my-rep');
+                $representative['council'] = __('Test Council', 'find-my-rep');
+            }
+
+            $representatives[] = $representative;
+        }
+
+        return $representatives;
     }
 
     /**
@@ -1096,8 +1165,14 @@ class Find_My_Rep_Plugin
         $representatives = array();
 
         if (!empty($data['mp'])) {
-            $data['mp']['type'] = 'MP';
-            $representatives[] = $data['mp'];
+            $mps = isset($data['mp']['email']) ? array($data['mp']) : $data['mp'];
+            foreach ($mps as $mp) {
+                if (!is_array($mp)) {
+                    continue;
+                }
+                $mp['type'] = 'MP';
+                $representatives[] = $mp;
+            }
         }
 
         if (!empty($data['mss']) && is_array($data['mss'])) {
@@ -1111,8 +1186,14 @@ class Find_My_Rep_Plugin
         }
 
         if (!empty($data['pcc'])) {
-            $data['pcc']['type'] = 'PCC';
-            $representatives[] = $data['pcc'];
+            $pccs = isset($data['pcc']['email']) ? array($data['pcc']) : $data['pcc'];
+            foreach ($pccs as $pcc) {
+                if (!is_array($pcc)) {
+                    continue;
+                }
+                $pcc['type'] = 'PCC';
+                $representatives[] = $pcc;
+            }
         }
 
         if (!empty($data['councillors']) && is_array($data['councillors'])) {

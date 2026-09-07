@@ -22,6 +22,12 @@ class TestPostcodeRecipientEmailsTest extends TestCase {
         $this->assertSame('ZZ999ZZ', $this->plugin->sanitize_test_postcode(' zz99 9zz '));
     }
 
+    public function test_sanitize_test_emails_accepts_lines_and_commas_and_removes_invalid_duplicates() {
+        $result = $this->plugin->sanitize_test_emails("first@example.com\ninvalid, second@example.com;first@example.com");
+
+        $this->assertSame("first@example.com\nsecond@example.com", $result);
+    }
+
     public function test_test_postcode_response_is_built_from_rep_type_email_settings() {
         global $test_options;
         $test_options['find_my_rep_test_postcode'] = 'ZZ999ZZ';
@@ -62,6 +68,24 @@ class TestPostcodeRecipientEmailsTest extends TestCase {
         $this->assertSame(array(), $data['mss']);
         $this->assertNull($data['pcc']);
         $this->assertSame(array(), $data['councillors']);
+    }
+
+    public function test_multiple_emails_create_multiple_representatives_for_every_type() {
+        global $test_options;
+        $test_options['find_my_rep_test_postcode'] = 'ZZ999ZZ';
+        $test_options['find_my_rep_test_mp_email'] = "mp-one@example.com\nmp-two@example.com";
+        $test_options['find_my_rep_test_ms_email'] = 'ms-one@example.com, ms-two@example.com';
+        $test_options['find_my_rep_test_pcc_email'] = "pcc-one@example.com\npcc-two@example.com";
+        $test_options['find_my_rep_test_councillor_email'] = 'cllr-one@example.com, cllr-two@example.com';
+
+        $method = new ReflectionMethod(Find_My_Rep_Plugin::class, 'get_test_postcode_response');
+        $method->setAccessible(true);
+        $data = $method->invoke($this->plugin, 'ZZ999ZZ');
+
+        $this->assertSame(array('mp-one@example.com', 'mp-two@example.com'), array_column($data['mp'], 'email'));
+        $this->assertSame(array('ms-one@example.com', 'ms-two@example.com'), array_column($data['mss'], 'email'));
+        $this->assertSame(array('pcc-one@example.com', 'pcc-two@example.com'), array_column($data['pcc'], 'email'));
+        $this->assertSame(array('cllr-one@example.com', 'cllr-two@example.com'), array_column($data['councillors'], 'email'));
     }
 
     public function test_configured_test_postcode_bypasses_api_lookup() {
