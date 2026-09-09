@@ -16,6 +16,7 @@ import type {
 } from "../types";
 import { apiResponseToSelectableReps } from "../types";
 import { PostcodeStep } from "./PostcodeStep";
+import { SelectStep } from "./SelectStep";
 import { QuestionStep } from "./QuestionStep";
 import { LetterStep } from "./LetterStep";
 import { SuccessStep } from "./SuccessStep";
@@ -51,6 +52,11 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   const [selectedReps, setSelectedReps, clearSelected] = useSessionStorage<
     SelectableRepresentative[]
   >(`${storageKey}-selected`, []);
+  const [representatives, setRepresentatives, clearRepresentatives] =
+    useSessionStorage<SelectableRepresentative[]>(
+      `${storageKey}-representatives`,
+      [],
+    );
   const [postcode, setPostcode, clearPostcode] = useSessionStorage<string>(
     `${storageKey}-postcode`,
     "",
@@ -69,6 +75,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   const clearAllProgress = () => {
     clearStep();
     clearSelected();
+    clearRepresentatives();
     clearPostcode();
     clearQuestionResponse();
     // Also clear LetterStep-owned keys
@@ -131,9 +138,10 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
         ) {
           const apiData = data.data as RepresentativesApiResponse;
           const reps = apiResponseToSelectableReps(apiData);
+          setRepresentatives(reps);
           setSelectedReps(reps);
           setPostcode(apiData.postcode || "");
-          setCurrentStep(hasQuestion ? "question" : "letter");
+          setCurrentStep("select");
         } else {
           const errorData = data.data as ErrorData;
           setError(
@@ -158,12 +166,24 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   };
 
   const handleBackToPostcode = () => {
-    setCurrentStep("postcode");
+    setCurrentStep("select");
     setError("");
   };
 
   const handleBackFromLetter = () => {
-    setCurrentStep(hasQuestion ? "question" : "postcode");
+    setCurrentStep(hasQuestion ? "question" : "select");
+  };
+
+  const handleContinueFromSelection = () => {
+    if (selectedReps.length > 0) {
+      setCurrentStep(hasQuestion ? "question" : "letter");
+    }
+  };
+
+  const handleRestart = () => {
+    clearAllProgress();
+    setSuccessInfo(null);
+    setError("");
   };
 
   const handleSend = async (
@@ -194,6 +214,9 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
           website_url: honeypot,
           representative_types: JSON.stringify(representativeTypes),
           representative_types_signature: representativeTypesSignature,
+          representatives: JSON.stringify(
+            selectedReps.map(({ type, id }) => ({ type, id })),
+          ),
         }),
       });
 
@@ -254,11 +277,22 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
         />
       ) : (
         <>
-          {(currentStep === "postcode" || currentStep === "select") && (
+          {currentStep === "postcode" && (
             <PostcodeStep
               onFindReps={handleFindReps}
+              initialPostcode={postcode}
               error={error}
               loading={loading}
+            />
+          )}
+          {currentStep === "select" && representatives.length > 0 && (
+            <SelectStep
+              postcode={postcode}
+              representatives={representatives}
+              selectedRepresentatives={selectedReps}
+              onChange={setSelectedReps}
+              onContinue={handleContinueFromSelection}
+              onRestart={handleRestart}
             />
           )}
           {(currentStep === "question" || currentStep === "letter") && (

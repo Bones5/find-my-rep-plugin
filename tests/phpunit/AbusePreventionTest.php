@@ -279,6 +279,66 @@ class AbusePreventionTest extends TestCase {
         $this->assertSame('ms@example.org', $result['representatives'][0]['email']);
     }
 
+    public function test_verified_representatives_accept_selected_subset_and_use_server_data() {
+        global $test_wp_remote_get_response;
+
+        $test_wp_remote_get_response = array(
+            'body' => json_encode(array(
+                'postcode' => 'CF10 1AA',
+                'mss' => array(
+                    array('id' => 1, 'name' => 'First MS', 'email' => 'first@example.org'),
+                    array('id' => 2, 'name' => 'Second MS', 'email' => 'second@example.org'),
+                ),
+            )),
+            'response' => array('code' => 200),
+        );
+
+        $method = $this->reflection->getMethod('get_verified_representatives');
+        $method->setAccessible(true);
+        $result = $method->invoke(
+            $this->plugin,
+            'CF10 1AA',
+            array('MS'),
+            array(array('type' => 'MS', 'id' => 2, 'email' => 'attacker@example.org'))
+        );
+
+        $this->assertTrue($result['success']);
+        $this->assertCount(1, $result['representatives']);
+        $this->assertSame('Second MS', $result['representatives'][0]['name']);
+        $this->assertSame('second@example.org', $result['representatives'][0]['email']);
+    }
+
+    public function test_verified_representatives_reject_unknown_or_empty_selection() {
+        global $test_wp_remote_get_response;
+
+        $test_wp_remote_get_response = array(
+            'body' => json_encode(array(
+                'postcode' => 'CF10 1AA',
+                'mp' => array('id' => 1, 'name' => 'Jane MP', 'email' => 'mp@example.org'),
+            )),
+            'response' => array('code' => 200),
+        );
+
+        $method = $this->reflection->getMethod('get_verified_representatives');
+        $method->setAccessible(true);
+
+        $unknown = $method->invoke(
+            $this->plugin,
+            'CF10 1AA',
+            array('MP'),
+            array(array('type' => 'MP', 'id' => 999))
+        );
+        $empty = $method->invoke($this->plugin, 'CF10 1AA', array('MP'), array());
+
+        $this->assertFalse($unknown['success']);
+        $this->assertSame(
+            'Selected representatives could not be verified. Please search by postcode again and try again.',
+            $unknown['message']
+        );
+        $this->assertFalse($empty['success']);
+        $this->assertSame('Please select at least one representative.', $empty['message']);
+    }
+
     public function test_submitted_representative_types_reject_tampered_configuration() {
         $_POST['representative_types'] = json_encode(array('MP', 'PCC'));
         $_POST['representative_types_signature'] = 'invalid-signature';

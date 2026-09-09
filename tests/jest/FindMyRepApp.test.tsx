@@ -6,9 +6,16 @@ import { FindMyRepApp } from "../../src/components/FindMyRepApp";
 jest.mock("../../src/components/PostcodeStep", () => ({
   PostcodeStep: ({
     onFindReps,
+    initialPostcode,
   }: {
     onFindReps: (postcode: string) => void;
-  }) => <button onClick={() => onFindReps("CF10 1AA")}>Find reps</button>,
+    initialPostcode?: string;
+  }) => (
+    <>
+      <input aria-label="Postcode" defaultValue={initialPostcode} />
+      <button onClick={() => onFindReps("CF10 1AA")}>Find reps</button>
+    </>
+  ),
 }));
 
 jest.mock("../../src/components/LetterStep", () => ({
@@ -91,6 +98,16 @@ describe("FindMyRepApp", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
+    expect(await screen.findByRole("checkbox")).toBeChecked();
+    expect(
+      screen.getByRole("heading", {
+        name: "For postcode CF10 1AA you have 1 representative available to contact:",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Find reps/i }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
     const sendButton = await screen.findByRole("button", {
       name: /Send letter/i,
     });
@@ -128,7 +145,136 @@ describe("FindMyRepApp", () => {
     expect(sendRequest.body.get("representative_types_signature")).toBe(
       "signed-types",
     );
-    expect(sendRequest.body.has("representatives")).toBe(false);
+    expect(sendRequest.body.get("representatives")).toBe(
+      '[{"type":"MP","id":1}]',
+    );
+  });
+
+  test("restart clears results and returns to postcode search", async () => {
+    render(
+      <FindMyRepApp
+        blockId="test-block"
+        storageKey="fmr-/test/-0"
+        perBlockTemplate=""
+        representativeTypes={["MP"]}
+        representativeTypesSignature="signed-types"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
+    expect(
+      await screen.findByRole("heading", {
+        name: "For postcode CF10 1AA you have 1 representative available to contact:",
+      }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Restart" }));
+
+    expect(
+      screen.getByRole("button", { name: /Find reps/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Postcode" })).toHaveValue("");
+    expect(
+      screen.queryByRole("heading", { name: /available to contact/ }),
+    ).not.toBeInTheDocument();
+    expect(sessionStorage.getItem("fmr-/test/-0-representatives")).toBeNull();
+    expect(sessionStorage.getItem("fmr-/test/-0-selected")).toBeNull();
+    expect(sessionStorage.getItem("fmr-/test/-0-postcode")).toBeNull();
+  });
+
+  test("does not show who to contact after a failed search", async () => {
+    (global.fetch as jest.Mock).mockReset().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        success: false,
+        data: { message: "No representatives found." },
+      }),
+    });
+
+    render(
+      <FindMyRepApp
+        blockId="test-block"
+        storageKey="fmr-/test/-0"
+        perBlockTemplate=""
+        representativeTypes={["MP"]}
+        representativeTypesSignature="signed-types"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+    expect(
+      screen.queryByRole("heading", { name: /available to contact/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Restart" })).toBeNull();
+  });
+
+  test("sends only representatives left selected by the user", async () => {
+    (global.fetch as jest.Mock)
+      .mockReset()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            postcode: "CF10 1AA",
+            mp: {
+              id: 1,
+              name: "Jane Representative",
+              email: "jane.official@example.org",
+              party: "Test Party",
+              constituency: "Cardiff Test",
+            },
+            mss: [
+              {
+                id: 2,
+                name: "Morgan Representative",
+                email: "morgan.official@example.org",
+                party: "Test Party",
+                constituency: "Cardiff Test",
+              },
+            ],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { message: "Successfully sent 1 letter." },
+        }),
+      });
+
+    render(
+      <FindMyRepApp
+        blockId="test-block"
+        storageKey="fmr-/test/-0"
+        perBlockTemplate=""
+        representativeTypes={["MP", "MS"]}
+        representativeTypesSignature="signed-types"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
+    const checkboxes = await screen.findAllByRole("checkbox");
+    expect(checkboxes).toHaveLength(2);
+    expect(checkboxes[0]).toBeChecked();
+    expect(checkboxes[1]).toBeChecked();
+
+    fireEvent.click(checkboxes[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Send letter/i }),
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
+    const sendRequest = (global.fetch as jest.Mock).mock.calls[1][1] as {
+      body: URLSearchParams;
+    };
+    expect(sendRequest.body.get("representatives")).toBe(
+      '[{"type":"MS","id":2}]',
+    );
   });
 
   test("shows an enabled question and allows an empty response", async () => {
@@ -145,6 +291,7 @@ describe("FindMyRepApp", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
+    fireEvent.click(await screen.findByRole("button", { name: "Next" }));
     expect(
       await screen.findByRole("heading", {
         name: "A question before you continue",
@@ -194,6 +341,7 @@ describe("FindMyRepApp", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Find reps/i }));
+    fireEvent.click(await screen.findByRole("button", { name: "Next" }));
     fireEvent.change(
       await screen.findByLabelText("What change would help your community?"),
       { target: { value: "More frequent bus services." } },

@@ -35,6 +35,18 @@ describe('PostcodeStep Component', () => {
 		expect(input).toBeInTheDocument();
 	});
 
+	test('restores an initial postcode', () => {
+		render(
+			<PostcodeStep
+				onFindReps={mockOnFindReps}
+				initialPostcode="ZZ999ZZ"
+				loading={false}
+			/>
+		);
+
+		expect(screen.getByLabelText(/Enter your postcode/i)).toHaveValue('ZZ999ZZ');
+	});
+
 	test('does not call onFindReps when postcode is empty', () => {
 		render(
 			<PostcodeStep

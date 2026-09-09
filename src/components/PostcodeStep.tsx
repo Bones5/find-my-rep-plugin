@@ -3,16 +3,18 @@ import { __ } from '@wordpress/i18n';
 
 interface PostcodeStepProps {
 	onFindReps: ( postcode: string ) => void;
+	initialPostcode?: string;
 	error?: string;
 	loading: boolean;
 }
 
 export const PostcodeStep: React.FC< PostcodeStepProps > = ( {
 	onFindReps,
+	initialPostcode = '',
 	error,
 	loading,
 } ) => {
-	const [ postcode, setPostcode ] = useState( '' );
+	const [ postcode, setPostcode ] = useState( initialPostcode );
 
 	const handleSubmit = () => {
 		const trimmedPostcode = postcode.trim();

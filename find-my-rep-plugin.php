@@ -530,6 +530,9 @@ class Find_My_Rep_Plugin
         $question_response = isset($_POST['question_response']) ? sanitize_textarea_field($_POST['question_response']) : '';
         $postcode = isset($_POST['postcode']) ? sanitize_text_field($_POST['postcode']) : '';
         $honeypot = isset($_POST['website_url']) ? sanitize_text_field($_POST['website_url']) : '';
+        $submitted_representatives = isset($_POST['representatives'])
+            ? json_decode(stripslashes($_POST['representatives']), true)
+            : null;
         $representative_types = $this->get_submitted_representative_types();
         $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot, $question_response, $sender_address);
 
@@ -550,7 +553,11 @@ class Find_My_Rep_Plugin
             return;
         }
 
-        $verified_selection = $this->get_configured_representatives($postcode, $representative_types['types']);
+        $verified_selection = $this->get_verified_representatives(
+            $postcode,
+            $representative_types['types'],
+            $submitted_representatives
+        );
         if (!$verified_selection['success']) {
             wp_send_json_error(array('message' => $verified_selection['message']));
             return;
@@ -1151,6 +1158,66 @@ class Find_My_Rep_Plugin
         return array(
             'success' => true,
             'representatives' => $representatives,
+        );
+    }
+
+    /**
+     * Verify a submitted recipient selection against the configured postcode results.
+     *
+     * @param string $postcode Postcode used to fetch representatives.
+     * @param array  $types Configured representative types.
+     * @param mixed  $submitted_representatives Client-selected representative identifiers.
+     * @return array
+     */
+    private function get_verified_representatives($postcode, $types, $submitted_representatives)
+    {
+        if (!is_array($submitted_representatives) || empty($submitted_representatives)) {
+            return array(
+                'success' => false,
+                'message' => __('Please select at least one representative.', 'find-my-rep'),
+            );
+        }
+
+        $configured = $this->get_configured_representatives($postcode, $types);
+        if (!$configured['success']) {
+            return $configured;
+        }
+
+        $allowed_map = array();
+        foreach ($configured['representatives'] as $representative) {
+            if (isset($representative['type'], $representative['id'])) {
+                $allowed_map[$representative['type'] . ':' . $representative['id']] = $representative;
+            }
+        }
+
+        $verified = array();
+        foreach ($submitted_representatives as $representative) {
+            if (
+                !is_array($representative)
+                || !isset($representative['type'], $representative['id'])
+                || !is_string($representative['type'])
+                || (!is_int($representative['id']) && !is_string($representative['id']))
+            ) {
+                return array(
+                    'success' => false,
+                    'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
+                );
+            }
+
+            $key = $representative['type'] . ':' . $representative['id'];
+            if (!isset($allowed_map[$key])) {
+                return array(
+                    'success' => false,
+                    'message' => __('Selected representatives could not be verified. Please search by postcode again and try again.', 'find-my-rep'),
+                );
+            }
+
+            $verified[$key] = $allowed_map[$key];
+        }
+
+        return array(
+            'success' => true,
+            'representatives' => array_values($verified),
         );
     }
 

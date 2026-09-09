@@ -4,6 +4,7 @@
 
 import { createRoot } from "react-dom/client";
 import { FindMyRepApp } from "./components/FindMyRepApp";
+import { clearSessionStoragePrefix } from "./hooks/useSessionStorage";
 import type { RepresentativeType } from "./types";
 
 // Wait for DOM to be ready
@@ -17,6 +18,7 @@ const initializeApp = () => {
   containers.forEach((container, index) => {
     const blockId = container.id;
     const storageKey = `fmr-${pagePath}-${index}`;
+    clearSessionStoragePrefix(storageKey);
     const perBlockTemplate =
       container.getAttribute("data-letter-template") || "";
     const includeQuestion =

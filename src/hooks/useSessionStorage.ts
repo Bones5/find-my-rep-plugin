@@ -1,5 +1,15 @@
 import { useState } from "react";
 
+export function clearSessionStoragePrefix(prefix: string): void {
+  try {
+    Object.keys(sessionStorage)
+      .filter((key) => key.startsWith(`${prefix}-`))
+      .forEach((key) => sessionStorage.removeItem(key));
+  } catch {
+    // Ignore unavailable sessionStorage and continue with in-memory state.
+  }
+}
+
 /**
  * A hook that mirrors useState but persists the value in sessionStorage.
  * Data is cleared when the browser tab is closed, making it suitable for
