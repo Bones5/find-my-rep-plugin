@@ -4,7 +4,7 @@
  * Plugin Name: Find My Rep
  * Plugin URI: https://github.com/Bones5/find-my-rep-plugin
  * Description: A WordPress plugin that creates a Gutenberg block for contacting local representatives via templated letters sent through Resend.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Bones5
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('FIND_MY_REP_VERSION', '1.0.0');
+define('FIND_MY_REP_VERSION', '1.0.1');
 define('FIND_MY_REP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('FIND_MY_REP_PLUGIN_URL', plugin_dir_url(__FILE__));
 

@@ -28,6 +28,20 @@ class TestPostcodeRecipientEmailsTest extends TestCase {
         $this->assertSame("first@example.com\nsecond@example.com", $result);
     }
 
+    public function test_test_postcode_settings_explain_and_render_multi_email_fields() {
+        ob_start();
+        $this->plugin->test_postcode_fields_callback();
+        $markup = ob_get_clean();
+
+        $this->assertStringContainsString('Create a predictable test lookup without contacting the representatives API.', $markup);
+        $this->assertStringContainsString('<strong>MP emails</strong>', $markup);
+        $this->assertStringContainsString('<strong>MS emails</strong>', $markup);
+        $this->assertStringContainsString('<strong>PCC emails</strong>', $markup);
+        $this->assertStringContainsString('<strong>Councillor emails</strong>', $markup);
+        $this->assertSame(4, substr_count($markup, '<textarea'));
+        $this->assertStringContainsString('Enter one email address per line or separate addresses with commas.', $markup);
+    }
+
     public function test_test_postcode_response_is_built_from_rep_type_email_settings() {
         global $test_options;
         $test_options['find_my_rep_test_postcode'] = 'ZZ999ZZ';

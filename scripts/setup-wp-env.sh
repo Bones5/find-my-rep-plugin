@@ -46,6 +46,7 @@ fi
 
 run_wp option update page_on_front "$page_id" >/dev/null
 run_wp option update show_on_front page >/dev/null
+run_wp rewrite structure '/%postname%/' --hard >/dev/null
 
 run_wp eval '
 $languages = pll_languages_list();
@@ -68,12 +69,37 @@ if (!in_array("cy", $languages, true)) {
 	$result = PLL()->model->languages->add(array(
 		"name" => "Cymraeg",
 		"slug" => "cy",
-		"locale" => "cy",
+		"locale" => "cy_GB",
 		"rtl" => false,
 		"term_group" => 1,
 	));
 
 	if (is_wp_error($result)) {
+		WP_CLI::error($result);
+	}
+}
+
+$welsh_language = PLL()->model->get_language("cy");
+
+if (!$welsh_language) {
+	WP_CLI::error("The Welsh language was not found.");
+}
+
+if ("cy_GB" !== $welsh_language->locale) {
+	$result = PLL()->model->languages->update(array(
+		"lang_id" => $welsh_language->term_id,
+		"locale" => "cy_GB",
+	));
+
+	if (is_wp_error($result)) {
+		WP_CLI::error($result);
+	}
+}
+
+if ("en" !== pll_default_language()) {
+	$result = PLL()->model->languages->update_default("en");
+
+	if ($result->has_errors()) {
 		WP_CLI::error($result);
 	}
 }
@@ -128,3 +154,5 @@ pll_save_post_translations(array(
 	"cy" => $welsh_page_id,
 ));
 ' >/dev/null
+
+run_wp rewrite flush --hard >/dev/null

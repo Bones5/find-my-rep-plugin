@@ -71,8 +71,8 @@ export interface AreaInfo {
 export interface RepresentativesApiResponse {
   postcode: string;
   councillors?: Councillor[];
-  pcc?: PCC | null;
-  mp?: MP | null;
+  pcc?: PCC | PCC[] | null;
+  mp?: MP | MP[] | null;
   mss?: MS[];
   areaInfo?: AreaInfo | null;
 }
@@ -156,7 +156,10 @@ export function apiResponseToSelectableReps(
   const reps: SelectableRepresentative[] = [];
 
   if (data.mp) {
-    reps.push(mpToSelectable(data.mp));
+    const mps = Array.isArray(data.mp) ? data.mp : [data.mp];
+    for (const mp of mps) {
+      reps.push(mpToSelectable(mp));
+    }
   }
 
   if (data.mss) {
@@ -166,7 +169,10 @@ export function apiResponseToSelectableReps(
   }
 
   if (data.pcc) {
-    reps.push(pccToSelectable(data.pcc));
+    const pccs = Array.isArray(data.pcc) ? data.pcc : [data.pcc];
+    for (const pcc of pccs) {
+      reps.push(pccToSelectable(pcc));
+    }
   }
 
   if (data.councillors) {

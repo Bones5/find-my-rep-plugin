@@ -213,6 +213,53 @@ describe("Type Utility Functions", () => {
       expect(result[0].name).toBe("MP Only");
     });
 
+    it("converts multiple test MPs and PCCs", () => {
+      const apiResponse: RepresentativesApiResponse = {
+        postcode: "ZZ99 9ZZ",
+        mp: [
+          {
+            id: 1,
+            name: "Test MP 1",
+            party: "Test Party",
+            constituency: "Test Constituency",
+            email: "mp-one@example.com",
+          },
+          {
+            id: 2,
+            name: "Test MP 2",
+            party: "Test Party",
+            constituency: "Test Constituency",
+            email: "mp-two@example.com",
+          },
+        ],
+        pcc: [
+          {
+            id: 3,
+            name: "Test PCC 1",
+            force: "Test Police Force",
+            area: "Test Area",
+            email: "pcc-one@example.com",
+          },
+          {
+            id: 4,
+            name: "Test PCC 2",
+            force: "Test Police Force",
+            area: "Test Area",
+            email: "pcc-two@example.com",
+          },
+        ],
+      };
+
+      const result = apiResponseToSelectableReps(apiResponse);
+
+      expect(result.map((representative) => representative.email)).toEqual([
+        "mp-one@example.com",
+        "mp-two@example.com",
+        "pcc-one@example.com",
+        "pcc-two@example.com",
+      ]);
+    });
+
     it("handles response with null values", () => {
       const apiResponse: RepresentativesApiResponse = {
         postcode: "CF10 1EP",
