@@ -93,7 +93,11 @@ msgstr "Aelod o Senedd y DU"
 
 #: build/frontend.js
 msgid "Member of the Senedd"
-msgstr "Aelod o Senedd Cymru"
+msgid_plural "Members of the Senedd"
+msgstr[0] "Aelod o Senedd Cymru"
+msgstr[1] "Aelodau o'r Senedd"
+msgstr[2] "Aelodau o'r Senedd"
+msgstr[3] "Aelodau o'r Senedd"
 
 #: build/frontend.js
 msgid "Police and Crime Commissioner"
@@ -101,15 +105,60 @@ msgstr "Comisiynydd yr Heddlu a Throsedd"
 
 #: build/frontend.js
 msgid "Local Councillor"
-msgstr "Cynghorydd Lleol"
+msgid_plural "Local Councillors"
+msgstr[0] "Cynghorydd Lleol"
+msgstr[1] "Cynghorwyr Lleol"
+msgstr[2] "Cynghorwyr Lleol"
+msgstr[3] "Cynghorwyr Lleol"
 
 #: build/frontend.js
 msgid "Select Representatives to Contact"
 msgstr "Dewiswch Gynrychiolwyr i Gysylltu â Nhw"
 
 #: build/frontend.js
+msgid "Message recipients"
+msgstr "Derbynwyr y neges"
+
+#: build/frontend.js
+#, php-format
+msgid "For postcode %1$s, we will send your message to the following %2$d representative:"
+msgid_plural "For postcode %1$s, we will send your message to the following %2$d representatives:"
+msgstr[0] "Ar gyfer y cod post %1$s, byddwn yn anfon eich neges at y cynrychiolydd canlynol:"
+msgstr[1] "Ar gyfer y cod post %1$s, byddwn yn anfon eich neges at y %2$d gynrychiolydd canlynol:"
+msgstr[2] "Ar gyfer y cod post %1$s, byddwn yn anfon eich neges at y %2$d gynrychiolydd canlynol:"
+msgstr[3] "Ar gyfer y cod post %1$s, byddwn yn anfon eich neges at y %2$d gynrychiolydd canlynol:"
+
+#: build/frontend.js
 msgid "Continue"
 msgstr "Parhau"
+
+#: build/frontend.js
+msgid "Review and send your message"
+msgstr "Adolygwch ac anfonwch eich neges"
+
+#: build/frontend.js
+msgid "Your Address:"
+msgstr "Eich Cyfeiriad"
+
+#: build/frontend.js
+msgid "Message preview"
+msgstr "Rhagolwg neges"
+
+#: build/frontend.js
+msgid "Review and edit your message below. Bracketed representative details are personalized for each recipient, and your name and address are added as the sign-off."
+msgstr "Adolygwch a golygwch eich neges isod. Mae manylion cynrychiolydd mewn cromfachau wedi'u personoli ar gyfer pob derbynnydd, ac mae eich enw a'ch cyfeiriad wedi'u hychwanegu fel y llofnod."
+
+#: build/frontend.js
+msgid "Yours sincerely,"
+msgstr "Yn gywir"
+
+#: build/frontend.js
+msgid "Your name"
+msgstr "Eich enw"
+
+#: build/frontend.js
+msgid "Your address"
+msgstr "Eich cyfeiriad"
 
 #: build/frontend.js
 msgid "Your letter has been sent!"
@@ -142,8 +191,21 @@ msgstr "Mae amseroedd ymateb yn amrywio. Mae'r rhan fwyaf o gynrychiolwyr yn ane
 
 #: build/frontend.js
 msgid "If you don't hear back, you can follow up or contact your representative directly through their official contact channels."
-msgstr "Os na chewch chi ateb, gallwch chi gysylltu â'ch cynrychiolydd yn uniongyrchol drwy eu sianeli cyswllt swyddogol."
+msgid_plural "If you don't hear back, you can follow up or contact your representatives directly through their official contact channels."
+msgstr[0] "Os na chewch chi ateb, gallwch chi gysylltu â'ch cynrychiolydd yn uniongyrchol drwy eu sianeli cyswllt swyddogol."
+msgstr[1] "Os na chewch chi ateb, gallwch chi gysylltu â'ch cynrychiolwyr yn uniongyrchol neu ddilyn y wybodaeth drwy eu sianeli cyswllt swyddogol."
+msgstr[2] "Os na chewch chi ateb, gallwch chi gysylltu â'ch cynrychiolwyr yn uniongyrchol neu ddilyn y wybodaeth drwy eu sianeli cyswllt swyddogol."
+msgstr[3] "Os na chewch chi ateb, gallwch chi gysylltu â'ch cynrychiolwyr yn uniongyrchol neu ddilyn y wybodaeth drwy eu sianeli cyswllt swyddogol."
 
 #: build/frontend.js
 msgid "Start over"
 msgstr "Dechrau o’r newydd"
+
+#: find-my-rep-plugin.php
+#, php-format
+msgid "Successfully sent %d letter."
+msgid_plural "Successfully sent %d letters."
+msgstr[0] "Anfonwyd %d llythyr yn llwyddiannus"
+msgstr[1] "Anfonwyd %d lythyr yn llwyddiannus."
+msgstr[2] "Anfonwyd %d lythyr yn llwyddiannus."
+msgstr[3] "Anfonwyd %d lythyr yn llwyddiannus."

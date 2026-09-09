@@ -2,21 +2,21 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Find My Rep 1.0.0\n"
+"Project-Id-Version: Find My Rep 1.0.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/find-my-rep-plugin\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-03T15:00:18+00:00\n"
+"POT-Creation-Date: 2026-09-09T12:08:23+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: find-my-rep\n"
 
 #. Plugin Name of the plugin
 #: find-my-rep-plugin.php
-#: find-my-rep-plugin.php:196
+#: find-my-rep-plugin.php:221
 msgid "Find My Rep"
 msgstr ""
 
@@ -35,106 +35,144 @@ msgstr ""
 msgid "Bones5"
 msgstr ""
 
-#: find-my-rep-plugin.php:195
+#: find-my-rep-plugin.php:220
 msgid "Find My Rep Settings"
 msgstr ""
 
-#: find-my-rep-plugin.php:223
+#: find-my-rep-plugin.php:255
 msgid "Plugin Settings"
 msgstr ""
 
-#: find-my-rep-plugin.php:230
+#: find-my-rep-plugin.php:262
 msgid "Representatives API URL"
 msgstr ""
 
-#: find-my-rep-plugin.php:238
+#: find-my-rep-plugin.php:270
 msgid "Resend API Key"
 msgstr ""
 
-#: find-my-rep-plugin.php:246
+#: find-my-rep-plugin.php:278
 msgid "From Email Address"
 msgstr ""
 
-#: find-my-rep-plugin.php:254
+#: find-my-rep-plugin.php:286
+#: build/index.js:1
 msgid "Letter Template"
 msgstr ""
 
-#: find-my-rep-plugin.php:262
+#: find-my-rep-plugin.php:294
 msgid "Email Transport"
 msgstr ""
 
-#: find-my-rep-plugin.php:270
+#: find-my-rep-plugin.php:302
 msgid "CC Email Address (Usage Tracking)"
 msgstr ""
 
-#: find-my-rep-plugin.php:296
+#: find-my-rep-plugin.php:310
+msgid "Test Postcode"
+msgstr ""
+
+#: find-my-rep-plugin.php:368
 msgid "Configure the letter template and API settings for the Find My Rep plugin."
 msgstr ""
 
-#: find-my-rep-plugin.php:306
+#: find-my-rep-plugin.php:378
 msgid "The Find My Rep API endpoint used to look up representatives by postcode."
 msgstr ""
 
-#: find-my-rep-plugin.php:307
+#: find-my-rep-plugin.php:379
 msgid "For local development with Docker, use http://host.docker.internal:3000/api/reps (the default)."
 msgstr ""
 
-#: find-my-rep-plugin.php:308
+#: find-my-rep-plugin.php:380
 msgid "For production, use the deployed API URL (e.g. https://find-my-rep.fly.dev/api/reps)."
 msgstr ""
 
-#: find-my-rep-plugin.php:318
+#: find-my-rep-plugin.php:390
 msgid "The address emails are sent from. Must be a verified domain in Resend. The constituent's address is used as Reply-To so replies go directly to them."
 msgstr ""
 
-#: find-my-rep-plugin.php:328
+#: find-my-rep-plugin.php:400
 msgid "Enter your Resend API key for sending emails."
 msgstr ""
 
-#: find-my-rep-plugin.php:338
-msgid "Enter the default letter template. Use {{representative_name}} and {{representative_title}} as placeholders."
+#: find-my-rep-plugin.php:410
+msgid "Enter the default letter template. Available placeholders: {{representative_name}}, {{representative_title}}, and {{question_response}}."
 msgstr ""
 
-#: find-my-rep-plugin.php:348
+#: find-my-rep-plugin.php:420
 msgid "Optional. When set, a copy of every letter sent via this plugin will be CC'd to this address for usage tracking. Leave empty to disable."
 msgstr ""
 
-#: find-my-rep-plugin.php:359
-msgid "Resend API"
+#: find-my-rep-plugin.php:430
+msgid "Create a predictable test lookup without contacting the representatives API. Enter the postcode to intercept, then add the email addresses that should receive test messages for each representative type."
 msgstr ""
 
-#: find-my-rep-plugin.php:360
-msgid "SMTP (wp_mail)"
+#: find-my-rep-plugin.php:431
+msgid "Postcode"
 msgstr ""
 
-#: find-my-rep-plugin.php:361
-msgid "Test (Log to File)"
-msgstr ""
-
-#: find-my-rep-plugin.php:363
-msgid "Select the email transport method. Use \"Test\" for development to log emails to file."
-msgstr ""
-
-#: find-my-rep-plugin.php:429
-msgid "Please wait a few minutes before sending more messages."
+#: find-my-rep-plugin.php:433
+msgid "Postcode matching ignores spaces and letter case."
 msgstr ""
 
 #: find-my-rep-plugin.php:436
-msgid "Invalid representatives data."
+msgid "MP emails"
 msgstr ""
 
-#: find-my-rep-plugin.php:470
+#: find-my-rep-plugin.php:437
+msgid "MS emails"
+msgstr ""
+
+#: find-my-rep-plugin.php:438
+msgid "PCC emails"
+msgstr ""
+
+#: find-my-rep-plugin.php:439
+msgid "Councillor emails"
+msgstr ""
+
+#: find-my-rep-plugin.php:446
+msgid "Enter one email address per line or separate addresses with commas. Leave blank to omit this type."
+msgstr ""
+
+#: find-my-rep-plugin.php:460
+msgid "Resend API"
+msgstr ""
+
+#: find-my-rep-plugin.php:461
+msgid "SMTP (wp_mail)"
+msgstr ""
+
+#: find-my-rep-plugin.php:462
+msgid "Test (Log to File)"
+msgstr ""
+
+#: find-my-rep-plugin.php:464
+msgid "Select the email transport method. Use \"Test\" for development to log emails to file."
+msgstr ""
+
+#: find-my-rep-plugin.php:512
+#: find-my-rep-plugin.php:1154
+msgid "No configured representatives were found for this postcode."
+msgstr ""
+
+#: find-my-rep-plugin.php:546
+msgid "Please wait a few minutes before sending more messages."
+msgstr ""
+
+#: find-my-rep-plugin.php:592
 msgid "Letter from constituent"
 msgstr ""
 
 #. translators: 1: representative name, 2: delivery error message.
-#: find-my-rep-plugin.php:478
+#: find-my-rep-plugin.php:600
 #, php-format
 msgid "Failed to send to %1$s: %2$s"
 msgstr ""
 
 #. translators: %d: number of letters sent.
-#: find-my-rep-plugin.php:489
+#: find-my-rep-plugin.php:611
 #, php-format
 msgid "Successfully sent %d letter."
 msgid_plural "Successfully sent %d letters."
@@ -142,178 +180,254 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: number of letters sent, 2: total number of letters attempted.
-#: find-my-rep-plugin.php:503
+#: find-my-rep-plugin.php:625
 #, php-format
 msgid "Successfully sent %1$d of %2$d letter."
 msgid_plural "Successfully sent %1$d of %2$d letters."
 msgstr[0] ""
 msgstr[1] ""
 
-#: find-my-rep-plugin.php:518
+#: find-my-rep-plugin.php:640
 msgid "Failed to send any letters."
 msgstr ""
 
+#: find-my-rep-plugin.php:656
+#: build/frontend.js:2
+msgid "Yours sincerely,"
+msgstr ""
+
 #. translators: %s: constituency name.
-#: find-my-rep-plugin.php:540
+#: find-my-rep-plugin.php:675
 #, php-format
 msgid "Member of Parliament for %s"
 msgstr ""
 
-#: find-my-rep-plugin.php:543
-#: build/frontend.js:1
+#: find-my-rep-plugin.php:678
+#: build/frontend.js:2
+#: build/frontend.js:4
+#: build/index.js:1
 msgid "Member of Parliament"
-msgstr ""
+msgid_plural "Members of Parliament"
+msgstr[0] ""
+msgstr[1] ""
 
 #. translators: %s: Senedd constituency name.
-#: find-my-rep-plugin.php:550
+#: find-my-rep-plugin.php:685
 #, php-format
 msgid "Member of the Senedd for %s"
 msgstr ""
 
-#: find-my-rep-plugin.php:553
-#: build/frontend.js:1
+#: find-my-rep-plugin.php:688
+#: build/frontend.js:2
+#: build/frontend.js:4
 msgid "Member of the Senedd"
-msgstr ""
+msgid_plural "Members of the Senedd"
+msgstr[0] ""
+msgstr[1] ""
 
 #. translators: %s: police force area.
-#: find-my-rep-plugin.php:560
+#: find-my-rep-plugin.php:695
 #, php-format
 msgid "Police and Crime Commissioner for %s"
 msgstr ""
 
-#: find-my-rep-plugin.php:563
-#: build/frontend.js:1
+#: find-my-rep-plugin.php:698
+#: build/frontend.js:2
+#: build/frontend.js:4
+#: build/index.js:1
 msgid "Police and Crime Commissioner"
-msgstr ""
+msgid_plural "Police and Crime Commissioners"
+msgstr[0] ""
+msgstr[1] ""
 
 #. translators: 1: ward name, 2: council name.
-#: find-my-rep-plugin.php:571
+#: find-my-rep-plugin.php:706
 #, php-format
 msgid "Councillor for %1$s, %2$s"
 msgstr ""
 
 #. translators: %s: ward name.
-#: find-my-rep-plugin.php:578
+#: find-my-rep-plugin.php:713
 #, php-format
 msgid "Councillor for %s"
 msgstr ""
 
-#: find-my-rep-plugin.php:582
+#: find-my-rep-plugin.php:717
 msgid "Councillor"
 msgstr ""
 
-#: find-my-rep-plugin.php:585
+#: find-my-rep-plugin.php:720
 msgid "Representative"
 msgstr ""
 
-#: find-my-rep-plugin.php:600
-#: build/frontend.js:1
+#: find-my-rep-plugin.php:738
+#: build/frontend.js:2
 msgid "Please fill in all fields."
 msgstr ""
 
-#: find-my-rep-plugin.php:604
-#: build/frontend.js:1
+#: find-my-rep-plugin.php:742
+#: build/frontend.js:2
 msgid "Please enter a valid email address."
 msgstr ""
 
-#: find-my-rep-plugin.php:608
+#: find-my-rep-plugin.php:746
 msgid "Spam detected."
 msgstr ""
 
-#: find-my-rep-plugin.php:612
+#: find-my-rep-plugin.php:750
 msgid "Please shorten your message before sending."
 msgstr ""
 
-#: find-my-rep-plugin.php:620
+#: find-my-rep-plugin.php:754
+msgid "Please shorten your question response before sending."
+msgstr ""
+
+#: find-my-rep-plugin.php:758
+msgid "Please shorten your address before sending."
+msgstr ""
+
+#: find-my-rep-plugin.php:768
 msgid "Please remove abusive or threatening language before sending your message."
 msgstr ""
 
-#: find-my-rep-plugin.php:624
-#: build/frontend.js:1
+#: find-my-rep-plugin.php:772
+#: build/frontend.js:2
 msgid "Please remove excessive links before sending your message."
 msgstr ""
 
-#: find-my-rep-plugin.php:645
+#: find-my-rep-plugin.php:793
 msgid "Please search for your postcode again before sending."
 msgstr ""
 
-#: find-my-rep-plugin.php:668
-#: build/frontend.js:2
+#: find-my-rep-plugin.php:824
+#: build/frontend.js:5
 msgid "Failed to fetch representatives."
 msgstr ""
 
-#: find-my-rep-plugin.php:676
+#: find-my-rep-plugin.php:832
 msgid "Invalid postcode format. Please enter a valid UK postcode."
 msgstr ""
 
-#: find-my-rep-plugin.php:683
+#: find-my-rep-plugin.php:839
 msgid "This postcode is not in our coverage area."
 msgstr ""
 
 #. translators: %d: HTTP response status code.
-#: find-my-rep-plugin.php:691
+#: find-my-rep-plugin.php:847
 #, php-format
 msgid "API request failed (HTTP %d). Please check the API URL in settings."
 msgstr ""
 
-#: find-my-rep-plugin.php:701
+#: find-my-rep-plugin.php:857
 msgid "Invalid response from API."
 msgstr ""
 
-#: find-my-rep-plugin.php:708
-#: find-my-rep-plugin.php:716
+#: find-my-rep-plugin.php:864
+#: find-my-rep-plugin.php:872
 msgid "No representatives found for this postcode."
 msgstr ""
 
-#: find-my-rep-plugin.php:798
-#: find-my-rep-plugin.php:810
-#: find-my-rep-plugin.php:821
+#: find-my-rep-plugin.php:926
+#: find-my-rep-plugin.php:970
+msgid "Test Constituency"
+msgstr ""
+
+#: find-my-rep-plugin.php:927
+#: find-my-rep-plugin.php:978
+msgid "Test Council"
+msgstr ""
+
+#: find-my-rep-plugin.php:928
+#: find-my-rep-plugin.php:977
+msgid "Test Ward"
+msgstr ""
+
+#: find-my-rep-plugin.php:929
+msgid "Test Region"
+msgstr ""
+
+#: find-my-rep-plugin.php:960
+#, php-format
+msgid "Test %1$s %2$d"
+msgstr ""
+
+#: find-my-rep-plugin.php:961
+#, php-format
+msgid "Test %s"
+msgstr ""
+
+#: find-my-rep-plugin.php:965
+msgid "Test Party"
+msgstr ""
+
+#: find-my-rep-plugin.php:972
+msgid "Test Senedd Constituency"
+msgstr ""
+
+#: find-my-rep-plugin.php:974
+msgid "Test Police Force"
+msgstr ""
+
+#: find-my-rep-plugin.php:975
+msgid "Test Area"
+msgstr ""
+
+#: find-my-rep-plugin.php:1098
+msgid "The configured representatives could not be verified. Please reload the page and try again."
+msgstr ""
+
+#: find-my-rep-plugin.php:1177
+msgid "Please select at least one representative."
+msgstr ""
+
+#: find-my-rep-plugin.php:1203
+#: find-my-rep-plugin.php:1211
 msgid "Selected representatives could not be verified. Please search by postcode again and try again."
 msgstr ""
 
 #. translators: %s: configured email transport identifier.
-#: includes/class-find-my-rep-email-service.php:87
+#: includes/class-find-my-rep-email-service.php:88
 #, php-format
 msgid "Unknown transport mode: %s"
 msgstr ""
 
-#: includes/class-find-my-rep-email-service.php:108
+#: includes/class-find-my-rep-email-service.php:109
 msgid "Resend API key not configured."
 msgstr ""
 
-#: includes/class-find-my-rep-email-service.php:146
+#: includes/class-find-my-rep-email-service.php:147
 msgid "Email sent successfully via Resend."
 msgstr ""
 
 #. translators: 1: HTTP response status code, 2: Resend API response body.
-#: includes/class-find-my-rep-email-service.php:153
+#: includes/class-find-my-rep-email-service.php:154
 #, php-format
 msgid "Resend API error (HTTP %1$d): %2$s"
 msgstr ""
 
-#: includes/class-find-my-rep-email-service.php:197
+#: includes/class-find-my-rep-email-service.php:198
 msgid "Email sent successfully via SMTP."
 msgstr ""
 
-#: includes/class-find-my-rep-email-service.php:202
+#: includes/class-find-my-rep-email-service.php:203
 msgid "Failed to send email via SMTP."
 msgstr ""
 
-#: includes/class-find-my-rep-email-service.php:225
+#: includes/class-find-my-rep-email-service.php:226
 msgid "Uploads directory does not exist."
 msgstr ""
 
-#: includes/class-find-my-rep-email-service.php:232
+#: includes/class-find-my-rep-email-service.php:233
 msgid "Uploads directory is not writable."
 msgstr ""
 
 #. translators: %s: path to the email test log file.
-#: includes/class-find-my-rep-email-service.php:258
+#: includes/class-find-my-rep-email-service.php:259
 #, php-format
 msgid "Email logged to test file: %s"
 msgstr ""
 
-#: includes/class-find-my-rep-email-service.php:263
+#: includes/class-find-my-rep-email-service.php:264
 msgid "Failed to write to test log file."
 msgstr ""
 
@@ -333,98 +447,183 @@ msgstr ""
 msgid "Find Representatives"
 msgstr ""
 
-#: build/frontend.js:1
-msgid "Select Representatives to Contact"
+#. translators: 1: postcode, 2: number of representatives.
+#: build/frontend.js:2
+#, js-format
+msgid "For postcode <strong>%1$s</strong> you have %2$d representative available to contact:"
+msgid_plural "For postcode <strong>%1$s</strong> you have %2$d representatives available to contact:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/frontend.js:2
+msgid "Restart"
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
+#: build/frontend.js:4
 msgid "Local Councillor"
+msgid_plural "Local Councillors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/frontend.js:2
+msgid "You can uncheck anyone you don't want to contact."
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
+msgid "Next"
+msgstr ""
+
+#: build/frontend.js:2
+msgid "A question before you continue"
+msgstr ""
+
+#: build/frontend.js:2
+msgid "Answer the optional question below, then continue to review your message."
+msgstr ""
+
+#: build/frontend.js:2
 msgid "Back"
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
 msgid "Continue"
 msgstr ""
 
-#: build/frontend.js:1
-msgid "Review and Edit Your Letter"
+#: build/frontend.js:2
+msgid "[representative's name]"
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
+msgid "[representative's title]"
+msgstr ""
+
+#: build/frontend.js:2
+msgid "Review and send your message"
+msgstr ""
+
+#: build/frontend.js:2
 msgid "Your Name:"
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
 msgid "Your Email:"
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
+msgid "Your Address:"
+msgstr ""
+
+#: build/frontend.js:2
+msgid "Message preview"
+msgstr ""
+
+#: build/frontend.js:2
+msgid "Review and edit your message below. Bracketed representative details are personalized for each recipient, and your name and address are added as the sign-off."
+msgstr ""
+
+#: build/frontend.js:2
+msgid "Message content"
+msgstr ""
+
+#: build/frontend.js:2
+msgid "Your name"
+msgstr ""
+
+#: build/frontend.js:2
+msgid "Your address"
+msgstr ""
+
+#: build/frontend.js:2
 msgid "Please keep your message respectful. Abusive, threatening, or spam-like content will be blocked."
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
 msgid "Website"
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
 msgid "Sending..."
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
 msgid "Send"
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
 msgid "Your letter has been sent!"
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
 msgid "Sent to:"
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
 msgid "What happens next?"
 msgstr ""
 
-#: build/frontend.js:1
+#: build/frontend.js:2
 msgid "Your representative will receive your letter directly by email."
 msgid_plural "Your representatives will receive your letter directly by email."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: sender email address.
-#: build/frontend.js:2
+#: build/frontend.js:3
 #, js-format
 msgid "Any reply will go straight to %s — keep an eye on your inbox, including your spam folder."
 msgstr ""
 
-#: build/frontend.js:2
+#: build/frontend.js:3
 msgid "Response times vary. Most representatives aim to reply within two to four weeks, though it can take longer during busy parliamentary periods."
 msgstr ""
 
-#: build/frontend.js:2
+#: build/frontend.js:3
 msgid "If you don't hear back, you can follow up or contact your representative directly through their official contact channels."
 msgid_plural "If you don't hear back, you can follow up or contact your representatives directly through their official contact channels."
 msgstr[0] ""
 msgstr[1] ""
 
-#: build/frontend.js:2
+#: build/frontend.js:3
 msgid "Start over"
 msgstr ""
 
-#: build/frontend.js:2
+#: build/frontend.js:3
+msgid "Message recipients"
+msgstr ""
+
+#. translators: 1: postcode, 2: number of representatives.
+#: build/frontend.js:4
+#, js-format
+msgid "For postcode %1$s, we will send your message to the following %2$d representative:"
+msgid_plural "For postcode %1$s, we will send your message to the following %2$d representatives:"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: number of representatives, 2: representative type.
+#: build/frontend.js:5
+#, js-format
+msgid "%1$d %2$s"
+msgstr ""
+
+#: build/frontend.js:5
 msgid "An error occurred. Please try again."
 msgstr ""
 
-#: build/frontend.js:2
+#: build/frontend.js:5
 msgid "Some letters could not be delivered:"
 msgstr ""
 
-#: build/frontend.js:2
+#: build/frontend.js:5
 msgid "Failed to send letters."
+msgstr ""
+
+#: build/index.js:1
+msgid "Members of the Senedd"
+msgstr ""
+
+#: build/index.js:1
+msgid "Local councillors"
 msgstr ""
 
 #: build/index.js:1
@@ -436,37 +635,61 @@ msgid "A block for contacting local representatives via templated letters."
 msgstr ""
 
 #: build/index.js:1
-msgid "Letter Template Settings"
+msgid "Representative contact form"
 msgstr ""
 
 #: build/index.js:1
-msgid "Custom Letter Template"
+msgid "Choose which representatives this form includes, customize its letter template, and optionally ask visitors a question."
 msgstr ""
 
 #: build/index.js:1
-msgid "Leave empty to use the global default template. Use {{representative_name}} and {{representative_title}} as placeholders."
+msgid "Representatives to contact"
 msgstr ""
 
 #: build/index.js:1
-msgid "This block will display a form for users to contact their local representatives."
+msgid "Representative types"
 msgstr ""
 
 #: build/index.js:1
-msgid "Preview is only available on the frontend."
+msgid "Select every type of representative visitors should be able to contact."
 msgstr ""
 
 #: build/index.js:1
-msgid "Letter Template:"
+msgid "Select at least one representative type before publishing or updating this page."
 msgstr ""
 
 #: build/index.js:1
-msgid "Using custom template for this block"
+msgid "Question"
 msgstr ""
 
 #: build/index.js:1
-msgid "Using global default template"
+msgid "Turn this on to ask visitors a question before they review their letter. Add {{question_response}} to the letter template to insert their answer."
 msgstr ""
 
 #: build/index.js:1
-msgid "→ Edit template in the block settings sidebar"
+msgid "Include a question"
+msgstr ""
+
+#: build/index.js:1
+msgid "Question text"
+msgstr ""
+
+#: build/index.js:1
+msgid "Enter the question visitors will see. Answering it is optional."
+msgstr ""
+
+#: build/index.js:1
+msgid "Enter a question before publishing or updating this page."
+msgstr ""
+
+#: build/index.js:1
+msgid "Enter the letter visitors will send, or leave this blank to use the global default template."
+msgstr ""
+
+#: build/index.js:1
+msgid "Template content"
+msgstr ""
+
+#: build/index.js:1
+msgid "Available placeholders: {{representative_name}} and {{representative_title}}."
 msgstr ""
