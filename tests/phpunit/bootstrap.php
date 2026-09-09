@@ -39,6 +39,24 @@ if (!function_exists('esc_html__')) {
     }
 }
 
+if (!function_exists('esc_html')) {
+    function esc_html($text) {
+        return htmlspecialchars((string) $text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_attr')) {
+    function esc_attr($text) {
+        return htmlspecialchars((string) $text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_textarea')) {
+    function esc_textarea($text) {
+        return htmlspecialchars((string) $text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
 if (!function_exists('sprintf')) {
     // sprintf is a native PHP function, no need to mock
 }
