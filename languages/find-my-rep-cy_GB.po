@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Find My Rep 1.0.0\n"
-"PO-Revision-Date: 2026-09-03 15:00+0000\n"
+"PO-Revision-Date: 2026-09-14 00:00+0000\n"
 "Last-Translator: Bones5\n"
 "Language-Team: Welsh\n"
 "MIME-Version: 1.0\n"
@@ -138,6 +138,26 @@ msgstr[2] "Ar gyfer y cod post %1$s, byddwn yn anfon eich neges at y %2$d gynryc
 msgstr[3] "Ar gyfer y cod post %1$s, byddwn yn anfon eich neges at y %2$d gynrychiolydd canlynol:"
 
 #: build/frontend.js
+msgid "Restart"
+msgstr "Ailgychwyn"
+
+#: build/frontend.js
+msgid "You can uncheck anyone you don't want to contact."
+msgstr "Gallwch ddad-dicio unrhyw un nad ydych am gysylltu â nhw."
+
+#: build/frontend.js
+msgid "Next"
+msgstr "Parhau"
+
+#: build/frontend.js
+msgid "A question before you continue"
+msgstr "Cwestiwn cyn i chi barhau"
+
+#: build/frontend.js
+msgid "Answer the optional question below, then continue to review your message."
+msgstr "Atebwch y cwestiwn dewisol isod, yna parhewch i adolygu eich neges."
+
+#: build/frontend.js
 msgid "Continue"
 msgstr "Parhau"
 
@@ -193,6 +213,11 @@ msgstr[3] "Bydd eich cynrychiolwyr yn derbyn eich llythyr yn uniongyrchol drwy e
 #, php-format
 msgid "Any reply will go straight to %s — keep an eye on your inbox, including your spam folder."
 msgstr "Bydd unrhyw ateb yn mynd yn syth i %s — cadwch lygad ar eich mewnflwch, gan gynnwys eich ffolder sbam."
+
+#: build/frontend.js
+#, php-format
+msgid "If you receive a reply from your representatives, we'd appreciate it if you could forward it to %s for our records."
+msgstr "Os cewch ymateb gan eich cynrychiolwyr, byddem yn gwerthfawrogi pe gallech ei anfon ymlaen at %s ar gyfer ein cofnodion."
 
 #: build/frontend.js
 msgid "Response times vary. Most representatives aim to reply within two to four weeks, though it can take longer during busy parliamentary periods."
