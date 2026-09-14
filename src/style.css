@@ -16,6 +16,7 @@
   --fmr-border: var(--wp--preset--color--contrast, #767676);
   --fmr-badge-bg: var(--wp--preset--color--contrast, #333333);
   --fmr-badge-text: var(--wp--preset--color--base, #ffffff);
+  --fmr-success: #1a7f37;
 }
 
 .find-my-rep-step {
@@ -175,12 +176,16 @@
 }
 
 .success-message {
-  color: #1a7f37;
-  background: rgba(26, 127, 55, 0.08);
+  color: var(--fmr-success, #1a7f37);
+  background: color-mix(
+    in srgb,
+    var(--fmr-success, #1a7f37) 8%,
+    transparent
+  );
   padding: 1rem;
   border-radius: var(--wp--custom--spacing--small, 0.25rem);
-  margin-top: 1rem;
-  border-left: 4px solid currentColor;
+  margin-block-start: 1rem;
+  border-inline-start: 0.25rem solid currentColor;
 }
 
 .representatives-list {
@@ -425,64 +430,59 @@
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  margin-bottom: 1rem;
+  margin-block-end: 1rem;
 }
 
 .step-success .success-header h3 {
   margin: 0;
-  color: #1a7f37;
+  color: var(--fmr-success, #1a7f37);
 }
 
 .success-check-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
   border-radius: 50%;
-  background: #1a7f37;
+  background: var(--fmr-success, #1a7f37);
   flex-shrink: 0;
 }
 
 .success-check-icon::after {
   content: "";
   display: block;
-  width: 0.55rem;
-  height: 0.9rem;
-  border: 2.5px solid #fff;
-  border-top: none;
-  border-left: none;
+  inline-size: 0.55rem;
+  block-size: 0.9rem;
+  border: 0.15625rem solid #fff;
+  border-block-start: none;
+  border-inline-start: none;
   transform: rotate(45deg) translate(-10%, -10%);
 }
 
 .success-summary {
-  color: #1a7f37;
-  background: rgba(26, 127, 55, 0.08);
-  padding: 0.875rem 1rem;
-  border-radius: var(--wp--custom--spacing--small, 0.25rem);
-  border-left: 4px solid #1a7f37;
-  margin-bottom: 1.5rem;
+  margin-block: 0 1.5rem;
   white-space: pre-line;
 }
 
 .success-recipients {
-  margin-bottom: 1.5rem;
+  margin-block-end: 1.5rem;
 }
 
 .success-recipients h4,
 .success-next-steps h4 {
-  margin: 0 0 0.625rem;
-  font-size: 1rem;
+  margin: 0;
+  margin-block-end: 0.625rem;
   font-weight: 600;
 }
 
 .success-recipients ul {
   margin: 0;
-  padding-left: 1.25rem;
+  padding-inline-start: 1.25rem;
 }
 
-.success-recipients li {
-  margin-bottom: 0.25rem;
+.success-recipients li + li {
+  margin-block-start: 0.25rem;
 }
 
 .success-rep-type {
@@ -491,20 +491,23 @@
 }
 
 .success-next-steps {
-  border-top: 1px solid var(--fmr-border, #767676);
-  padding-top: 1.25rem;
-  margin-bottom: 1.5rem;
+  border-block-start: 0.0625rem solid var(--fmr-border, #767676);
+  padding-block-start: 1.25rem;
+  margin-block-end: 1.5rem;
   color: var(--fmr-text, #1a1a1a);
 }
 
 .success-next-steps ol {
   margin: 0;
-  padding-left: 1.25rem;
+  padding-inline-start: 1.25rem;
 }
 
 .success-next-steps li {
-  margin-bottom: 0.625rem;
   line-height: 1.5;
+}
+
+.success-next-steps li + li {
+  margin-block-start: 0.625rem;
 }
 
 .success-step-buttons {

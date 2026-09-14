@@ -92,7 +92,8 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
     }
   };
 
-  const { ajaxUrl, nonce, letterTemplate, subject } = window.findMyRepData;
+  const { ajaxUrl, nonce, letterTemplate, subject, replyForwardEmail } =
+    window.findMyRepData;
 
   // Use per-block template if available, otherwise use global template
   const effectiveTemplate = perBlockTemplate || letterTemplate;
@@ -279,6 +280,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
           message={successInfo.message}
           reps={successInfo.reps}
           senderEmail={successInfo.senderEmail}
+          replyForwardEmail={replyForwardEmail}
           onStartOver={() => setSuccessInfo(null)}
         />
       ) : (

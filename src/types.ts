@@ -10,6 +10,7 @@ export interface FindMyRepData {
   nonce: string;
   letterTemplate: string;
   subject: string;
+  replyForwardEmail?: string;
 }
 
 export interface FindMyRepEditorData {

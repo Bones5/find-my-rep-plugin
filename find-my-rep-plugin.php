@@ -208,7 +208,8 @@ class Find_My_Rep_Plugin
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('find_my_rep_nonce'),
             'letterTemplate' => $letter_template,
-            'subject' => $subject
+            'subject' => $subject,
+            'replyForwardEmail' => get_option('find_my_rep_reply_forward_email', '')
         ));
 
         // Return the container div - React will render the content
@@ -252,6 +253,9 @@ class Find_My_Rep_Plugin
         ));
         register_setting('find_my_rep_settings', 'find_my_rep_email_transport');
         register_setting('find_my_rep_settings', 'find_my_rep_cc_email', array(
+            'sanitize_callback' => 'sanitize_email',
+        ));
+        register_setting('find_my_rep_settings', 'find_my_rep_reply_forward_email', array(
             'sanitize_callback' => 'sanitize_email',
         ));
         register_setting('find_my_rep_settings', 'find_my_rep_test_postcode', array(
@@ -321,6 +325,14 @@ class Find_My_Rep_Plugin
             'find_my_rep_cc_email',
             __('CC Email Address (Usage Tracking)', 'find-my-rep'),
             array($this, 'cc_email_field_callback'),
+            'find-my-rep-settings',
+            'find_my_rep_main_section'
+        );
+
+        add_settings_field(
+            'find_my_rep_reply_forward_email',
+            __('Reply Forwarding Email Address', 'find-my-rep'),
+            array($this, 'reply_forward_email_field_callback'),
             'find-my-rep-settings',
             'find_my_rep_main_section'
         );
@@ -448,6 +460,16 @@ class Find_My_Rep_Plugin
         $value = get_option('find_my_rep_cc_email', '');
         echo '<input type="email" name="find_my_rep_cc_email" value="' . esc_attr($value) . '" class="regular-text" placeholder="tracking@example.com" />';
         echo '<p class="description">' . esc_html__('Optional. When set, a copy of every letter sent via this plugin will be CC\'d to this address for usage tracking. Leave empty to disable.', 'find-my-rep') . '</p>';
+    }
+
+    /**
+     * Reply forwarding email address field callback
+     */
+    public function reply_forward_email_field_callback()
+    {
+        $value = get_option('find_my_rep_reply_forward_email', '');
+        echo '<input type="email" name="find_my_rep_reply_forward_email" value="' . esc_attr($value) . '" class="regular-text" placeholder="replies@example.com" />';
+        echo '<p class="description">' . esc_html__('Optional. When set, the confirmation message asks users to forward replies from their representatives to this address.', 'find-my-rep') . '</p>';
     }
 
     /**

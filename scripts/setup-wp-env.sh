@@ -46,6 +46,7 @@ fi
 
 run_wp option update page_on_front "$page_id" >/dev/null
 run_wp option update show_on_front page >/dev/null
+run_wp option update find_my_rep_email_transport test >/dev/null
 run_wp rewrite structure '/%postname%/' --hard >/dev/null
 
 run_wp eval '

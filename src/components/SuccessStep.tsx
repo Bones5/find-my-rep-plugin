@@ -6,6 +6,7 @@ interface SuccessStepProps {
   message: string;
   reps: SelectableRepresentative[];
   senderEmail: string;
+  replyForwardEmail?: string;
   onStartOver: () => void;
 }
 
@@ -13,6 +14,7 @@ export const SuccessStep: React.FC<SuccessStepProps> = ({
   message,
   reps,
   senderEmail,
+  replyForwardEmail,
   onStartOver,
 }) => {
   return (
@@ -22,7 +24,7 @@ export const SuccessStep: React.FC<SuccessStepProps> = ({
         <h3>{__("Your letter has been sent!", "find-my-rep")}</h3>
       </div>
 
-      <p className="success-summary">{message}</p>
+      <p className="success-message success-summary">{message}</p>
 
       {reps.length > 0 && (
         <div className="success-recipients">
@@ -61,6 +63,18 @@ export const SuccessStep: React.FC<SuccessStepProps> = ({
               senderEmail,
             )}
           </li>
+          {replyForwardEmail && (
+            <li>
+              {sprintf(
+                /* translators: %s: email address for forwarding representative replies. */
+                __(
+                  "If you receive a reply from your representatives, we'd appreciate it if you could forward it to %s for our records.",
+                  "find-my-rep",
+                ),
+                replyForwardEmail,
+              )}
+            </li>
+          )}
           <li>
             {__(
               "Response times vary. Most representatives aim to reply within two to four weeks, though it can take longer during busy parliamentary periods.",
