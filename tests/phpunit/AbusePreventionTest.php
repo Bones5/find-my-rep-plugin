@@ -286,6 +286,20 @@ class AbusePreventionTest extends TestCase {
         $this->assertCount(1, $test_wp_remote_get_calls);
     }
 
+    public function test_get_representatives_for_postcode_uses_extended_timeout_and_hides_transport_error() {
+        global $test_wp_remote_get_response, $test_wp_remote_get_calls;
+
+        $test_wp_remote_get_response = new WP_Error('Request timed out');
+
+        $method = $this->reflection->getMethod('get_representatives_for_postcode');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->plugin, 'CF10 1AA');
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('Failed to fetch representatives.', $result['message']);
+        $this->assertSame(Find_My_Rep_Plugin::API_REQUEST_TIMEOUT, $test_wp_remote_get_calls[0]['args']['timeout']);
+    }
+
     public function test_configured_representatives_include_only_selected_types() {
         global $test_wp_remote_get_response;
 

@@ -180,6 +180,12 @@ if (!function_exists('wp_remote_retrieve_body')) {
     }
 }
 
+if (!function_exists('wp_parse_url')) {
+    function wp_parse_url($url, $component = -1) {
+        return parse_url($url, $component);
+    }
+}
+
 if (!function_exists('wp_mail')) {
     function wp_mail($to, $subject, $message, $headers = '', $attachments = array()) {
         global $test_wp_mail_calls;
@@ -245,6 +251,10 @@ if (!class_exists('WP_Error')) {
         
         public function get_error_message() {
             return $this->message;
+        }
+
+        public function get_error_code() {
+            return 'test_error';
         }
     }
 }

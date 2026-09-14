@@ -4,7 +4,7 @@
  * Plugin Name: Find My Rep
  * Plugin URI: https://github.com/Bones5/find-my-rep-plugin
  * Description: A WordPress plugin that creates a Gutenberg block for contacting local representatives via templated letters sent through Resend.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Bones5
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('FIND_MY_REP_VERSION', '1.0.2');
+define('FIND_MY_REP_VERSION', '1.0.3');
 define('FIND_MY_REP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('FIND_MY_REP_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -30,6 +30,11 @@ require_once FIND_MY_REP_PLUGIN_DIR . 'includes/class-find-my-rep-email-service.
  */
 class Find_My_Rep_Plugin
 {
+    /**
+     * Timeout for representative API requests in seconds.
+     */
+    const API_REQUEST_TIMEOUT = 15;
+
     /**
      * Maximum number of letter submissions allowed within the rate limit window.
      */
@@ -874,10 +879,20 @@ class Find_My_Rep_Plugin
         // Build request URL safely (avoid double slashes)
         $request_url = rtrim($api_url, '/') . '/' . urlencode($postcode);
 
-        // Make API request to get representatives
-        $response = wp_remote_get($request_url);
+        $request_started_at = microtime(true);
+        $response = wp_remote_get($request_url, array(
+            'timeout' => self::API_REQUEST_TIMEOUT,
+        ));
 
         if (is_wp_error($response)) {
+            error_log(sprintf(
+                '[Find My Rep] Representative API request failed: host=%s code=%s elapsed=%.3fs message=%s',
+                (string) wp_parse_url($request_url, PHP_URL_HOST),
+                $response->get_error_code(),
+                microtime(true) - $request_started_at,
+                $response->get_error_message()
+            ));
+
             return array(
                 'success' => false,
                 'message' => __('Failed to fetch representatives.', 'find-my-rep'),

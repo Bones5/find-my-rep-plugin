@@ -121,6 +121,15 @@ msgstr "Derbynwyr y neges"
 
 #: build/frontend.js
 #, php-format
+msgid "For postcode <strong>%1$s</strong> you have %2$d representative available to contact:"
+msgid_plural "For postcode <strong>%1$s</strong> you have %2$d representatives available to contact:"
+msgstr[0] "Ar gyfer cod post <strong>%1$s</strong>, mae gennych %2$d cynrychiolydd ar gael i gysylltu ag ef:"
+msgstr[1] "Ar gyfer cod post <strong>%1$s</strong>, mae gennych %2$d gynrychiolydd ar gael i gysylltu â nhw:"
+msgstr[2] "Ar gyfer cod post <strong>%1$s</strong>, mae gennych %2$d o gynrychiolwyr ar gael i gysylltu â nhw:"
+msgstr[3] "Ar gyfer cod post <strong>%1$s</strong>, mae gennych %2$d o gynrychiolwyr ar gael i gysylltu â nhw:"
+
+#: build/frontend.js
+#, php-format
 msgid "For postcode %1$s, we will send your message to the following %2$d representative:"
 msgid_plural "For postcode %1$s, we will send your message to the following %2$d representatives:"
 msgstr[0] "Ar gyfer y cod post %1$s, byddwn yn anfon eich neges at y cynrychiolydd canlynol:"
