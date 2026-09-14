@@ -22,6 +22,7 @@ describe("LetterStep Component", () => {
     blockId: "test-block",
     storageKey: "fmr-/test/-0",
     selectedReps: mockSelectedReps,
+    subject: "Protect local services",
     letterTemplate: "Dear {{representative_name}},\n\nTest letter content.",
     questionResponse: "",
     onSend: mockOnSend,
@@ -49,6 +50,9 @@ describe("LetterStep Component", () => {
     expect(screen.getByLabelText(/Your Name:/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Your Email:/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Your Address:/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Subject:/i)).toHaveValue(
+      "Protect local services",
+    );
     expect(
       screen.getByRole("textbox", { name: /Your Name:/i }),
     ).toBeInTheDocument();
@@ -104,7 +108,6 @@ describe("LetterStep Component", () => {
     fireEvent.change(addressInput, {
       target: { value: "10 Test Street\nCardiff\nCF10 1AA" },
     });
-
     const sendButton = screen.getByRole("button", { name: /Send/i });
     fireEvent.click(sendButton);
 
@@ -122,6 +125,7 @@ describe("LetterStep Component", () => {
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
     const addressInput = screen.getByLabelText(/Your Address:/i);
+    const subjectInput = screen.getByLabelText(/Subject:/i);
     const letterTextarea = screen.getByDisplayValue(
       /Dear \[representative's name\]/i,
     );
@@ -130,6 +134,9 @@ describe("LetterStep Component", () => {
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
     fireEvent.change(addressInput, {
       target: { value: "10 Test Street\nCardiff\nCF10 1AA" },
+    });
+    fireEvent.change(screen.getByLabelText(/Subject:/i), {
+      target: { value: "Updated subject" },
     });
     fireEvent.change(letterTextarea, {
       target: { value: "Updated letter content" },
@@ -142,6 +149,7 @@ describe("LetterStep Component", () => {
       "Test User",
       "test@example.com",
       "10 Test Street\nCardiff\nCF10 1AA",
+      "Updated subject",
       "Updated letter content",
       "",
     );
@@ -183,6 +191,7 @@ describe("LetterStep Component", () => {
       "Test User",
       "test@example.com",
       "10 Test Street\nCardiff\nCF10 1AA",
+      "Protect local services",
       expect.any(String),
       "",
     );
@@ -253,6 +262,7 @@ describe("LetterStep Component", () => {
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
     const addressInput = screen.getByLabelText(/Your Address:/i);
+    const subjectInput = screen.getByLabelText(/Subject:/i);
     const letterTextarea = screen.getByDisplayValue(
       /Dear \[representative's name\]/i,
     );
@@ -260,6 +270,7 @@ describe("LetterStep Component", () => {
     expect(nameInput).toBeDisabled();
     expect(emailInput).toBeDisabled();
     expect(addressInput).toBeDisabled();
+    expect(subjectInput).toBeDisabled();
     expect(letterTextarea).toBeDisabled();
   });
 
@@ -269,6 +280,7 @@ describe("LetterStep Component", () => {
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
     const addressInput = screen.getByLabelText(/Your Address:/i);
+    const subjectInput = screen.getByLabelText(/Subject:/i);
     const letterTextarea = screen.getByDisplayValue(
       /Dear \[representative's name\]/i,
     );
@@ -276,6 +288,7 @@ describe("LetterStep Component", () => {
     expect(nameInput).toBeDisabled();
     expect(emailInput).toBeDisabled();
     expect(addressInput).toBeDisabled();
+    expect(subjectInput).toBeDisabled();
     expect(letterTextarea).toBeDisabled();
   });
 
@@ -347,6 +360,7 @@ describe("LetterStep Component", () => {
       "Test User",
       "test@example.com",
       "10 Test Street\nCardiff\nCF10 1AA",
+      "Protect local services",
       "Dear {{representative_name}},\n\nAs {{representative_title}}, please help.",
       "",
     );

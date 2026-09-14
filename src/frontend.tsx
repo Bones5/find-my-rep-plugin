@@ -21,6 +21,7 @@ const initializeApp = () => {
     clearSessionStoragePrefix(storageKey);
     const perBlockTemplate =
       container.getAttribute("data-letter-template") || "";
+    const perBlockSubject = container.getAttribute("data-subject") || "";
     const includeQuestion =
       container.getAttribute("data-include-question") === "true";
     const questionText = container.getAttribute("data-question-text") || "";
@@ -35,6 +36,7 @@ const initializeApp = () => {
         blockId={blockId}
         storageKey={storageKey}
         perBlockTemplate={perBlockTemplate}
+        perBlockSubject={perBlockSubject}
         includeQuestion={includeQuestion}
         questionText={questionText}
         representativeTypes={representativeTypes}

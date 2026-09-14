@@ -7,12 +7,14 @@ interface LetterStepProps {
   blockId: string;
   storageKey: string;
   selectedReps: SelectableRepresentative[];
+  subject: string;
   letterTemplate: string;
   questionResponse: string;
   onSend: (
     senderName: string,
     senderEmail: string,
     senderAddress: string,
+    subject: string,
     letterContent: string,
     honeypot: string,
   ) => void;
@@ -23,6 +25,7 @@ interface LetterStepProps {
 
 export const LetterStep: React.FC<LetterStepProps> = ({
   storageKey,
+  subject,
   letterTemplate,
   questionResponse,
   onSend,
@@ -40,6 +43,8 @@ export const LetterStep: React.FC<LetterStepProps> = ({
   );
   const [senderAddress, setSenderAddress, clearAddress] =
     useSessionStorage<string>(`${storageKey}-address`, "");
+  const [letterSubject, setLetterSubject, clearSubject] =
+    useSessionStorage<string>(`${storageKey}-subject`, subject);
   const representativeNamePlaceholder = __(
     "[representative's name]",
     "find-my-rep",
@@ -86,6 +91,7 @@ export const LetterStep: React.FC<LetterStepProps> = ({
       clearName();
       clearEmail();
       clearAddress();
+      clearSubject();
       clearContent();
     }
     // Intentionally omitting clear* from deps — they are stable refs.
@@ -106,6 +112,7 @@ export const LetterStep: React.FC<LetterStepProps> = ({
       !senderName.trim() ||
       !senderEmail.trim() ||
       !senderAddress.trim() ||
+      !letterSubject.trim() ||
       !letterContent.trim()
     ) {
       // eslint-disable-next-line no-alert
@@ -140,6 +147,7 @@ export const LetterStep: React.FC<LetterStepProps> = ({
       senderName,
       senderEmail,
       senderAddress,
+      letterSubject,
       personalizedContent,
       honeypotValue,
     );
@@ -206,6 +214,19 @@ export const LetterStep: React.FC<LetterStepProps> = ({
           {__("Message content", "find-my-rep")}
         </label>
         <div className="letter-document">
+          <label htmlFor="letter-subject">
+            {__("Subject:", "find-my-rep")}
+          </label>
+          <input
+            type="text"
+            id="letter-subject"
+            className="letter-subject"
+            maxLength={200}
+            value={letterSubject}
+            onChange={(e) => setLetterSubject(e.target.value)}
+            required
+            disabled={loading || !!success}
+          />
           <textarea
             id="letter-content"
             className="letter-content"

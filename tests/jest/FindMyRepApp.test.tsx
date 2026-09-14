@@ -26,6 +26,7 @@ jest.mock("../../src/components/LetterStep", () => ({
       senderName: string,
       senderEmail: string,
       senderAddress: string,
+      subject: string,
       letterContent: string,
       honeypot: string,
     ) => void;
@@ -36,6 +37,7 @@ jest.mock("../../src/components/LetterStep", () => ({
           "Test User",
           "test@example.com",
           "10 Test Street\nCardiff\nCF10 1AA",
+          "Edited subject",
           "Updated letter content",
           "",
         )
@@ -53,6 +55,7 @@ describe("FindMyRepApp", () => {
       ajaxUrl: "/wp-admin/admin-ajax.php",
       nonce: "test-nonce",
       letterTemplate: "Dear {{representative_name}}",
+      subject: "Global subject",
     };
 
     global.fetch = jest
@@ -140,6 +143,7 @@ describe("FindMyRepApp", () => {
     expect(sendRequest.body.get("sender_address")).toBe(
       "10 Test Street\nCardiff\nCF10 1AA",
     );
+    expect(sendRequest.body.get("subject")).toBe("Edited subject");
     expect(sendRequest.body.get("website_url")).toBe("");
     expect(sendRequest.body.get("representative_types")).toBe('["MP"]');
     expect(sendRequest.body.get("representative_types_signature")).toBe(

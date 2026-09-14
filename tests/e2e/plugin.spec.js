@@ -30,6 +30,7 @@ test.describe('Find My Rep Plugin', () => {
     // Check for expected form fields
     await expect(page.locator('input[name="find_my_rep_api_url"]')).toBeVisible();
     await expect(page.locator('input[name="find_my_rep_resend_key"]')).toBeVisible();
+    await expect(page.locator('input[name="find_my_rep_subject"]')).toBeVisible();
     await expect(page.locator('textarea[name="find_my_rep_template"]')).toBeVisible();
   });
 

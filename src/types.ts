@@ -9,10 +9,12 @@ export interface FindMyRepData {
   ajaxUrl: string;
   nonce: string;
   letterTemplate: string;
+  subject: string;
 }
 
 export interface FindMyRepEditorData {
   letterTemplate: string;
+  subject: string;
 }
 
 // =============================================================================
@@ -211,6 +213,7 @@ export interface SuccessData {
 export interface BlockAttributes {
   blockId: string;
   letterTemplate?: string;
+  subject?: string;
   includeQuestion?: boolean;
   questionText?: string;
   representativeTypes?: RepresentativeType[];

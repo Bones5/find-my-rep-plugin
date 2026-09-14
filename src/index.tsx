@@ -58,6 +58,7 @@ function Edit( { attributes, clientId, isSelected, setAttributes }: EditProps ) 
 	const recipientsAreInvalid = representativeTypes.length === 0;
 	const configurationIsInvalid = questionIsInvalid || recipientsAreInvalid;
 	const globalLetterTemplate = window.findMyRepEditorData.letterTemplate;
+	const globalSubject = window.findMyRepEditorData.subject;
 
 	useEffect( () => {
 		if ( ! attributes.blockId ) {
@@ -225,6 +226,27 @@ function Edit( { attributes, clientId, isSelected, setAttributes }: EditProps ) 
 					</VStack>
 				</PanelBody>
 				<PanelBody
+					title={ __( 'Subject', 'find-my-rep' ) }
+					initialOpen={ true }
+				>
+					<VStack spacing={ 4 }>
+						<Text variant="muted">
+							{ __(
+								'Enter the subject visitors will see, or leave this blank to use the global default subject.',
+								'find-my-rep'
+							) }
+						</Text>
+						<TextControl
+							label={ __( 'Subject', 'find-my-rep' ) }
+							hideLabelFromVision
+							placeholder={ globalSubject }
+							value={ attributes.subject || '' }
+							onChange={ ( subject ) => setAttributes( { subject } ) }
+							__nextHasNoMarginBottom
+						/>
+					</VStack>
+				</PanelBody>
+				<PanelBody
 					title={ __( 'Letter Template', 'find-my-rep' ) }
 					initialOpen={ true }
 				>
@@ -274,6 +296,10 @@ registerBlockType< BlockAttributes >( 'find-my-rep/contact-block', {
 			default: '',
 		},
 		letterTemplate: {
+			type: 'string',
+			default: '',
+		},
+		subject: {
 			type: 'string',
 			default: '',
 		},

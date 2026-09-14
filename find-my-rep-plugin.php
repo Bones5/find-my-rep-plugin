@@ -114,7 +114,8 @@ class Find_My_Rep_Plugin
             FIND_MY_REP_PLUGIN_DIR . 'languages'
         );
         wp_localize_script('find-my-rep-block-editor', 'findMyRepEditorData', array(
-            'letterTemplate' => get_option('find_my_rep_letter_template', '')
+            'letterTemplate' => get_option('find_my_rep_letter_template', ''),
+            'subject' => get_option('find_my_rep_subject', __('Letter from constituent', 'find-my-rep'))
         ));
 
         // Register block styles (fallback to src/style.css during dev)
@@ -144,6 +145,10 @@ class Find_My_Rep_Plugin
                     'type' => 'string',
                     'default' => ''
                 ),
+                'subject' => array(
+                    'type' => 'string',
+                    'default' => ''
+                ),
                 'includeQuestion' => array(
                     'type' => 'boolean',
                     'default' => false
@@ -169,6 +174,8 @@ class Find_My_Rep_Plugin
         $block_id = !empty($attributes['blockId']) ? $attributes['blockId'] : 'block-' . uniqid();
         $letter_template = get_option('find_my_rep_letter_template', '');
         $per_block_template = !empty($attributes['letterTemplate']) ? $attributes['letterTemplate'] : '';
+        $subject = get_option('find_my_rep_subject', __('Letter from constituent', 'find-my-rep'));
+        $per_block_subject = !empty($attributes['subject']) ? sanitize_text_field($attributes['subject']) : '';
         $include_question = !empty($attributes['includeQuestion']);
         $question_text = $include_question && !empty($attributes['questionText'])
             ? sanitize_text_field($attributes['questionText'])
@@ -200,13 +207,14 @@ class Find_My_Rep_Plugin
         wp_localize_script('find-my-rep-frontend', 'findMyRepData', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('find_my_rep_nonce'),
-            'letterTemplate' => $letter_template
+            'letterTemplate' => $letter_template,
+            'subject' => $subject
         ));
 
         // Return the container div - React will render the content
         ob_start();
 ?>
-        <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>" data-letter-template="<?php echo esc_attr($per_block_template); ?>" data-include-question="<?php echo $include_question ? 'true' : 'false'; ?>" data-question-text="<?php echo esc_attr($question_text); ?>" data-representative-types="<?php echo esc_attr(wp_json_encode($representative_types)); ?>" data-representative-types-signature="<?php echo esc_attr($representative_types_signature); ?>"></div>
+        <div class="find-my-rep-container" id="<?php echo esc_attr($block_id); ?>" data-letter-template="<?php echo esc_attr($per_block_template); ?>" data-subject="<?php echo esc_attr($per_block_subject); ?>" data-include-question="<?php echo $include_question ? 'true' : 'false'; ?>" data-question-text="<?php echo esc_attr($question_text); ?>" data-representative-types="<?php echo esc_attr(wp_json_encode($representative_types)); ?>" data-representative-types-signature="<?php echo esc_attr($representative_types_signature); ?>"></div>
     <?php
         return ob_get_clean();
     }
@@ -231,6 +239,10 @@ class Find_My_Rep_Plugin
     public function register_settings()
     {
         register_setting('find_my_rep_settings', 'find_my_rep_letter_template');
+        register_setting('find_my_rep_settings', 'find_my_rep_subject', array(
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => __('Letter from constituent', 'find-my-rep'),
+        ));
         register_setting('find_my_rep_settings', 'find_my_rep_resend_api_key');
         register_setting('find_my_rep_settings', 'find_my_rep_from_email', array(
             'sanitize_callback' => 'sanitize_email',
@@ -277,6 +289,14 @@ class Find_My_Rep_Plugin
             'find_my_rep_from_email',
             __('From Email Address', 'find-my-rep'),
             array($this, 'from_email_field_callback'),
+            'find-my-rep-settings',
+            'find_my_rep_main_section'
+        );
+
+        add_settings_field(
+            'find_my_rep_subject',
+            __('Default Subject', 'find-my-rep'),
+            array($this, 'subject_field_callback'),
             'find-my-rep-settings',
             'find_my_rep_main_section'
         );
@@ -411,6 +431,16 @@ class Find_My_Rep_Plugin
     }
 
     /**
+     * Default email subject field callback
+     */
+    public function subject_field_callback()
+    {
+        $value = get_option('find_my_rep_subject', __('Letter from constituent', 'find-my-rep'));
+        echo '<input type="text" name="find_my_rep_subject" value="' . esc_attr($value) . '" class="regular-text" maxlength="200" />';
+        echo '<p class="description">' . esc_html__('The default subject for letters. Individual blocks and visitors can customize it.', 'find-my-rep') . '</p>';
+    }
+
+    /**
      * CC email address field callback
      */
     public function cc_email_field_callback()
@@ -526,6 +556,7 @@ class Find_My_Rep_Plugin
         $sender_name = sanitize_text_field($_POST['sender_name']);
         $sender_email = sanitize_email($_POST['sender_email']);
         $sender_address = isset($_POST['sender_address']) ? sanitize_textarea_field($_POST['sender_address']) : '';
+        $subject = isset($_POST['subject']) ? sanitize_text_field($_POST['subject']) : '';
         $letter_content = sanitize_textarea_field($_POST['letter_content']);
         $question_response = isset($_POST['question_response']) ? sanitize_textarea_field($_POST['question_response']) : '';
         $postcode = isset($_POST['postcode']) ? sanitize_text_field($_POST['postcode']) : '';
@@ -534,7 +565,7 @@ class Find_My_Rep_Plugin
             ? json_decode(stripslashes($_POST['representatives']), true)
             : null;
         $representative_types = $this->get_submitted_representative_types();
-        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot, $question_response, $sender_address);
+        $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot, $question_response, $sender_address, $subject);
 
         if ($validation_message) {
             wp_send_json_error(array('message' => $validation_message));
@@ -589,7 +620,7 @@ class Find_My_Rep_Plugin
             $result = $email_service->send_letter(
                 $sender_email,
                 $rep['email'],
-                __('Letter from constituent', 'find-my-rep'),
+                $subject,
                 $personalized_letter
             );
 
@@ -730,11 +761,12 @@ class Find_My_Rep_Plugin
     * @param string $honeypot Hidden anti-spam field
     * @param string $question_response Optional response to the configured question
     * @param string|null $sender_address Sender postal address when supplied
+    * @param string|null $subject Email subject when supplied
     * @return string Empty string when valid, translated error message when invalid
      */
-    private function validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot = '', $question_response = '', $sender_address = null)
+    private function validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot = '', $question_response = '', $sender_address = null, $subject = null)
     {
-        if (empty($sender_name) || empty($sender_email) || empty($letter_content) || ($sender_address !== null && empty($sender_address))) {
+        if (empty($sender_name) || empty($sender_email) || empty($letter_content) || ($sender_address !== null && empty($sender_address)) || ($subject !== null && empty($subject))) {
             return __('Please fill in all fields.', 'find-my-rep');
         }
 
@@ -758,9 +790,14 @@ class Find_My_Rep_Plugin
             return __('Please shorten your address before sending.', 'find-my-rep');
         }
 
+        if ($subject !== null && strlen($subject) > 200) {
+            return __('Please shorten your subject before sending.', 'find-my-rep');
+        }
+
         if (
             $this->contains_abusive_content($sender_name) ||
             $this->contains_abusive_content($sender_email) ||
+            ($subject !== null && $this->contains_abusive_content($subject)) ||
             $this->contains_abusive_content($letter_content) ||
             $this->contains_abusive_content($question_response) ||
             ($sender_address !== null && $this->contains_abusive_content($sender_address))

@@ -29,6 +29,7 @@ interface FindMyRepAppProps {
   blockId: string;
   storageKey: string;
   perBlockTemplate: string;
+  perBlockSubject?: string;
   includeQuestion?: boolean;
   questionText?: string;
   representativeTypes?: RepresentativeType[];
@@ -39,6 +40,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
   blockId,
   storageKey,
   perBlockTemplate,
+  perBlockSubject = "",
   includeQuestion = false,
   questionText = "",
   representativeTypes = ["MP", "MS", "PCC", "Councillor"],
@@ -83,16 +85,18 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
       sessionStorage.removeItem(`${storageKey}-name`);
       sessionStorage.removeItem(`${storageKey}-email`);
       sessionStorage.removeItem(`${storageKey}-address`);
+      sessionStorage.removeItem(`${storageKey}-subject`);
       sessionStorage.removeItem(`${storageKey}-content`);
     } catch {
       // ignore
     }
   };
 
-  const { ajaxUrl, nonce, letterTemplate } = window.findMyRepData;
+  const { ajaxUrl, nonce, letterTemplate, subject } = window.findMyRepData;
 
   // Use per-block template if available, otherwise use global template
   const effectiveTemplate = perBlockTemplate || letterTemplate;
+  const effectiveSubject = perBlockSubject || subject;
 
   const handleFindReps = async (postcode: string) => {
     setLoading(true);
@@ -190,6 +194,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
     senderName: string,
     senderEmail: string,
     senderAddress: string,
+    letterSubject: string,
     letterContent: string,
     honeypot: string,
   ) => {
@@ -208,6 +213,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
           sender_name: senderName,
           sender_email: senderEmail,
           sender_address: senderAddress,
+          subject: letterSubject,
           letter_content: letterContent,
           postcode,
           question_response: questionResponse,
@@ -307,6 +313,7 @@ export const FindMyRepApp: React.FC<FindMyRepAppProps> = ({
               blockId={blockId}
               storageKey={storageKey}
               selectedReps={selectedReps}
+              subject={effectiveSubject}
               letterTemplate={effectiveTemplate}
               questionResponse={questionResponse}
               onSend={handleSend}

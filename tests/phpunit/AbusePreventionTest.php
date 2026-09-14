@@ -175,6 +175,45 @@ class AbusePreventionTest extends TestCase {
         $this->assertSame('Please fill in all fields.', $result);
     }
 
+    public function test_validate_letter_request_requires_subject_when_submitted_by_ajax() {
+        $method = $this->reflection->getMethod('validate_letter_request');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            'Test User',
+            'test@example.com',
+            'Please support this issue.',
+            '',
+            '',
+            '10 Test Street',
+            ''
+        );
+
+        $this->assertSame('Please fill in all fields.', $result);
+    }
+
+    public function test_validate_letter_request_rejects_abusive_subject() {
+        $method = $this->reflection->getMethod('validate_letter_request');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            $this->plugin,
+            'Test User',
+            'test@example.com',
+            'Please support this issue.',
+            '',
+            '',
+            '10 Test Street',
+            'You should go die'
+        );
+
+        $this->assertSame(
+            'Please remove abusive or threatening language before sending your message.',
+            $result
+        );
+    }
+
     public function test_append_sender_details_adds_name_and_multiline_address_to_letter() {
         $method = $this->reflection->getMethod('append_sender_details');
         $method->setAccessible(true);
