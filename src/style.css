@@ -548,16 +548,10 @@
   border-color: var(--fmr-primary, #005ea2);
 }
 
-.letter-document label {
-  display: block;
-  padding: 0.75rem 1rem 0;
-  font-weight: 600;
-}
-
 .letter-document .letter-subject {
   display: block;
   inline-size: calc(100% - 2rem);
-  margin: 0.25rem 1rem 0.75rem;
+  margin: 0.75rem 1rem;
   padding: 0.5rem 0;
   border: 0;
   border-block-end: 1px solid var(--fmr-border, #767676);

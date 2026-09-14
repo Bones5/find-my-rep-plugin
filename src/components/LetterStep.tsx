@@ -214,8 +214,8 @@ export const LetterStep: React.FC<LetterStepProps> = ({
           {__("Message content", "find-my-rep")}
         </label>
         <div className="letter-document">
-          <label htmlFor="letter-subject">
-            {__("Subject:", "find-my-rep")}
+          <label className="screen-reader-text" htmlFor="letter-subject">
+            {__("Message subject", "find-my-rep")}
           </label>
           <input
             type="text"

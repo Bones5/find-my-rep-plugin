@@ -50,7 +50,7 @@ describe("LetterStep Component", () => {
     expect(screen.getByLabelText(/Your Name:/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Your Email:/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Your Address:/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Subject:/i)).toHaveValue(
+    expect(screen.getByLabelText(/Message subject/i)).toHaveValue(
       "Protect local services",
     );
     expect(
@@ -125,7 +125,7 @@ describe("LetterStep Component", () => {
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
     const addressInput = screen.getByLabelText(/Your Address:/i);
-    const subjectInput = screen.getByLabelText(/Subject:/i);
+    const subjectInput = screen.getByLabelText(/Message subject/i);
     const letterTextarea = screen.getByDisplayValue(
       /Dear \[representative's name\]/i,
     );
@@ -135,7 +135,7 @@ describe("LetterStep Component", () => {
     fireEvent.change(addressInput, {
       target: { value: "10 Test Street\nCardiff\nCF10 1AA" },
     });
-    fireEvent.change(screen.getByLabelText(/Subject:/i), {
+    fireEvent.change(screen.getByLabelText(/Message subject/i), {
       target: { value: "Updated subject" },
     });
     fireEvent.change(letterTextarea, {
@@ -262,7 +262,7 @@ describe("LetterStep Component", () => {
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
     const addressInput = screen.getByLabelText(/Your Address:/i);
-    const subjectInput = screen.getByLabelText(/Subject:/i);
+    const subjectInput = screen.getByLabelText(/Message subject/i);
     const letterTextarea = screen.getByDisplayValue(
       /Dear \[representative's name\]/i,
     );
@@ -280,7 +280,7 @@ describe("LetterStep Component", () => {
     const nameInput = screen.getByLabelText(/Your Name:/i);
     const emailInput = screen.getByLabelText(/Your Email:/i);
     const addressInput = screen.getByLabelText(/Your Address:/i);
-    const subjectInput = screen.getByLabelText(/Subject:/i);
+    const subjectInput = screen.getByLabelText(/Message subject/i);
     const letterTextarea = screen.getByDisplayValue(
       /Dear \[representative's name\]/i,
     );
