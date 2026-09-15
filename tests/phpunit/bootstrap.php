@@ -80,6 +80,36 @@ if (!function_exists('wp_json_encode')) {
     }
 }
 
+if (!function_exists('wp_unslash')) {
+    function wp_unslash($value) {
+        if (is_array($value)) {
+            return array_map('wp_unslash', $value);
+        }
+
+        return stripslashes((string) $value);
+    }
+}
+
+if (!function_exists('check_ajax_referer')) {
+    function check_ajax_referer($action = -1, $query_arg = false, $stop = true) {
+        return true;
+    }
+}
+
+if (!function_exists('wp_send_json_success')) {
+    function wp_send_json_success($value = null, $status_code = null, $flags = 0) {
+        global $test_json_response;
+        $test_json_response = array('success' => true, 'data' => $value);
+    }
+}
+
+if (!function_exists('wp_send_json_error')) {
+    function wp_send_json_error($value = null, $status_code = null, $flags = 0) {
+        global $test_json_response;
+        $test_json_response = array('success' => false, 'data' => $value);
+    }
+}
+
 if (!function_exists('sanitize_text_field')) {
     function sanitize_text_field($text) {
         return trim(preg_replace('/\s+/', ' ', strip_tags((string) $text)));

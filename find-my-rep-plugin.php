@@ -4,7 +4,7 @@
  * Plugin Name: Find My Rep
  * Plugin URI: https://github.com/Bones5/find-my-rep-plugin
  * Description: A WordPress plugin that creates a Gutenberg block for contacting local representatives via templated letters sent through Resend.
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Bones5
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('FIND_MY_REP_VERSION', '1.0.5');
+define('FIND_MY_REP_VERSION', '1.0.6');
 define('FIND_MY_REP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('FIND_MY_REP_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -551,7 +551,7 @@ class Find_My_Rep_Plugin
     {
         check_ajax_referer('find_my_rep_nonce', 'nonce');
 
-        $postcode = sanitize_text_field($_POST['postcode']);
+        $postcode = sanitize_text_field(wp_unslash($_POST['postcode']));
         $representative_types = $this->get_submitted_representative_types();
         if (!$representative_types['success']) {
             wp_send_json_error(array('message' => $representative_types['message']));
@@ -580,16 +580,16 @@ class Find_My_Rep_Plugin
     {
         check_ajax_referer('find_my_rep_nonce', 'nonce');
 
-        $sender_name = sanitize_text_field($_POST['sender_name']);
-        $sender_email = sanitize_email($_POST['sender_email']);
-        $sender_address = isset($_POST['sender_address']) ? sanitize_textarea_field($_POST['sender_address']) : '';
-        $subject = isset($_POST['subject']) ? sanitize_text_field($_POST['subject']) : '';
-        $letter_content = sanitize_textarea_field($_POST['letter_content']);
-        $question_response = isset($_POST['question_response']) ? sanitize_textarea_field($_POST['question_response']) : '';
-        $postcode = isset($_POST['postcode']) ? sanitize_text_field($_POST['postcode']) : '';
-        $honeypot = isset($_POST['website_url']) ? sanitize_text_field($_POST['website_url']) : '';
+        $sender_name = sanitize_text_field(wp_unslash($_POST['sender_name']));
+        $sender_email = sanitize_email(wp_unslash($_POST['sender_email']));
+        $sender_address = isset($_POST['sender_address']) ? sanitize_textarea_field(wp_unslash($_POST['sender_address'])) : '';
+        $subject = isset($_POST['subject']) ? sanitize_text_field(wp_unslash($_POST['subject'])) : '';
+        $letter_content = sanitize_textarea_field(wp_unslash($_POST['letter_content']));
+        $question_response = isset($_POST['question_response']) ? sanitize_textarea_field(wp_unslash($_POST['question_response'])) : '';
+        $postcode = isset($_POST['postcode']) ? sanitize_text_field(wp_unslash($_POST['postcode'])) : '';
+        $honeypot = isset($_POST['website_url']) ? sanitize_text_field(wp_unslash($_POST['website_url'])) : '';
         $submitted_representatives = isset($_POST['representatives'])
-            ? json_decode(stripslashes($_POST['representatives']), true)
+            ? json_decode(wp_unslash($_POST['representatives']), true)
             : null;
         $representative_types = $this->get_submitted_representative_types();
         $validation_message = $this->validate_letter_request($sender_name, $sender_email, $letter_content, $honeypot, $question_response, $sender_address, $subject);
@@ -1158,13 +1158,13 @@ class Find_My_Rep_Plugin
     private function get_submitted_representative_types()
     {
         $submitted_types = isset($_POST['representative_types'])
-            ? json_decode(stripslashes($_POST['representative_types']), true)
+            ? json_decode(wp_unslash($_POST['representative_types']), true)
             : array();
         $types = $this->normalize_representative_types($submitted_types);
         $signature = isset($_POST['representative_types_signature'])
-            ? sanitize_text_field($_POST['representative_types_signature'])
+            ? sanitize_text_field(wp_unslash($_POST['representative_types_signature']))
             : '';
-        $block_id = isset($_POST['block_id']) ? sanitize_text_field($_POST['block_id']) : '';
+        $block_id = isset($_POST['block_id']) ? sanitize_text_field(wp_unslash($_POST['block_id'])) : '';
 
         if (empty($types) || empty($block_id) || !hash_equals($this->sign_representative_types($types, $block_id), $signature)) {
             return array(
